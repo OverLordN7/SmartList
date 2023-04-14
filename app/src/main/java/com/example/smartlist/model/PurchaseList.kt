@@ -1,6 +1,5 @@
 package com.example.smartlist.model
 
-import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
@@ -11,7 +10,9 @@ data class PurchaseList(
     @PrimaryKey val id: Int,
     val name: String,
     val listSize: Int,
-    val date: Date
+    val year: Int,
+    val month: String,
+    val day: Int,
 )
 
 

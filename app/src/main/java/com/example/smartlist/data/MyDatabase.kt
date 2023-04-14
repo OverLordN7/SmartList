@@ -5,10 +5,11 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.smartlist.model.Item
+import com.example.smartlist.model.PurchaseList
 
 @Database(
     entities = [
-        List::class,
+        PurchaseList::class,
         Item::class
     ],
     version = 1,

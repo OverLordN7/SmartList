@@ -10,6 +10,6 @@ class SmartListApplication: Application() {
 
     override fun onCreate() {
         super.onCreate()
-        container = DefaultAppContainer(Application().applicationContext)
+        container = DefaultAppContainer(this)
     }
 }

@@ -9,8 +9,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.smartlist.model.Item
+import com.example.smartlist.model.PurchaseList
 import com.example.smartlist.navigation.Screen
 import com.example.smartlist.ui.screens.*
+import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 
 private const val TAG = "SmartListApp"
@@ -20,9 +24,6 @@ fun SmartListApp(){
 
     val purchaseViewModel: PurchaseViewModel = viewModel(factory = PurchaseViewModel.Factory)
 
-    val context = LocalContext.current
-
-    val coroutineScope = rememberCoroutineScope()
 
 //    LaunchedEffect(key1 = "test"){
 //        coroutineScope.launch {

@@ -8,8 +8,18 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.smartlist.SmartListApplication
 import com.example.smartlist.data.PurchaseRepository
+import com.example.smartlist.model.Item
+import com.example.smartlist.model.PurchaseList
 
 class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): ViewModel() {
+
+    suspend fun getAllLists():List<PurchaseList>{
+        return purchaseRepository.getAllLists()
+    }
+
+    suspend fun getItemsForPurchaseList(listId: Int): List<Item>{
+        return  purchaseRepository.getItems(listId = listId)
+    }
 
 
     companion object{

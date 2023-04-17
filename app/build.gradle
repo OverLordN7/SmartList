@@ -88,4 +88,7 @@ dependencies {
     annotationProcessor "androidx.room:room-compiler:$room_version"
 
     ksp 'androidx.room:room-compiler:2.5.1'
+
+    //extended icons
+    implementation "androidx.compose.material:material-icons-extended:1.4.1"
 }

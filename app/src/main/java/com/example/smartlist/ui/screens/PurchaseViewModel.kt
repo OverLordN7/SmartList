@@ -27,9 +27,10 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
 
     init {
         viewModelScope.launch {
-            insertPurchaseList(list)
-            insertItem(item1)
-            insertItem(item2)
+            //insertPurchaseList(list)
+            //insertItem(item1)
+            //insertItem(item2)
+            getItemsForPurchaseList(listId)
         }
     }
 
@@ -38,7 +39,13 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
     }
 
     suspend fun getItemsForPurchaseList(listId: Int): List<Item>{
-        return  purchaseRepository.getItems(listId = listId)
+        var itemList: List<Item>
+
+        withContext(Dispatchers.IO){
+            itemList = purchaseRepository.getItems(listId = listId)
+        }
+
+        return itemList
     }
 
     suspend fun insertPurchaseList(list: PurchaseList){

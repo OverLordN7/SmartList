@@ -6,9 +6,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.smartlist.model.Item
 import com.example.smartlist.model.PurchaseList
 import com.example.smartlist.navigation.Screen
@@ -66,7 +68,7 @@ fun SmartListApp(){
 
         //Navigate to PurchaseScreen screen
         composable(route = Screen.PurchasesScreen.route){
-            PurchasesScreen()
+            PurchasesScreen(navController)
         }
 
         //Navigate to DishesScreen screen
@@ -77,6 +79,21 @@ fun SmartListApp(){
         //Navigate to GraphScreen screen
         composable(route = Screen.GraphScreen.route){
             GraphScreen()
+        }
+
+        //Navigate to DetailedPurchaseListScreen Screen
+        composable(
+            route = Screen.DetailedPurchaseListScreen.route +"/{list_id}",
+            arguments = listOf(
+                navArgument("list_id"){
+                    type = NavType.StringType
+                    nullable = false
+                },
+            )
+        ){
+            DetailedPurchaseListScreen(
+                listId = it.arguments?.getString("list_id")!!,
+            )
         }
 
 

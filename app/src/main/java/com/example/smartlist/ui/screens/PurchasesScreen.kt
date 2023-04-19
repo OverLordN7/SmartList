@@ -22,6 +22,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.example.smartlist.model.PurchaseList
 import com.example.smartlist.navigation.Screen
+import java.util.*
 
 
 private const val TAG = "PurchasesScreen"
@@ -75,13 +76,13 @@ fun PurchasesScreen(
 @Composable
 fun ResultScreen(
     lists: List<PurchaseList>,
-    onClick: (Int) -> Unit,
+    onClick: (UUID) -> Unit,
 ){
     LazyColumn(){
         items(lists.size){index ->
             ListCard(
                 list = lists[index],
-                onClick = {onClick(lists[index].id)},
+                onClick = { onClick(lists[index].id)},
                 onEdit = {},
                 onDelete = {},
             )
@@ -104,7 +105,10 @@ fun ListCard(
         modifier = modifier
             .padding(8.dp)
             .fillMaxWidth()
-            .clickable { onClick(list.id) }
+            .clickable {
+                //onClick(list.id)
+                //TODO error id was Int but become UUID
+            }
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,

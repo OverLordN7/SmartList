@@ -2,10 +2,11 @@ package com.example.smartlist.data
 
 import com.example.smartlist.model.Item
 import com.example.smartlist.model.PurchaseList
+import java.util.*
 
 interface PurchaseRepository{
 
-    suspend fun getItems(listId: Int): List<Item>
+    suspend fun getItems(listId: UUID): List<Item>
 
     suspend fun insertItem(item: Item)
 
@@ -21,7 +22,7 @@ class DefaultPurchaseRepository(
     private val purchaseListDao: PurchaseListDao,
 ): PurchaseRepository{
 
-    override suspend fun getItems(listId: Int): List<Item> {
+    override suspend fun getItems(listId: UUID): List<Item> {
         return itemDao.getItemsForPurchaseList(listId)
     }
 

@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.Query
 import com.example.smartlist.model.Item
 import com.example.smartlist.model.PurchaseList
+import java.util.UUID
 
 @Dao
 interface PurchaseListDao {
@@ -23,7 +24,7 @@ interface PurchaseListDao {
 @Dao
 interface ItemDao{
     @Query("SELECT * FROM item_table WHERE listId=:listId")
-    fun getItemsForPurchaseList(listId:Int): List<Item>
+    fun getItemsForPurchaseList(listId:UUID): List<Item>
 
     @Insert
     fun insertItem(item:Item)

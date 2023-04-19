@@ -19,6 +19,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
+import java.util.*
 
 private const val TAG = "PurchaseViewModel"
 
@@ -27,27 +28,54 @@ sealed interface PurchaseUiState{
     object Error: PurchaseUiState
     object Loading: PurchaseUiState
 }
+
+sealed interface PurchaseItemUiState{
+    data class Success(var items: List<Item>): PurchaseItemUiState
+
+    object Error: PurchaseItemUiState
+
+    object Loading: PurchaseItemUiState
+}
 class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): ViewModel() {
 
     var purchaseUiState: PurchaseUiState by mutableStateOf(PurchaseUiState.Loading)
 
+    var purchaseItemUiState: PurchaseItemUiState by mutableStateOf(PurchaseItemUiState.Loading)
+
     val date = LocalDate.now()
-    val list = PurchaseList(1,"List 1",0,date.year,date.month.name,date.dayOfMonth)
+    val list = PurchaseList(
+        name = "List 1",
+        listSize = 0,
+        year = date.year,
+        month = date.month.name,
+        day = date.dayOfMonth
+    )
     val listId = list.id
 
-    val item1 = Item(1,"Potato",10f,1500f,10f*1500,listId)
-    val item2 = Item(2,"Onion",2f,800f,2f*800,listId)
+    val item1 = Item(
+        name = "Potato",
+        weight = 10f,
+        price = 1500f,
+        total = 10f*1500,
+        listId = listId
+    )
+    val item2 = Item(
+        name = "Onion",
+        weight = 2f,
+        price = 800f,
+        total = 2f*800,
+        listId = listId
+    )
 
     init {
-        Log.d(TAG,"State before call getPurchasesList() is $purchaseUiState")
-        getPurchaseLists()
-        Log.d(TAG,"State after call getPurchasesList() is $purchaseUiState")
 //        viewModelScope.launch {
-//            //insertPurchaseList(list)
-//            //insertItem(item1)
-//            //insertItem(item2)
-//            getItemsForPurchaseList(listId)
+//            insertPurchaseList(list)
+//            insertItem(item1)
+//            insertItem(item2)
+//            //getItemsForPurchaseList(listId)
 //        }
+        getPurchaseLists()
+
     }
 
     suspend fun getAllLists():List<PurchaseList>{
@@ -58,7 +86,7 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
         return  purchaseList
     }
 
-    suspend fun getItemsForPurchaseList(listId: Int): List<Item>{
+    suspend fun getItemsForPurchaseList(listId: UUID): List<Item>{
         var itemList: List<Item>
 
         withContext(Dispatchers.IO){
@@ -89,6 +117,17 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
             }catch (e: Exception){
                 Log.d(TAG,"State out of getPurchasesList() is $purchaseUiState with exception $e")
                 PurchaseUiState.Error
+            }
+        }
+    }
+
+    fun getItemsOfPurchaseList(listId: UUID){
+        viewModelScope.launch {
+            purchaseItemUiState = PurchaseItemUiState.Loading
+            purchaseItemUiState = try{
+                PurchaseItemUiState.Success(getItemsForPurchaseList(listId))
+            }catch (e: Exception){
+                PurchaseItemUiState.Error
             }
         }
     }

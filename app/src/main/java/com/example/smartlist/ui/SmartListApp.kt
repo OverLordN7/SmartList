@@ -96,6 +96,7 @@ fun SmartListApp(){
         ){
             DetailedPurchaseListScreen(
                 listId = it.arguments?.getString("list_id")!!,
+                purchaseViewModel = purchaseViewModel
             )
         }
 

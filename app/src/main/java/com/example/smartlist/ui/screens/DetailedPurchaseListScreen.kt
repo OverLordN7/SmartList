@@ -22,26 +22,46 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.smartlist.R
+import com.example.smartlist.model.Item
 import com.example.smartlist.model.PurchaseList
+import com.example.smartlist.navigation.Screen
+import java.util.UUID
 
 @Composable
 fun DetailedPurchaseListScreen(
     listId: String,
+    purchaseViewModel: PurchaseViewModel,
     modifier: Modifier = Modifier
 ){
-    LazyColumn(){
-        item{
-            Text(text = "Inside list $listId")
-        }
-        items(50){
-            ItemCard()
+    purchaseViewModel.getItemsOfPurchaseList(listId = UUID.fromString(listId))
+    val state: PurchaseItemUiState = purchaseViewModel.purchaseItemUiState
+
+
+    when(state){
+        is PurchaseItemUiState.Loading ->{}
+        is PurchaseItemUiState.Error ->{}
+        is PurchaseItemUiState.Success ->{
+            ResultItemScreen(itemsOfList = state.items)
         }
     }
 }
 
-@Preview(showBackground = true)
+
+@Composable
+fun ResultItemScreen(
+    itemsOfList: List<Item>
+){
+    LazyColumn(){
+        items(itemsOfList.size){
+            ItemCard(itemsOfList[it])
+        }
+    }
+}
+
+
 @Composable
 fun ItemCard(
+    item: Item,
     onClick: (Int) -> Unit = {},
     onEdit: (Int) -> Unit = {},
     onDelete: (Int) -> Unit = {},
@@ -73,13 +93,13 @@ fun ItemCard(
                 modifier = Modifier.weight(6f).padding(top = 4.dp)
             ) {
                 Text(
-                    text = "Potato",
+                    text = item.name,
                     fontSize = 20.sp,
                     color = Color.Black
                 )
                 Row(horizontalArrangement = Arrangement.SpaceBetween){
                     Text(
-                        text = "28kg",
+                        text = item.weight.toString(),
                         fontSize = 16.sp,
                         color = Color.Gray,
                         modifier = modifier.weight(1f)
@@ -87,7 +107,7 @@ fun ItemCard(
 
                     Spacer(modifier = modifier.weight(0.5f))
                     Text(
-                        text = "20 000 UZS",
+                        text = "${item.price} UZS",
                         fontSize = 16.sp,
                         color = Color.Gray,
                         modifier = modifier.weight(2f)

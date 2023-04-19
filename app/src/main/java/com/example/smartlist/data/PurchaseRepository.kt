@@ -12,6 +12,8 @@ interface PurchaseRepository{
     suspend fun getAllLists(): List<PurchaseList>
 
     fun insertPurchaseList(list: PurchaseList)
+
+    fun deletePurchaseLists()
 }
 
 class DefaultPurchaseRepository(
@@ -33,5 +35,9 @@ class DefaultPurchaseRepository(
 
     override fun insertPurchaseList(list: PurchaseList) {
         purchaseListDao.insertPurchaseList(list)
+    }
+
+    override fun deletePurchaseLists() {
+        purchaseListDao.deleteAllLists()
     }
 }

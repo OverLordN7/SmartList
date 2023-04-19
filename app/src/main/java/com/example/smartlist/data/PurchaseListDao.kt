@@ -14,6 +14,9 @@ interface PurchaseListDao {
     @Insert
     fun insertPurchaseList(list: PurchaseList)
 
+    @Query("DELETE FROM list_table")
+    fun deleteAllLists()
+
     //add other CRUD functions
 }
 

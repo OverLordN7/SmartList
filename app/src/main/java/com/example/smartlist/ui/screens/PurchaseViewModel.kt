@@ -1,6 +1,10 @@
 package com.example.smartlist.ui.screens
 
 
+import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
@@ -16,7 +20,16 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 
+private const val TAG = "PurchaseViewModel"
+
+sealed interface PurchaseUiState{
+    data class Success(var purchaseLists: List<PurchaseList>): PurchaseUiState
+    object Error: PurchaseUiState
+    object Loading: PurchaseUiState
+}
 class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): ViewModel() {
+
+    var purchaseUiState: PurchaseUiState by mutableStateOf(PurchaseUiState.Loading)
 
     val date = LocalDate.now()
     val list = PurchaseList(1,"List 1",0,date.year,date.month.name,date.dayOfMonth)
@@ -26,16 +39,23 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
     val item2 = Item(2,"Onion",2f,800f,2f*800,listId)
 
     init {
-        viewModelScope.launch {
-            //insertPurchaseList(list)
-            //insertItem(item1)
-            //insertItem(item2)
-            getItemsForPurchaseList(listId)
-        }
+        Log.d(TAG,"State before call getPurchasesList() is $purchaseUiState")
+        getPurchaseLists()
+        Log.d(TAG,"State after call getPurchasesList() is $purchaseUiState")
+//        viewModelScope.launch {
+//            //insertPurchaseList(list)
+//            //insertItem(item1)
+//            //insertItem(item2)
+//            getItemsForPurchaseList(listId)
+//        }
     }
 
     suspend fun getAllLists():List<PurchaseList>{
-        return purchaseRepository.getAllLists()
+        var purchaseList: List<PurchaseList>
+        withContext(Dispatchers.IO){
+            purchaseList =  purchaseRepository.getAllLists()
+        }
+        return  purchaseList
     }
 
     suspend fun getItemsForPurchaseList(listId: Int): List<Item>{
@@ -57,6 +77,19 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
     suspend fun insertItem(item: Item){
         withContext(Dispatchers.IO){
             purchaseRepository.insertItem(item)
+        }
+    }
+
+    fun getPurchaseLists(){
+        viewModelScope.launch {
+            purchaseUiState = PurchaseUiState.Loading
+            Log.d(TAG,"State in getPurchasesList() is $purchaseUiState")
+            purchaseUiState = try{
+                PurchaseUiState.Success(getAllLists())
+            }catch (e: Exception){
+                Log.d(TAG,"State out of getPurchasesList() is $purchaseUiState with exception $e")
+                PurchaseUiState.Error
+            }
         }
     }
 

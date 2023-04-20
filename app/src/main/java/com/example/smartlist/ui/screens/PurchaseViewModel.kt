@@ -16,6 +16,7 @@ import com.example.smartlist.data.PurchaseRepository
 import com.example.smartlist.model.Item
 import com.example.smartlist.model.PurchaseList
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
@@ -41,6 +42,10 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
     var purchaseUiState: PurchaseUiState by mutableStateOf(PurchaseUiState.Loading)
 
     var purchaseItemUiState: PurchaseItemUiState by mutableStateOf(PurchaseItemUiState.Loading)
+
+    var currentListId: UUID by mutableStateOf(UUID.randomUUID())
+
+
 
     val date = LocalDate.now()
     val list = PurchaseList(
@@ -87,7 +92,7 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
     }
 
     suspend fun getItemsForPurchaseList(listId: UUID): List<Item>{
-        var itemList: List<Item>
+        var itemList: List<Item> = emptyList()
 
         withContext(Dispatchers.IO){
             itemList = purchaseRepository.getItems(listId = listId)
@@ -108,6 +113,20 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
         }
     }
 
+    suspend fun getListSize(listId: UUID):Int{
+        val listSize: Int
+        withContext(Dispatchers.IO){
+            listSize = purchaseRepository.getListSize(listId)
+        }
+        return listSize
+    }
+
+    suspend fun updateListSize(value: Int, listId: UUID){
+        withContext(Dispatchers.IO){
+            purchaseRepository.updateListSize(value, listId)
+        }
+    }
+
     fun getPurchaseLists(){
         viewModelScope.launch {
             purchaseUiState = PurchaseUiState.Loading
@@ -124,11 +143,34 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
     fun getItemsOfPurchaseList(listId: UUID){
         viewModelScope.launch {
             purchaseItemUiState = PurchaseItemUiState.Loading
+            Log.d(TAG,"State in getItemsOfPurchaseList is $purchaseUiState")
             purchaseItemUiState = try{
                 PurchaseItemUiState.Success(getItemsForPurchaseList(listId))
             }catch (e: Exception){
+                Log.d(TAG,"State in getItemsOfPurchaseList is $purchaseUiState")
                 PurchaseItemUiState.Error
             }
+            delay(1500)
+        }
+    }
+
+    fun insertItemToDb(item: Item){
+        viewModelScope.launch {
+            insertItem(item)
+        }
+    }
+
+    fun getListSizeFromDb(listId: UUID):Int{
+        var listSize: Int = 0
+        viewModelScope.launch {
+            listSize = getListSize(listId = listId)
+        }
+        return listSize
+    }
+
+    fun updateListSizeFromDb(value: Int,listId: UUID){
+        viewModelScope.launch {
+            updateListSizeFromDb(value, listId)
         }
     }
 

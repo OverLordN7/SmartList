@@ -18,6 +18,12 @@ interface PurchaseListDao {
     @Query("DELETE FROM list_table")
     fun deleteAllLists()
 
+    @Query("UPDATE list_table SET listSize=:value WHERE id=:listId")
+    fun updateListSize(value: Int,listId: UUID)
+
+    @Query("SELECT listSize FROM list_table WHERE id=:listId")
+    fun getListSize(listId: UUID): Int
+
     //add other CRUD functions
 }
 

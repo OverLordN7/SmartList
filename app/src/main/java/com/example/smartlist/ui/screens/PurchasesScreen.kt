@@ -65,7 +65,17 @@ fun PurchasesScreen(
                 is PurchaseUiState.Success ->{
                     ResultScreen(
                         lists = state.purchaseLists,
-                        onClick = {navController.navigate(Screen.DetailedPurchaseListScreen.withArgs(it.toString()))}
+                        onClick = {
+                            Log.d(TAG,"Try to navigate")
+                            purchaseViewModel.currentListId = it
+                            purchaseViewModel.getItemsOfPurchaseList(it)
+                            navController
+                                .navigate(
+                                    Screen.DetailedPurchaseListScreen.withArgs(
+                                        it.toString()
+                                    )
+                                )
+                        }
                     )
                 }
             }
@@ -94,7 +104,7 @@ fun ResultScreen(
 @Composable
 fun ListCard(
     list: PurchaseList,
-    onClick: (Int) -> Unit,
+    onClick: (UUID) -> Unit,
     onEdit: (Int) -> Unit,
     onDelete: (Int) -> Unit,
     modifier: Modifier = Modifier
@@ -106,8 +116,7 @@ fun ListCard(
             .padding(8.dp)
             .fillMaxWidth()
             .clickable {
-                //onClick(list.id)
-                //TODO error id was Int but become UUID
+                onClick(list.id)
             }
     ) {
         Row(

@@ -15,6 +15,10 @@ interface PurchaseRepository{
     fun insertPurchaseList(list: PurchaseList)
 
     fun deletePurchaseLists()
+
+    fun updateListSize(value: Int,listId: UUID)
+
+    fun getListSize(listId: UUID):Int
 }
 
 class DefaultPurchaseRepository(
@@ -40,5 +44,13 @@ class DefaultPurchaseRepository(
 
     override fun deletePurchaseLists() {
         purchaseListDao.deleteAllLists()
+    }
+
+    override fun updateListSize(value: Int, listId: UUID) {
+        purchaseListDao.updateListSize(value, listId)
+    }
+
+    override fun getListSize(listId: UUID):Int {
+        return purchaseListDao.getListSize(listId)
     }
 }

@@ -5,22 +5,26 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.Card
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.Text
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import com.example.smartlist.R
 import com.example.smartlist.model.Item
 import com.example.smartlist.model.PurchaseList
@@ -33,15 +37,42 @@ fun DetailedPurchaseListScreen(
     purchaseViewModel: PurchaseViewModel,
     modifier: Modifier = Modifier
 ){
-    purchaseViewModel.getItemsOfPurchaseList(listId = UUID.fromString(listId))
+
+
+    val showDialog = remember { mutableStateOf(false) }
     val state: PurchaseItemUiState = purchaseViewModel.purchaseItemUiState
 
+    if (showDialog.value){
+        NewPurchaseListItemDialog(
+            listId = purchaseViewModel.currentListId,
+            setShowDialog = {showDialog.value = it},
+            onConfirm = {item->
+                //Add item to db
+                purchaseViewModel.insertItemToDb(item)
+//                val id = purchaseViewModel.listId
+//                val listSize = purchaseViewModel.getListSizeFromDb(id)
+//                purchaseViewModel.updateListSizeFromDb(listSize+1,id)
+            }
+        )
+    }
 
-    when(state){
-        is PurchaseItemUiState.Loading ->{}
-        is PurchaseItemUiState.Error ->{}
-        is PurchaseItemUiState.Success ->{
-            ResultItemScreen(itemsOfList = state.items)
+    Scaffold(
+        topBar = {},
+        floatingActionButtonPosition = FabPosition.End,
+        floatingActionButton = {
+            FloatingActionButton(onClick = { showDialog.value = true}) {
+                Icon(imageVector = Icons.Filled.Add, contentDescription = "Add new Item")
+            }
+        }
+    ) { it ->
+        Surface(modifier = modifier.padding(it)) {
+            when(state){
+                is PurchaseItemUiState.Loading ->{}
+                is PurchaseItemUiState.Error ->{}
+                is PurchaseItemUiState.Success ->{
+                    ResultItemScreen(itemsOfList = state.items)
+                }
+            }
         }
     }
 }
@@ -90,7 +121,9 @@ fun ItemCard(
             )
 
             Column(
-                modifier = Modifier.weight(6f).padding(top = 4.dp)
+                modifier = Modifier
+                    .weight(6f)
+                    .padding(top = 4.dp)
             ) {
                 Text(
                     text = item.name,
@@ -99,7 +132,7 @@ fun ItemCard(
                 )
                 Row(horizontalArrangement = Arrangement.SpaceBetween){
                     Text(
-                        text = item.weight.toString(),
+                        text = "${item.weight} Kg",
                         fontSize = 16.sp,
                         color = Color.Gray,
                         modifier = modifier.weight(1f)
@@ -124,6 +157,118 @@ fun ItemCard(
                     }
                     IconButton(onClick = { Toast.makeText(context,"pressed on delete button", Toast.LENGTH_SHORT).show() }) {
                         Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete current list")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun NewPurchaseListItemDialog(
+    listId: UUID,
+    setShowDialog: (Boolean) -> Unit,
+    onConfirm: (Item) -> Unit,
+    modifier: Modifier = Modifier,
+){
+    var fieldValue by remember{ mutableStateOf(TextFieldValue("")) }
+    var weight by remember { mutableStateOf(TextFieldValue("")) }
+    var price by remember { mutableStateOf(TextFieldValue("")) }
+    var totalPrice : Float = 0.0f
+
+
+    Dialog(onDismissRequest = {setShowDialog(false)}) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = Color.White,
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .padding(8.dp)
+            ) {
+                //Header of dialog
+                Text(text = "New Item", color = Color.Black, fontSize = 28.sp)
+                Spacer(modifier = Modifier.height(20.dp))
+
+                OutlinedTextField(
+                    value = fieldValue,
+                    onValueChange = {fieldValue = it},
+                    placeholder = {Text(text = "ex Potato")},
+                    modifier = Modifier.padding(top = 4.dp),
+                    label = {
+                        Text(
+                            text = "Enter new Item name: ",
+                            color = Color.Black,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    },
+                )
+
+                OutlinedTextField(
+                    value = weight,
+                    onValueChange = {weight = it},
+                    placeholder = {Text(text = "ex 10.0")},
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    modifier = Modifier.padding(top = 4.dp),
+                    label = {
+                        Text(
+                            text = "Weight: ",
+                            color = Color.Black,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    },
+                )
+
+                OutlinedTextField(
+                    value = price,
+                    onValueChange = {price = it},
+                    placeholder = {Text(text = "ex 10000")},
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    modifier = Modifier.padding(top = 4.dp),
+                    label = {
+                        Text(
+                            text = "Price: ",
+                            color = Color.Black,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    },
+                )
+
+                //totalPrice = weight.text.toFloat() * price.text.toFloat()
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ){
+                    Button(
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            totalPrice = weight.text.toFloat() * price.text.toFloat()
+                            val tempItem = Item(
+                                name = fieldValue.text,
+                                weight = weight.text.toFloat(),
+                                price = price.text.toFloat(),
+                                total = totalPrice,
+                                listId = listId
+                            )
+                            onConfirm(tempItem)
+                            setShowDialog(false)
+                        }
+                    ) { Text(text = "Confirm") }
+
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    Button(
+                        modifier = Modifier.weight(1f),
+                        onClick = { setShowDialog(false)}
+                    ) {
+                        Text(text = "Cancel")
                     }
                 }
             }

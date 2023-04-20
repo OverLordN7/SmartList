@@ -1,8 +1,7 @@
 package com.example.smartlist.ui.screens
 
-import android.widget.Space
+import android.util.Log
 import android.widget.Toast
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -14,26 +13,41 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
-import com.example.smartlist.R
-import com.example.smartlist.model.Month
 import com.example.smartlist.model.PurchaseList
 import com.example.smartlist.navigation.Screen
+import java.util.*
 
+
+private const val TAG = "PurchasesScreen"
 @Composable
-fun PurchasesScreen(navController: NavController, modifier: Modifier = Modifier){
+fun PurchasesScreen(
+    navController: NavController,
+    purchaseViewModel: PurchaseViewModel,
+    modifier: Modifier = Modifier
+){
+    val context = LocalContext.current
+    val showDialog = remember { mutableStateOf(false) }
+    val state: PurchaseUiState = purchaseViewModel.purchaseUiState
+
+    if (showDialog.value){
+        NewPurchaseListDialog(
+            setShowDialog = {showDialog.value = it},
+            onConfirm = {newListName -> Toast.makeText(context,"New list name is $newListName", Toast.LENGTH_SHORT).show()}
+        )
+    }
+
     Scaffold(
         topBar = {},
         floatingActionButtonPosition = FabPosition.End,
         floatingActionButton = {
-            FloatingActionButton(onClick = { /*TODO*/ }) {
+            FloatingActionButton(onClick = { showDialog.value = true}) {
                 Icon(imageVector = Icons.Filled.Add, contentDescription = "Add new List")
             }
         }
@@ -43,83 +57,54 @@ fun PurchasesScreen(navController: NavController, modifier: Modifier = Modifier)
                 .padding(it)
         ) {
 
-            val lists1 = listOf<PurchaseList>(
-                PurchaseList(
-                    1,
-                    "List 1",
-                    0,
-                    2023,
-                    "APRIL",
-                    20
-                ),
-                PurchaseList(
-                    2,
-                    "List 2",
-                    2,
-                    2023,
-                    "APRIL",
-                    26
-                ),
-                PurchaseList(
-                    3,
-                    "List 2",
-                    3,
-                    2023,
-                    "MAY",
-                    28
-                ),
-                PurchaseList(
-                    4,
-                    "List 4",
-                    2,
-                    2023,
-                    "APRIL",
-                    27
-                ),
-            )
+            Log.d(TAG,"state is: $state")
 
-            val context = LocalContext.current
-
-            LazyColumn(){
-                items(lists1.size){index ->
-                    ListCard(
-                        list = lists1[index],
-                        onClick = {listId->
-                            navController.navigate(Screen.DetailedPurchaseListScreen.withArgs(listId.toString()))},
-                        onEdit = {},
-                        onDelete = {},
+            when(state){
+                is PurchaseUiState.Loading ->{}
+                is PurchaseUiState.Error ->{}
+                is PurchaseUiState.Success ->{
+                    ResultScreen(
+                        lists = state.purchaseLists,
+                        onClick = {
+                            Log.d(TAG,"Try to navigate")
+                            purchaseViewModel.currentListId = it
+                            purchaseViewModel.getItemsOfPurchaseList(it)
+                            navController
+                                .navigate(
+                                    Screen.DetailedPurchaseListScreen.withArgs(
+                                        it.toString()
+                                    )
+                                )
+                        }
                     )
                 }
             }
-
         }
     }
 }
 
 @Composable
-fun MonthScreen(lists: List<PurchaseList>,modifier: Modifier = Modifier){
+fun ResultScreen(
+    lists: List<PurchaseList>,
+    onClick: (UUID) -> Unit,
+){
     LazyColumn(){
-        items(1){
-            MonthCard(month = Month.JANUARY.name, lists = filterLists(lists,Month.JANUARY.name))
-            MonthCard(month = Month.FEBRUARY.name, lists = filterLists(lists,Month.FEBRUARY.name))
-            MonthCard(month = Month.MARCH.name, lists = filterLists(lists,Month.MARCH.name))
-            MonthCard(month = Month.APRIL.name, lists = filterLists(lists,Month.APRIL.name))
-            MonthCard(month = Month.MAY.name, lists = filterLists(lists,Month.MAY.name))
-            MonthCard(month = Month.JUNE.name, lists = filterLists(lists,Month.JUNE.name))
-            MonthCard(month = Month.JULY.name, lists = filterLists(lists,Month.JULY.name))
-            MonthCard(month = Month.AUGUST.name, lists = filterLists(lists,Month.AUGUST.name))
-            MonthCard(month = Month.SEPTEMBER.name, lists = filterLists(lists,Month.SEPTEMBER.name))
-            MonthCard(month = Month.OCTOBER.name, lists = filterLists(lists,Month.OCTOBER.name))
-            MonthCard(month = Month.NOVEMBER.name, lists = filterLists(lists,Month.NOVEMBER.name))
-            MonthCard(month = Month.DECEMBER.name, lists = filterLists(lists,Month.DECEMBER.name))
+        items(lists.size){index ->
+            ListCard(
+                list = lists[index],
+                onClick = { onClick(lists[index].id)},
+                onEdit = {},
+                onDelete = {},
+            )
         }
     }
 }
+
 
 @Composable
 fun ListCard(
     list: PurchaseList,
-    onClick: (Int) -> Unit,
+    onClick: (UUID) -> Unit,
     onEdit: (Int) -> Unit,
     onDelete: (Int) -> Unit,
     modifier: Modifier = Modifier
@@ -130,7 +115,9 @@ fun ListCard(
         modifier = modifier
             .padding(8.dp)
             .fillMaxWidth()
-            .clickable {onClick(list.id)}
+            .clickable {
+                onClick(list.id)
+            }
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -169,95 +156,61 @@ fun ListCard(
 }
 
 @Composable
-fun MonthCard(
-    month: String,
-    lists: List<PurchaseList>,
-    modifier: Modifier = Modifier)
-{
-    var isExpanded by remember { mutableStateOf(false) } //if section contain lists
-    var expandHeight by remember { mutableStateOf(50) }
-    val context = LocalContext.current
-    Card(
-        backgroundColor = Color.Gray,
-        shape = RoundedCornerShape(0.dp),
-        modifier = modifier
-            .fillMaxWidth()
-            .height(expandHeight.dp)
-    ) {
-        Column() {
-            Row(
-                horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(4.dp)
+fun NewPurchaseListDialog(
+    setShowDialog: (Boolean) -> Unit,
+    onConfirm: (String) -> Unit,
+    modifier: Modifier = Modifier,
+){
+    var fieldValue by remember{ mutableStateOf(TextFieldValue("")) }
+
+
+    Dialog(onDismissRequest = {setShowDialog(false)}) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = Color.White,
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .padding(8.dp)
             ) {
-                Text(
-                    text = month,
-                    fontSize = 24.sp,
-                    color = Color.Black,
-                    modifier = Modifier.weight(3.5f)
+                OutlinedTextField(
+                    value = fieldValue,
+                    onValueChange = {fieldValue = it},
+                    placeholder = {Text(text = "ex Market list 1")},
+                    label = {
+                        Text(
+                            text = "Enter new list name: ",
+                            color = Color.Black,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    },
                 )
-                Spacer(modifier = Modifier.weight(4.5f))
 
-                IconButton(onClick = {
-                    if (!isExpanded){
-                        expandHeight = 200
-                        isExpanded = true
-                    } else{
-                        expandHeight = 50
-                        isExpanded = false
-                    }
-                }) {
-                    MonthCardExpandButton(lists, isExpanded)
-                }
-
-            }
-
-            if (isExpanded){
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                ) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.background(Color.White)
-                    ) {
-                        LazyColumn(){
-                            items(lists.size){index->
-                                ListCard(
-                                    list = lists[index],
-                                    onClick = {},
-                                    onEdit = {},
-                                    onDelete = {},
-                                )
-                            }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ){
+                    Button(
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            //TODO text-> PurchaseList
+                            onConfirm(fieldValue.text)
+                            setShowDialog(false)
                         }
+                    ) { Text(text = "Confirm") }
+
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    Button(
+                        modifier = Modifier.weight(1f),
+                        onClick = { setShowDialog(false)}
+                    ) {
+                        Text(text = "Cancel")
                     }
                 }
             }
         }
     }
-}
-
-@Composable
-fun MonthCardExpandButton(lists: List<PurchaseList>, isExpanded: Boolean){
-    return if (lists.isEmpty()){
-        Spacer(modifier = Modifier.size(20.dp))
-    }else{
-        Icon(
-            imageVector = if(!isExpanded) Icons.Default.ExpandMore else Icons.Default.ExpandLess,
-            contentDescription = if(!isExpanded) "Expand more" else "Expand less"
-        )
-    }
-}
-
-fun filterLists(lists: List<PurchaseList>, filterValue: String): List<PurchaseList>{
-    var temp = emptyList<PurchaseList>()
-    lists.forEach {
-        if (it.month == filterValue){
-            temp = temp + it
-        }
-    }
-    return temp
 }

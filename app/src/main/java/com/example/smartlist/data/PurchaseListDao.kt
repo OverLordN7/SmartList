@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.Query
 import com.example.smartlist.model.Item
 import com.example.smartlist.model.PurchaseList
+import java.util.UUID
 
 @Dao
 interface PurchaseListDao {
@@ -14,13 +15,22 @@ interface PurchaseListDao {
     @Insert
     fun insertPurchaseList(list: PurchaseList)
 
+    @Query("DELETE FROM list_table")
+    fun deleteAllLists()
+
+    @Query("UPDATE list_table SET listSize=:value WHERE id=:listId")
+    fun updateListSize(value: Int,listId: UUID)
+
+    @Query("SELECT listSize FROM list_table WHERE id=:listId")
+    fun getListSize(listId: UUID): Int
+
     //add other CRUD functions
 }
 
 @Dao
 interface ItemDao{
     @Query("SELECT * FROM item_table WHERE listId=:listId")
-    fun getItemsForPurchaseList(listId:Int): List<Item>
+    fun getItemsForPurchaseList(listId:UUID): List<Item>
 
     @Insert
     fun insertItem(item:Item)

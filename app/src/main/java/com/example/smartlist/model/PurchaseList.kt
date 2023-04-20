@@ -4,10 +4,11 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 import java.sql.Date
+import java.util.UUID
 
 @Entity(tableName = "list_table")
 data class PurchaseList(
-    @PrimaryKey val id: Int,
+    @PrimaryKey val id: UUID = UUID.randomUUID(),
     val name: String,
     val listSize: Int,
     val year: Int,
@@ -24,10 +25,10 @@ data class PurchaseList(
             onDelete = ForeignKey.CASCADE)]
 )
 data class Item(
-    @PrimaryKey(autoGenerate = true) val id: Int,
+    @PrimaryKey val id: UUID = UUID.randomUUID(),
     val name: String,
     val weight: Float,
     val price : Float,
     val total: Float,
-    val listId: Int, //foreign key to purchase list
+    val listId: UUID, //foreign key to purchase list
 )

@@ -68,7 +68,10 @@ fun SmartListApp(){
 
         //Navigate to PurchaseScreen screen
         composable(route = Screen.PurchasesScreen.route){
-            PurchasesScreen(navController)
+            PurchasesScreen(
+                navController = navController,
+                purchaseViewModel = purchaseViewModel
+            )
         }
 
         //Navigate to DishesScreen screen
@@ -93,6 +96,7 @@ fun SmartListApp(){
         ){
             DetailedPurchaseListScreen(
                 listId = it.arguments?.getString("list_id")!!,
+                purchaseViewModel = purchaseViewModel
             )
         }
 

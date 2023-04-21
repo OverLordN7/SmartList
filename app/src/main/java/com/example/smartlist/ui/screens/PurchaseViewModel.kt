@@ -69,9 +69,15 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
         return itemList
     }
 
-    suspend fun insertPurchaseList(list: PurchaseList){
+    private suspend fun insertPurchaseList(list: PurchaseList){
         withContext(Dispatchers.IO){
             purchaseRepository.insertPurchaseList(list)
+        }
+    }
+
+    fun insertNewPurchaseList(list: PurchaseList){
+        viewModelScope.launch {
+            insertPurchaseList(list)
         }
     }
 

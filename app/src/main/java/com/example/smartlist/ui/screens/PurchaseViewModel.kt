@@ -45,45 +45,13 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
 
     var currentListId: UUID by mutableStateOf(UUID.randomUUID())
 
-
-
-    val date = LocalDate.now()
-    val list = PurchaseList(
-        name = "List 1",
-        listSize = 0,
-        year = date.year,
-        month = date.month.name,
-        day = date.dayOfMonth
-    )
-    val listId = list.id
-
-    val item1 = Item(
-        name = "Potato",
-        weight = 10f,
-        price = 1500f,
-        total = 10f*1500,
-        listId = listId
-    )
-    val item2 = Item(
-        name = "Onion",
-        weight = 2f,
-        price = 800f,
-        total = 2f*800,
-        listId = listId
-    )
+    var currentListSize: Int by mutableStateOf(0)
 
     init {
-//        viewModelScope.launch {
-//            insertPurchaseList(list)
-//            insertItem(item1)
-//            insertItem(item2)
-//            //getItemsForPurchaseList(listId)
-//        }
         getPurchaseLists()
-
     }
 
-    suspend fun getAllLists():List<PurchaseList>{
+    private suspend fun getAllLists():List<PurchaseList>{
         var purchaseList: List<PurchaseList>
         withContext(Dispatchers.IO){
             purchaseList =  purchaseRepository.getAllLists()
@@ -101,9 +69,15 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
         return itemList
     }
 
-    suspend fun insertPurchaseList(list: PurchaseList){
+    private suspend fun insertPurchaseList(list: PurchaseList){
         withContext(Dispatchers.IO){
             purchaseRepository.insertPurchaseList(list)
+        }
+    }
+
+    fun insertNewPurchaseList(list: PurchaseList){
+        viewModelScope.launch {
+            insertPurchaseList(list)
         }
     }
 
@@ -113,18 +87,33 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
         }
     }
 
-    suspend fun getListSize(listId: UUID):Int{
-        val listSize: Int
-        withContext(Dispatchers.IO){
-            listSize = purchaseRepository.getListSize(listId)
+    suspend fun parseListSize(listId: UUID):Int{
+        return withContext(Dispatchers.IO){
+            purchaseRepository.getListSize(listId)
         }
-        return listSize
     }
 
-    suspend fun updateListSize(value: Int, listId: UUID){
+    fun getListSize(id: UUID){
+        viewModelScope.launch {
+            currentListSize = parseListSize(id)
+        }
+    }
+
+    private suspend fun updateListSize(value: Int, listId: UUID){
         withContext(Dispatchers.IO){
             purchaseRepository.updateListSize(value, listId)
         }
+    }
+
+    private fun updateListSizeFromDb(value: Int, listId: UUID){
+        viewModelScope.launch {
+            updateListSize(value, listId)
+        }
+    }
+
+    fun updateItemInfo(item: Item, id: UUID){
+        insertItemToDb(item)
+        updateListSizeFromDb(currentListSize+1,id)
     }
 
     fun getPurchaseLists(){
@@ -159,21 +148,6 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
             insertItem(item)
         }
     }
-
-    fun getListSizeFromDb(listId: UUID):Int{
-        var listSize: Int = 0
-        viewModelScope.launch {
-            listSize = getListSize(listId = listId)
-        }
-        return listSize
-    }
-
-    fun updateListSizeFromDb(value: Int,listId: UUID){
-        viewModelScope.launch {
-            updateListSizeFromDb(value, listId)
-        }
-    }
-
 
     companion object{
         val Factory: ViewModelProvider.Factory = viewModelFactory {

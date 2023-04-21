@@ -1,5 +1,6 @@
 package com.example.smartlist.ui.screens
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -18,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
@@ -31,14 +33,14 @@ import com.example.smartlist.model.PurchaseList
 import com.example.smartlist.navigation.Screen
 import java.util.UUID
 
+private const val TAG = "DetailedPurchaseListScreen"
 @Composable
 fun DetailedPurchaseListScreen(
     listId: String,
     purchaseViewModel: PurchaseViewModel,
+    onSubmit: (Item,UUID) -> Unit,
     modifier: Modifier = Modifier
 ){
-
-
     val showDialog = remember { mutableStateOf(false) }
     val state: PurchaseItemUiState = purchaseViewModel.purchaseItemUiState
 
@@ -47,11 +49,8 @@ fun DetailedPurchaseListScreen(
             listId = purchaseViewModel.currentListId,
             setShowDialog = {showDialog.value = it},
             onConfirm = {item->
-                //Add item to db
-                purchaseViewModel.insertItemToDb(item)
-//                val id = purchaseViewModel.listId
-//                val listSize = purchaseViewModel.getListSizeFromDb(id)
-//                purchaseViewModel.updateListSizeFromDb(listSize+1,id)
+                //Submit newly created item to DB using callback of ViewModel
+                onSubmit(item, UUID.fromString(listId))
             }
         )
     }
@@ -82,13 +81,35 @@ fun DetailedPurchaseListScreen(
 fun ResultItemScreen(
     itemsOfList: List<Item>
 ){
-    LazyColumn(){
-        items(itemsOfList.size){
-            ItemCard(itemsOfList[it])
+    if (itemsOfList.isEmpty()){
+        EmptyCard()
+    }else{
+        LazyColumn(){
+            items(itemsOfList.size){
+                ItemCard(itemsOfList[it])
+            }
         }
     }
 }
 
+@Composable
+fun EmptyCard(modifier: Modifier= Modifier){
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier.fillMaxSize(),
+    ) {
+        Column {
+            Text(
+                text = "No items to display",
+                color = Color.Black
+            )
+            Text(
+                text = "Try to use + button",
+                color = Color.Black
+            )
+        }
+    }
+}
 
 @Composable
 fun ItemCard(

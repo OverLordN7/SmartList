@@ -70,7 +70,9 @@ fun SmartListApp(){
         composable(route = Screen.PurchasesScreen.route){
             PurchasesScreen(
                 navController = navController,
-                purchaseViewModel = purchaseViewModel
+                purchaseViewModel = purchaseViewModel,
+                onSubmit = purchaseViewModel::insertNewPurchaseList,
+                onRefresh = purchaseViewModel::getPurchaseLists
             )
         }
 
@@ -96,7 +98,8 @@ fun SmartListApp(){
         ){
             DetailedPurchaseListScreen(
                 listId = it.arguments?.getString("list_id")!!,
-                purchaseViewModel = purchaseViewModel
+                purchaseViewModel = purchaseViewModel,
+                onSubmit = purchaseViewModel::updateItemInfo
             )
         }
 

@@ -14,14 +14,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
+import com.example.smartlist.R
 import com.example.smartlist.model.PurchaseList
 import com.example.smartlist.navigation.Screen
+import java.time.LocalDate
 import java.util.*
 
 
@@ -30,6 +33,8 @@ private const val TAG = "PurchasesScreen"
 fun PurchasesScreen(
     navController: NavController,
     purchaseViewModel: PurchaseViewModel,
+    onSubmit: (PurchaseList) -> Unit,
+    onRefresh: () -> Unit,
     modifier: Modifier = Modifier
 ){
     val context = LocalContext.current
@@ -39,12 +44,14 @@ fun PurchasesScreen(
     if (showDialog.value){
         NewPurchaseListDialog(
             setShowDialog = {showDialog.value = it},
-            onConfirm = {newListName -> Toast.makeText(context,"New list name is $newListName", Toast.LENGTH_SHORT).show()}
+            onConfirm = {newPurchaseList ->
+                onSubmit(newPurchaseList)
+            }
         )
     }
 
     Scaffold(
-        topBar = {},
+        topBar = {AppBar(onRefresh)},
         floatingActionButtonPosition = FabPosition.End,
         floatingActionButton = {
             FloatingActionButton(onClick = { showDialog.value = true}) {
@@ -69,6 +76,7 @@ fun PurchasesScreen(
                             Log.d(TAG,"Try to navigate")
                             purchaseViewModel.currentListId = it
                             purchaseViewModel.getItemsOfPurchaseList(it)
+                            purchaseViewModel.getListSize(it)
                             navController
                                 .navigate(
                                     Screen.DetailedPurchaseListScreen.withArgs(
@@ -158,7 +166,7 @@ fun ListCard(
 @Composable
 fun NewPurchaseListDialog(
     setShowDialog: (Boolean) -> Unit,
-    onConfirm: (String) -> Unit,
+    onConfirm: (PurchaseList) -> Unit,
     modifier: Modifier = Modifier,
 ){
     var fieldValue by remember{ mutableStateOf(TextFieldValue("")) }
@@ -195,8 +203,15 @@ fun NewPurchaseListDialog(
                     Button(
                         modifier = Modifier.weight(1f),
                         onClick = {
-                            //TODO text-> PurchaseList
-                            onConfirm(fieldValue.text)
+                            val date = LocalDate.now()
+                            val list = PurchaseList(
+                                name = fieldValue.text,
+                                listSize = 0,
+                                year = date.year,
+                                month = date.month.name,
+                                day = date.dayOfMonth
+                            )
+                            onConfirm(list)
                             setShowDialog(false)
                         }
                     ) { Text(text = "Confirm") }
@@ -213,4 +228,16 @@ fun NewPurchaseListDialog(
             }
         }
     }
+}
+
+@Composable
+fun AppBar(retryAction: () -> Unit) {
+    TopAppBar(
+        title = { Text(text = stringResource(id = R.string.app_name)) },
+        actions = {
+            IconButton(onClick = retryAction) {
+                Icon(Icons.Default.Refresh, "Refresh")
+            }
+        }
+    )
 }

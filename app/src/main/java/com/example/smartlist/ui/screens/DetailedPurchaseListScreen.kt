@@ -1,5 +1,6 @@
 package com.example.smartlist.ui.screens
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -31,6 +32,7 @@ import com.example.smartlist.model.PurchaseList
 import com.example.smartlist.navigation.Screen
 import java.util.UUID
 
+private const val TAG = "DetailedPurchaseListScreen"
 @Composable
 fun DetailedPurchaseListScreen(
     listId: String,
@@ -48,9 +50,11 @@ fun DetailedPurchaseListScreen(
             setShowDialog = {showDialog.value = it},
             onConfirm = {item->
                 //Add item to db
-                purchaseViewModel.insertItemToDb(item)
-//                val id = purchaseViewModel.listId
-//                val listSize = purchaseViewModel.getListSizeFromDb(id)
+                //purchaseViewModel.insertItemToDb(item)
+                val id = UUID.fromString(listId)
+                Log.d(TAG,"id of list is: $id")
+                val listSize = purchaseViewModel.getListSize(id)
+                Log.d(TAG,"listSize is: $listSize")
 //                purchaseViewModel.updateListSizeFromDb(listSize+1,id)
             }
         )

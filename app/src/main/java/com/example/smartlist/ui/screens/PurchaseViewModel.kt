@@ -113,11 +113,16 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
         }
     }
 
-    suspend fun getListSize(listId: UUID):Int{
-        val listSize: Int
-        withContext(Dispatchers.IO){
-            listSize = purchaseRepository.getListSize(listId)
+    fun getListSize(listId: UUID):Int{
+        var listSize: Int = 0
+        Log.d(TAG,"init value of $listSize")
+        viewModelScope.launch {
+            withContext(Dispatchers.IO){
+                listSize = purchaseRepository.getListSize(listId)
+                Log.d(TAG,"temp value of $listSize")
+            }
         }
+        Log.d(TAG,"final value of $listSize")
         return listSize
     }
 
@@ -158,14 +163,6 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
         viewModelScope.launch {
             insertItem(item)
         }
-    }
-
-    fun getListSizeFromDb(listId: UUID):Int{
-        var listSize: Int = 0
-        viewModelScope.launch {
-            listSize = getListSize(listId = listId)
-        }
-        return listSize
     }
 
     fun updateListSizeFromDb(value: Int,listId: UUID){

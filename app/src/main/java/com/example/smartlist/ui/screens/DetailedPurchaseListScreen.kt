@@ -37,10 +37,9 @@ private const val TAG = "DetailedPurchaseListScreen"
 fun DetailedPurchaseListScreen(
     listId: String,
     purchaseViewModel: PurchaseViewModel,
+    onSubmit: (Item,UUID) -> Unit,
     modifier: Modifier = Modifier
 ){
-
-
     val showDialog = remember { mutableStateOf(false) }
     val state: PurchaseItemUiState = purchaseViewModel.purchaseItemUiState
 
@@ -49,13 +48,8 @@ fun DetailedPurchaseListScreen(
             listId = purchaseViewModel.currentListId,
             setShowDialog = {showDialog.value = it},
             onConfirm = {item->
-                //Add item to db
-                //purchaseViewModel.insertItemToDb(item)
-                val id = UUID.fromString(listId)
-                Log.d(TAG,"id of list is: $id")
-                val listSize = purchaseViewModel.getListSize(id)
-                Log.d(TAG,"listSize is: $listSize")
-//                purchaseViewModel.updateListSizeFromDb(listSize+1,id)
+                //Submit newly created item to DB using callback of ViewModel
+                onSubmit(item, UUID.fromString(listId))
             }
         )
     }

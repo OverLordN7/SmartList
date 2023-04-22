@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,6 +40,7 @@ fun DetailedPurchaseListScreen(
     listId: String,
     purchaseViewModel: PurchaseViewModel,
     onSubmit: (Item,UUID) -> Unit,
+    onRefresh: (UUID)->Unit,
     modifier: Modifier = Modifier
 ){
     val showDialog = remember { mutableStateOf(false) }
@@ -56,7 +58,14 @@ fun DetailedPurchaseListScreen(
     }
 
     Scaffold(
-        topBar = {},
+        topBar = {
+            AppBarItem(
+                retryAction = {
+                    val id = UUID.fromString(listId)
+                    onRefresh(id)
+                }
+            )
+                 },
         floatingActionButtonPosition = FabPosition.End,
         floatingActionButton = {
             FloatingActionButton(onClick = { showDialog.value = true}) {
@@ -295,4 +304,16 @@ fun NewPurchaseListItemDialog(
             }
         }
     }
+}
+
+@Composable
+fun AppBarItem(retryAction: () -> Unit) {
+    TopAppBar(
+        title = { Text(text = stringResource(id = R.string.app_name)) },
+        actions = {
+            IconButton(onClick = retryAction) {
+                Icon(Icons.Default.Refresh, "Refresh")
+            }
+        }
+    )
 }

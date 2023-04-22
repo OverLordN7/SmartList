@@ -99,7 +99,8 @@ fun SmartListApp(){
             DetailedPurchaseListScreen(
                 listId = it.arguments?.getString("list_id")!!,
                 purchaseViewModel = purchaseViewModel,
-                onSubmit = purchaseViewModel::updateItemInfo
+                onSubmit = purchaseViewModel::updateItemInfo,
+                onRefresh = purchaseViewModel::getItemsOfPurchaseList
             )
         }
 

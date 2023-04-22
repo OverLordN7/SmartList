@@ -35,5 +35,8 @@ interface ItemDao{
     @Insert
     fun insertItem(item:Item)
 
+    @Query("DELETE FROM item_table WHERE id = CAST(:id AS BLOB)")
+    fun deleteItem(id: UUID)
+
     //add other CRUD functions
 }

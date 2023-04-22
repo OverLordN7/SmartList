@@ -87,6 +87,18 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
         }
     }
 
+    suspend fun deleteItem(id: UUID){
+        withContext(Dispatchers.IO){
+            purchaseRepository.deleteItem(id)
+        }
+    }
+
+    fun deleteItemFromDb(id: UUID){
+        viewModelScope.launch {
+            deleteItem(id)
+        }
+    }
+
     suspend fun parseListSize(listId: UUID):Int{
         return withContext(Dispatchers.IO){
             purchaseRepository.getListSize(listId)

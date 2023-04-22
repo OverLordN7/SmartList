@@ -41,6 +41,7 @@ fun DetailedPurchaseListScreen(
     purchaseViewModel: PurchaseViewModel,
     onSubmit: (Item,UUID) -> Unit,
     onRefresh: (UUID)->Unit,
+    onDelete: (UUID) -> Unit,
     modifier: Modifier = Modifier
 ){
     val showDialog = remember { mutableStateOf(false) }
@@ -78,7 +79,13 @@ fun DetailedPurchaseListScreen(
                 is PurchaseItemUiState.Loading ->{}
                 is PurchaseItemUiState.Error ->{}
                 is PurchaseItemUiState.Success ->{
-                    ResultItemScreen(itemsOfList = state.items)
+                    ResultItemScreen(
+                        itemsOfList = state.items,
+                        onDelete = {id->
+                            onDelete(id)
+                            onRefresh(UUID.fromString(listId))
+                        }
+                    )
                 }
             }
         }
@@ -88,14 +95,20 @@ fun DetailedPurchaseListScreen(
 
 @Composable
 fun ResultItemScreen(
-    itemsOfList: List<Item>
+    itemsOfList: List<Item>,
+    onDelete: (UUID) -> Unit,
 ){
     if (itemsOfList.isEmpty()){
         EmptyCard()
     }else{
         LazyColumn(){
             items(itemsOfList.size){
-                ItemCard(itemsOfList[it])
+                ItemCard(
+                    item = itemsOfList[it],
+                    onDelete = {id->
+                        onDelete(id)
+                    }
+                )
             }
         }
     }
@@ -125,7 +138,7 @@ fun ItemCard(
     item: Item,
     onClick: (Int) -> Unit = {},
     onEdit: (Int) -> Unit = {},
-    onDelete: (Int) -> Unit = {},
+    onDelete: (UUID) -> Unit = {},
     modifier: Modifier = Modifier
 ){
     val context = LocalContext.current
@@ -185,7 +198,10 @@ fun ItemCard(
                     IconButton(onClick = { Toast.makeText(context,"pressed on edit button", Toast.LENGTH_SHORT).show() }) {
                         Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit current list")
                     }
-                    IconButton(onClick = { Toast.makeText(context,"pressed on delete button", Toast.LENGTH_SHORT).show() }) {
+                    IconButton(onClick = {
+                        Toast.makeText(context,"Deleting item...", Toast.LENGTH_SHORT).show()
+                        onDelete(item.id)
+                    }) {
                         Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete current list")
                     }
                 }

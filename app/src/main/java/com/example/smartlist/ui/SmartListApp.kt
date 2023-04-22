@@ -100,7 +100,8 @@ fun SmartListApp(){
                 listId = it.arguments?.getString("list_id")!!,
                 purchaseViewModel = purchaseViewModel,
                 onSubmit = purchaseViewModel::updateItemInfo,
-                onRefresh = purchaseViewModel::getItemsOfPurchaseList
+                onRefresh = purchaseViewModel::getItemsOfPurchaseList,
+                onDelete = purchaseViewModel::deleteItemFromDb
             )
         }
 

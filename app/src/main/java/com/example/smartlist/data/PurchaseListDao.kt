@@ -24,6 +24,9 @@ interface PurchaseListDao {
     @Query("SELECT listSize FROM list_table WHERE id=CAST(:listId AS BLOB)")
     fun getListSize(listId: UUID): Int
 
+    @Query("SELECT name FROM list_table WHERE id=CAST(:listId AS BLOB)")
+    fun getListName(listId: UUID): String
+
     //add other CRUD functions
 }
 
@@ -34,6 +37,9 @@ interface ItemDao{
 
     @Insert
     fun insertItem(item:Item)
+
+    @Query("DELETE FROM item_table WHERE id = CAST(:id AS BLOB)")
+    fun deleteItem(id: UUID)
 
     //add other CRUD functions
 }

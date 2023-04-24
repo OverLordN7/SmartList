@@ -47,6 +47,8 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
 
     var currentListSize: Int by mutableStateOf(0)
 
+    var currentName: String by mutableStateOf("List unknown")
+
     init {
         getPurchaseLists()
     }
@@ -84,6 +86,41 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
     suspend fun insertItem(item: Item){
         withContext(Dispatchers.IO){
             purchaseRepository.insertItem(item)
+        }
+    }
+
+    suspend fun getListName(id: UUID): String{
+        var name: String
+        withContext(Dispatchers.IO){
+            name = purchaseRepository.getListName(id)
+        }
+        return name
+    }
+
+    fun getListNameFromDb(id: UUID){
+        viewModelScope.launch {
+            currentName = getListName(id)
+        }
+    }
+
+    suspend fun deleteItem(id: UUID){
+        withContext(Dispatchers.IO){
+            purchaseRepository.deleteItem(id)
+            Log.d(TAG,"the currentSize of list $currentListSize")
+        }
+    }
+
+    fun deleteItemFromDb(id: UUID){
+        viewModelScope.launch {
+            deleteItem(id)
+        }
+    }
+
+    fun deleteItemUpdateList(itemId: UUID, listId: UUID){
+        viewModelScope.launch {
+            val listSize = parseListSize(listId)
+            updateListSizeFromDb(listSize-1,currentListId)
+            deleteItemFromDb(itemId)
         }
     }
 

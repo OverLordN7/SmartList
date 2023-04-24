@@ -19,6 +19,10 @@ interface PurchaseRepository{
     fun updateListSize(value: Int,listId: UUID)
 
     suspend fun getListSize(listId: UUID):Int
+
+    suspend fun deleteItem(id: UUID)
+
+    suspend fun getListName(id: UUID): String
 }
 
 class DefaultPurchaseRepository(
@@ -52,5 +56,13 @@ class DefaultPurchaseRepository(
 
     override suspend fun getListSize(listId: UUID):Int {
         return purchaseListDao.getListSize(listId)
+    }
+
+    override suspend fun deleteItem(id: UUID) {
+        itemDao.deleteItem(id)
+    }
+
+    override suspend fun getListName(id: UUID): String {
+        return purchaseListDao.getListName(id)
     }
 }

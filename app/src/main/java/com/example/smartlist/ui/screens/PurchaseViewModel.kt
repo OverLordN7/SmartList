@@ -4,6 +4,7 @@ package com.example.smartlist.ui.screens
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.referentialEqualityPolicy
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -61,11 +62,11 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
         return  purchaseList
     }
 
-    suspend fun getItemsForPurchaseList(listId: UUID): List<Item>{
+    private suspend fun getItemsForPurchaseList(): List<Item>{
         var itemList: List<Item> = emptyList()
 
         withContext(Dispatchers.IO){
-            itemList = purchaseRepository.getItems(listId = listId)
+            itemList = purchaseRepository.getItems(listId = currentListId)
         }
 
         return itemList
@@ -116,9 +117,9 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
         }
     }
 
-    fun deleteItemUpdateList(itemId: UUID, listId: UUID){
+    fun deleteItemUpdateList(itemId: UUID){
         viewModelScope.launch {
-            val listSize = parseListSize(listId)
+            val listSize = parseListSize(currentListId)
             updateListSizeFromDb(listSize-1,currentListId)
             deleteItemFromDb(itemId)
         }
@@ -166,12 +167,12 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
         }
     }
 
-    fun getItemsOfPurchaseList(listId: UUID){
+    fun getItemsOfPurchaseList(){
         viewModelScope.launch {
             purchaseItemUiState = PurchaseItemUiState.Loading
             Log.d(TAG,"State in getItemsOfPurchaseList is $purchaseUiState")
             purchaseItemUiState = try{
-                PurchaseItemUiState.Success(getItemsForPurchaseList(listId))
+                PurchaseItemUiState.Success(getItemsForPurchaseList())
             }catch (e: Exception){
                 Log.d(TAG,"State in getItemsOfPurchaseList is $purchaseUiState")
                 PurchaseItemUiState.Error
@@ -183,6 +184,18 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
     fun insertItemToDb(item: Item){
         viewModelScope.launch {
             insertItem(item)
+        }
+    }
+
+    suspend fun updateItem(item: Item){
+        withContext(Dispatchers.IO){
+            purchaseRepository.updateItem(item)
+        }
+    }
+
+    fun updateItemInDb(item: Item){
+        viewModelScope.launch {
+            updateItem(item)
         }
     }
 

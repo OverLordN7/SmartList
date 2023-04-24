@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -28,6 +29,8 @@ import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Refresh
@@ -45,6 +48,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -58,8 +62,8 @@ fun DetailedPurchaseListScreen(
     listId: String,
     purchaseViewModel: PurchaseViewModel,
     onSubmit: (Item,UUID) -> Unit,
-    onRefresh: (UUID)->Unit,
-    onDelete: (UUID,UUID) -> Unit,
+    onRefresh: ()->Unit,
+    onDelete: (UUID) -> Unit,
     modifier: Modifier = Modifier
 ){
     val showDialog = remember { mutableStateOf(false) }
@@ -80,10 +84,7 @@ fun DetailedPurchaseListScreen(
         topBar = {
             AppBarItem(
                 purchaseViewModel.currentName,
-                retryAction = {
-                    val id = UUID.fromString(listId)
-                    onRefresh(id)
-                }
+                retryAction = { onRefresh() }
             )
                  },
         floatingActionButtonPosition = FabPosition.End,
@@ -92,7 +93,7 @@ fun DetailedPurchaseListScreen(
                 Icon(imageVector = Icons.Filled.Add, contentDescription = "Add new Item")
             }
         }
-    ) { it ->
+    ) {
         Surface(modifier = modifier.padding(it)) {
             when(state){
                 is PurchaseItemUiState.Loading ->{}
@@ -100,9 +101,7 @@ fun DetailedPurchaseListScreen(
                 is PurchaseItemUiState.Success ->{
                     ResultItemScreen(
                         itemsOfList = state.items,
-                        onDelete = {itemId->
-                            onDelete(itemId,UUID.fromString(listId))
-                        }
+                        onDelete = {itemId-> onDelete(itemId)}
                     )
                 }
             }
@@ -112,41 +111,30 @@ fun DetailedPurchaseListScreen(
 
 
 @Composable
-fun ResultItemScreen(
-    itemsOfList: List<Item>,
-    onDelete: (UUID) -> Unit,
-){
-    if (itemsOfList.isEmpty()){
+fun ResultItemScreen(itemsOfList: List<Item>, onDelete: (UUID) -> Unit){
+
+    //If no Item received but call ended with Success
+    if (itemsOfList.isEmpty()) {
         EmptyCard()
-    }else{
-        LazyColumn(){
-            items(itemsOfList.size){
-                ItemCard(
-                    item = itemsOfList[it],
-                    onDelete = {id->
-                        onDelete(id)
-                    }
-                )
-            }
+        return Unit
+    }
+    LazyColumn{
+        items(itemsOfList.size){
+            ItemCard(
+                item = itemsOfList[it],
+                onDelete = {id-> onDelete(id) }
+            )
         }
+
     }
 }
 
 @Composable
-fun EmptyCard(modifier: Modifier= Modifier){
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = modifier.fillMaxSize(),
-    ) {
+fun EmptyCard(modifier: Modifier = Modifier){
+    Box(contentAlignment = Alignment.Center, modifier = modifier.fillMaxSize()) {
         Column {
-            Text(
-                text = "No items to display",
-                color = Color.Black
-            )
-            Text(
-                text = "Try to use + button",
-                color = Color.Black
-            )
+            Text(text = "No items to display", color = Color.Black)
+            Text(text = "Try to use + button", color = Color.Black)
         }
     }
 }
@@ -154,12 +142,15 @@ fun EmptyCard(modifier: Modifier= Modifier){
 @Composable
 fun ItemCard(
     item: Item,
+    modifier: Modifier = Modifier,
     onClick: (Int) -> Unit = {},
-    onEdit: (Int) -> Unit = {},
+    onEdit: (UUID) -> Unit = {},
     onDelete: (UUID) -> Unit = {},
-    modifier: Modifier = Modifier
 ){
     val context = LocalContext.current
+    val isExpanded by remember { mutableStateOf(false) }
+
+
     Card(
         elevation = 4.dp,
         modifier = modifier
@@ -213,7 +204,11 @@ fun ItemCard(
 
             Column(modifier = Modifier.weight(3f)) {
                 Row {
-                    IconButton(onClick = { Toast.makeText(context,"pressed on edit button", Toast.LENGTH_SHORT).show() }) {
+                    IconButton(
+                        onClick = {
+                            Toast.makeText(context,"pressed on edit button", Toast.LENGTH_SHORT).show()
+                        }
+                    ) {
                         Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit current list")
                     }
                     IconButton(onClick = {
@@ -235,6 +230,7 @@ fun NewPurchaseListItemDialog(
     onConfirm: (Item) -> Unit,
     modifier: Modifier = Modifier,
 ){
+    var errorFieldStatus by remember { mutableStateOf(false) }
     var fieldValue by remember{ mutableStateOf(TextFieldValue("")) }
     var weight by remember { mutableStateOf(TextFieldValue("")) }
     var price by remember { mutableStateOf(TextFieldValue("")) }
@@ -302,7 +298,16 @@ fun NewPurchaseListItemDialog(
                     },
                 )
 
-                //totalPrice = weight.text.toFloat() * price.text.toFloat()
+                if (errorFieldStatus){
+                    Text(
+                        text = "*Sure that you fill all fields, if message still remains, check symbols",
+                        color = Color.Red,
+                        modifier = Modifier.padding(start = 12.dp)
+                    )
+                } else{
+                    Spacer(modifier = Modifier.height(20.dp))
+                }
+
 
                 Spacer(modifier = Modifier.height(20.dp))
 
@@ -313,16 +318,24 @@ fun NewPurchaseListItemDialog(
                     Button(
                         modifier = Modifier.weight(1f),
                         onClick = {
-                            totalPrice = weight.text.toFloat() * price.text.toFloat()
-                            val tempItem = Item(
-                                name = fieldValue.text,
-                                weight = weight.text.toFloat(),
-                                price = price.text.toFloat(),
-                                total = totalPrice,
-                                listId = listId
-                            )
-                            onConfirm(tempItem)
-                            setShowDialog(false)
+
+                            //Check if all fields are not null
+                            if (fieldValue.text.isBlank() || weight.text.isBlank() || price.text.isBlank()){
+                                errorFieldStatus = true
+                            }
+                            else{
+                                //Check is OK, continue..
+                                totalPrice = weight.text.toFloat() * price.text.toFloat()
+                                val tempItem = Item(
+                                    name = fieldValue.text,
+                                    weight = weight.text.toFloat(),
+                                    price = price.text.toFloat(),
+                                    total = totalPrice,
+                                    listId = listId
+                                )
+                                onConfirm(tempItem)
+                                setShowDialog(false)
+                            }
                         }
                     ) { Text(text = "Confirm") }
 
@@ -340,12 +353,106 @@ fun NewPurchaseListItemDialog(
     }
 }
 
+@Preview(showBackground = true)
+@Composable
+fun EditScreen(modifier: Modifier = Modifier){
+    var fieldValue by remember{ mutableStateOf(TextFieldValue("")) }
+    var weight by remember { mutableStateOf(TextFieldValue("")) }
+    var price by remember { mutableStateOf(TextFieldValue("")) }
+    var totalPrice : Float = 0.0f
+
+    Column(
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+    ) {
+        Row(horizontalArrangement = Arrangement.Center) {
+            OutlinedTextField(
+                value = fieldValue,
+                onValueChange = {fieldValue = it},
+                placeholder = {Text(text = "ex Potato")},
+                modifier = Modifier
+                    .padding(4.dp)
+                    .weight(1f),
+                label = {
+                    Text(
+                        text = "Enter new Item name: ",
+                        color = Color.Black,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                },
+            )
+
+            OutlinedTextField(
+                value = weight,
+                onValueChange = {weight = it},
+                placeholder = {Text(text = "ex 10.0")},
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                modifier = Modifier
+                    .padding(4.dp)
+                    .weight(1f),
+                label = {
+                    Text(
+                        text = "Weight: ",
+                        color = Color.Black,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                },
+            )
+        }
+        Row(horizontalArrangement = Arrangement.Center) {
+            OutlinedTextField(
+                value = price,
+                onValueChange = {price = it},
+                placeholder = {Text(text = "ex 10000")},
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                modifier = Modifier
+                    .padding(4.dp)
+                    .weight(1f),
+                label = {
+                    Text(
+                        text = "Price: ",
+                        color = Color.Black,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                },
+            )
+
+            //Plug for good view
+            Spacer(modifier = Modifier.weight(1f))
+        }
+        Row(horizontalArrangement = Arrangement.End) {
+
+            //Plug
+            Spacer(modifier = Modifier.weight(5f))
+
+            IconButton(
+                modifier = Modifier.weight(1f),
+                onClick = { /*TODO*/ }
+            ) {
+                Icon(imageVector = Icons.Default.Check, contentDescription = "check")
+            }
+            IconButton(
+                modifier = Modifier.weight(1f),
+                onClick = { /*TODO*/ }
+            ) {
+                Icon(imageVector = Icons.Default.Cancel, contentDescription = "cancel")
+            }
+        }
+    }
+
+
+}
+
 @Composable
 fun AppBarItem(name: String, retryAction: () -> Unit) {
-    var title = stringResource(id = R.string.app_name)
-    title = "$title > $name"
+    val title = stringResource(id = R.string.app_name)
     TopAppBar(
-        title = { Text(text = title) },
+        title = { Text(text = "$title > $name") },
         actions = {
             IconButton(onClick = retryAction) {
                 Icon(Icons.Default.Refresh, "Refresh")

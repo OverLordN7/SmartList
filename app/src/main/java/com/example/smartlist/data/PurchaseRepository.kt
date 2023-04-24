@@ -1,5 +1,6 @@
 package com.example.smartlist.data
 
+import androidx.compose.ui.Modifier
 import com.example.smartlist.model.Item
 import com.example.smartlist.model.PurchaseList
 import java.util.*
@@ -23,6 +24,8 @@ interface PurchaseRepository{
     suspend fun deleteItem(id: UUID)
 
     suspend fun getListName(id: UUID): String
+
+    suspend fun updateItem(item: Item)
 }
 
 class DefaultPurchaseRepository(
@@ -64,5 +67,15 @@ class DefaultPurchaseRepository(
 
     override suspend fun getListName(id: UUID): String {
         return purchaseListDao.getListName(id)
+    }
+
+    override suspend fun updateItem(item: Item) {
+        return itemDao.updateItem(
+            id = item.id,
+            name = item.name,
+            weight = item.weight,
+            price = item.price,
+            total = item.total
+        )
     }
 }

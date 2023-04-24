@@ -75,7 +75,7 @@ fun PurchasesScreen(
                         onClick = {
                             Log.d(TAG,"Try to navigate")
                             purchaseViewModel.currentListId = it
-                            purchaseViewModel.getItemsOfPurchaseList(it)
+                            purchaseViewModel.getItemsOfPurchaseList()
                             purchaseViewModel.getListSize(it)
                             purchaseViewModel.getListNameFromDb(it)
                             navController

@@ -15,11 +15,13 @@ interface PurchaseRepository{
 
     fun insertPurchaseList(list: PurchaseList)
 
-    fun deletePurchaseLists()
-
     fun updateListSize(value: Int,listId: UUID)
 
     suspend fun getListSize(listId: UUID):Int
+
+    suspend fun deleteList(listId: UUID)
+
+    suspend fun updateList(list: PurchaseList)
 
     suspend fun deleteItem(id: UUID)
 
@@ -49,16 +51,23 @@ class DefaultPurchaseRepository(
         purchaseListDao.insertPurchaseList(list)
     }
 
-    override fun deletePurchaseLists() {
-        purchaseListDao.deleteAllLists()
-    }
-
     override fun updateListSize(value: Int, listId: UUID) {
         purchaseListDao.updateListSize(value, listId)
     }
 
     override suspend fun getListSize(listId: UUID):Int {
         return purchaseListDao.getListSize(listId)
+    }
+
+    override suspend fun deleteList(listId: UUID) {
+        return purchaseListDao.deleteList(listId)
+    }
+
+    override suspend fun updateList(list: PurchaseList) {
+        return purchaseListDao.updateList(
+            name = list.name,
+            listId = list.id
+        )
     }
 
     override suspend fun deleteItem(id: UUID) {

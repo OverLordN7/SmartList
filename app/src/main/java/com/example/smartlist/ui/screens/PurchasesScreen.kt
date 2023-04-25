@@ -17,6 +17,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -35,6 +36,8 @@ fun PurchasesScreen(
     purchaseViewModel: PurchaseViewModel,
     onSubmit: (PurchaseList) -> Unit,
     onRefresh: () -> Unit,
+    onEdit: (PurchaseList) -> Unit,
+    onDelete: (UUID) -> Unit,
     modifier: Modifier = Modifier
 ){
     val context = LocalContext.current
@@ -84,7 +87,9 @@ fun PurchasesScreen(
                                         it.toString()
                                     )
                                 )
-                        }
+                        },
+                        onEdit = onEdit,
+                        onDelete = onDelete,
                     )
                 }
             }
@@ -96,14 +101,16 @@ fun PurchasesScreen(
 fun ResultScreen(
     lists: List<PurchaseList>,
     onClick: (UUID) -> Unit,
+    onEdit: (PurchaseList) -> Unit,
+    onDelete: (UUID) -> Unit,
 ){
     LazyColumn(){
         items(lists.size){index ->
             ListCard(
                 list = lists[index],
                 onClick = { onClick(lists[index].id)},
-                onEdit = {},
-                onDelete = {},
+                onEdit = onEdit,
+                onDelete = onDelete,
             )
         }
     }
@@ -114,11 +121,13 @@ fun ResultScreen(
 fun ListCard(
     list: PurchaseList,
     onClick: (UUID) -> Unit,
-    onEdit: (Int) -> Unit,
-    onDelete: (Int) -> Unit,
+    onEdit: (PurchaseList) -> Unit,
+    onDelete: (UUID) -> Unit,
     modifier: Modifier = Modifier
 ){
     val context = LocalContext.current
+    var isExpanded = remember { mutableStateOf(false) }
+
     Card(
         elevation = 4.dp,
         modifier = modifier
@@ -128,42 +137,140 @@ fun ListCard(
                 onClick(list.id)
             }
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start,
-            modifier = Modifier.padding(4.dp)
-        ) {
-            Column(
-                modifier = Modifier.weight(3f)
+        Column() {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start,
+                modifier = Modifier.padding(4.dp)
             ) {
-                Text(
-                    text = list.name,
-                    fontSize = 20.sp,
-                    color = Color.Black
-                )
-                Text(
-                    text = list.month +" "+ list.year,
-                    fontSize = 16.sp,
-                    color = Color.Gray
-                )
-            }
+                Column(
+                    modifier = Modifier.weight(3f)
+                ) {
+                    Text(
+                        text = list.name,
+                        fontSize = 20.sp,
+                        color = Color.Black
+                    )
+                    Text(
+                        text = list.month +" "+ list.year,
+                        fontSize = 16.sp,
+                        color = Color.Gray
+                    )
+                }
 
-            Spacer(modifier = modifier.weight(5f))
+                Spacer(modifier = modifier.weight(5f))
 
-            Column(modifier = Modifier.weight(3f)) {
-                Row {
-                    IconButton(onClick = { Toast.makeText(context,"pressed on edit button",Toast.LENGTH_SHORT).show() }) {
-                        Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit current list")
-                    }
-                    IconButton(onClick = { Toast.makeText(context,"pressed on delete button",Toast.LENGTH_SHORT).show() }) {
-                        Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete current list")
+                Column(modifier = Modifier.weight(3f)) {
+                    Row {
+                        IconButton(onClick = { isExpanded.value = !isExpanded.value}) {
+                            Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit current list")
+                        }
+                        IconButton(
+                            onClick = {
+                                Toast.makeText(context,"Deleting list..",Toast.LENGTH_SHORT).show()
+                                onDelete(list.id)
+                            }
+                        ) {
+                            Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete current list")
+                        }
                     }
                 }
+            }
+            Row{
+                if(isExpanded.value){
+                    EditScreen(
+                        list = list,
+                        isExpanded = isExpanded,
+                        onSubmit = onEdit
+                    )
+                }
+            }
+        }
+
+    }
+}
+
+@Composable
+fun EditScreen(
+    list: PurchaseList,
+    isExpanded: MutableState<Boolean>,
+    onSubmit: (PurchaseList) -> Unit,
+    modifier: Modifier = Modifier
+){
+    var name by remember { mutableStateOf(TextFieldValue(list.name)) }
+    var errorMessage by remember { mutableStateOf(false) }
+
+    Column {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(4.dp)
+        ){
+            OutlinedTextField(
+                value = name,
+                onValueChange = {name = it},
+                placeholder = {Text(text = "ex List 1")},
+                modifier = Modifier
+                    .padding(4.dp)
+                    .weight(5f),
+                label = {
+                    Text(
+                        text = "Enter new list name: ",
+                        color = Color.Black,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                },
+            )
+            Spacer(modifier = Modifier.weight(2f))
+
+            IconButton(
+                modifier = Modifier.weight(1.5f),
+                onClick = {
+
+                    //Check if all fields are not null
+                    if (name.text.isBlank()){
+                        errorMessage = true
+                    }
+                    else{
+                        val newList = PurchaseList(
+                            id = list.id,
+                            name = name.text,
+                            listSize = list.listSize,
+                            year = list.year,
+                            month = list.month,
+                            day = list.day
+                        )
+                        onSubmit(newList)
+                        isExpanded.value = false
+                    }
+                }
+            ) {
+                Icon(imageVector = Icons.Default.Check, contentDescription = "check")
+            }
+            IconButton(
+                modifier = Modifier.weight(1.5f),
+                onClick = { isExpanded.value = false }
+            ) {
+                Icon(imageVector = Icons.Default.Cancel, contentDescription = "cancel")
+            }
+
+        }
+
+        Row {
+            if (errorMessage){
+                Text(
+                    text = "*Sure that you fill all fields, if message still remains, check symbols",
+                    color = Color.Red,
+                    modifier = Modifier.padding(start = 12.dp)
+                )
+            } else{
+                Spacer(modifier = Modifier.height(20.dp))
             }
         }
     }
 }
-
 @Composable
 fun NewPurchaseListDialog(
     setShowDialog: (Boolean) -> Unit,

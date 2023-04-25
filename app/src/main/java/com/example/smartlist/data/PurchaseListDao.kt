@@ -15,9 +15,6 @@ interface PurchaseListDao {
     @Insert
     fun insertPurchaseList(list: PurchaseList)
 
-    @Query("DELETE FROM list_table")
-    fun deleteAllLists()
-
     @Query("UPDATE list_table SET listSize=:value WHERE id=CAST(:listId AS BLOB)")
     fun updateListSize(value: Int,listId: UUID)
 
@@ -26,6 +23,12 @@ interface PurchaseListDao {
 
     @Query("SELECT name FROM list_table WHERE id=CAST(:listId AS BLOB)")
     fun getListName(listId: UUID): String
+
+    @Query("DELETE FROM list_table WHERE id=CAST(:listId AS BLOB)")
+    fun deleteList(listId: UUID)
+
+    @Query("UPDATE list_table SET name=:name WHERE id=CAST(:listId AS BLOB)")
+    fun updateList(name: String, listId: UUID)
 
     //add other CRUD functions
 }

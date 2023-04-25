@@ -77,7 +77,7 @@ fun PurchasesScreen(
                             purchaseViewModel.currentListId = it
                             purchaseViewModel.getItemsOfPurchaseList()
                             purchaseViewModel.getListSize(it)
-                            purchaseViewModel.getListNameFromDb(it)
+                            purchaseViewModel.getListName(it)
                             navController
                                 .navigate(
                                     Screen.DetailedPurchaseListScreen.withArgs(

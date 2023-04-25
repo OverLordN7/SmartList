@@ -1,6 +1,10 @@
 package com.example.smartlist.ui.screens
 
+import android.util.Log
 import android.widget.Toast
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -35,6 +39,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -61,9 +66,10 @@ private const val TAG = "DetailedPurchaseListScreen"
 fun DetailedPurchaseListScreen(
     listId: String,
     purchaseViewModel: PurchaseViewModel,
-    onSubmit: (Item,UUID) -> Unit,
+    onSubmit: (Item) -> Unit,
     onRefresh: ()->Unit,
     onDelete: (UUID) -> Unit,
+    onEdit: (Item) -> Unit,
     modifier: Modifier = Modifier
 ){
     val showDialog = remember { mutableStateOf(false) }
@@ -75,7 +81,7 @@ fun DetailedPurchaseListScreen(
             setShowDialog = {showDialog.value = it},
             onConfirm = {item->
                 //Submit newly created item to DB using callback of ViewModel
-                onSubmit(item, UUID.fromString(listId))
+                onSubmit(item)
             }
         )
     }
@@ -101,7 +107,8 @@ fun DetailedPurchaseListScreen(
                 is PurchaseItemUiState.Success ->{
                     ResultItemScreen(
                         itemsOfList = state.items,
-                        onDelete = {itemId-> onDelete(itemId)}
+                        onDelete = {itemId-> onDelete(itemId)},
+                        onEdit = onEdit
                     )
                 }
             }
@@ -111,7 +118,11 @@ fun DetailedPurchaseListScreen(
 
 
 @Composable
-fun ResultItemScreen(itemsOfList: List<Item>, onDelete: (UUID) -> Unit){
+fun ResultItemScreen(
+    itemsOfList: List<Item>,
+    onEdit: (Item) -> Unit,
+    onDelete: (UUID) -> Unit
+){
 
     //If no Item received but call ended with Success
     if (itemsOfList.isEmpty()) {
@@ -122,7 +133,8 @@ fun ResultItemScreen(itemsOfList: List<Item>, onDelete: (UUID) -> Unit){
         items(itemsOfList.size){
             ItemCard(
                 item = itemsOfList[it],
-                onDelete = {id-> onDelete(id) }
+                onDelete = {id-> onDelete(id) },
+                onEdit = onEdit
             )
         }
 
@@ -144,11 +156,13 @@ fun ItemCard(
     item: Item,
     modifier: Modifier = Modifier,
     onClick: (Int) -> Unit = {},
-    onEdit: (UUID) -> Unit = {},
+    onEdit: (Item) -> Unit = {},
     onDelete: (UUID) -> Unit = {},
 ){
     val context = LocalContext.current
-    val isExpanded by remember { mutableStateOf(false) }
+    var isExpanded = remember { mutableStateOf(false) }
+
+    Log.d(TAG,"MY ID ISSSSS: ${item.id}")
 
 
     Card(
@@ -158,65 +172,76 @@ fun ItemCard(
             .fillMaxWidth()
             .clickable {/*TODO*/ }
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start,
-            modifier = Modifier.padding(4.dp)
-        ) {
-
-            Image(
-                painter = painterResource(id = R.drawable.circle),
-                contentDescription = "product picture",
-                modifier = Modifier
-                    .weight(2f)
-                    .padding(start = 4.dp, end = 4.dp)
-            )
-
-            Column(
-                modifier = Modifier
-                    .weight(6f)
-                    .padding(top = 4.dp)
+        Column() {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start,
+                modifier = Modifier.padding(4.dp)
             ) {
-                Text(
-                    text = item.name,
-                    fontSize = 20.sp,
-                    color = Color.Black
-                )
-                Row(horizontalArrangement = Arrangement.SpaceBetween){
-                    Text(
-                        text = "${item.weight} Kg",
-                        fontSize = 16.sp,
-                        color = Color.Gray,
-                        modifier = modifier.weight(1f)
-                    )
 
-                    Spacer(modifier = modifier.weight(0.5f))
+                Image(
+                    painter = painterResource(id = R.drawable.circle),
+                    contentDescription = "product picture",
+                    modifier = Modifier
+                        .weight(2f)
+                        .padding(start = 4.dp, end = 4.dp)
+                )
+
+                Column(
+                    modifier = Modifier
+                        .weight(6f)
+                        .padding(top = 4.dp)
+                ) {
                     Text(
-                        text = "${item.price} UZS",
-                        fontSize = 16.sp,
-                        color = Color.Gray,
-                        modifier = modifier.weight(2f)
+                        text = item.name,
+                        fontSize = 20.sp,
+                        color = Color.Black
                     )
+                    Row(horizontalArrangement = Arrangement.SpaceBetween){
+                        Text(
+                            text = "${item.weight} Kg",
+                            fontSize = 16.sp,
+                            color = Color.Gray,
+                            modifier = modifier.weight(1f)
+                        )
+
+                        Spacer(modifier = modifier.weight(0.5f))
+                        Text(
+                            text = "${item.price} UZS",
+                            fontSize = 16.sp,
+                            color = Color.Gray,
+                            modifier = modifier.weight(2f)
+                        )
+                    }
+                }
+
+                Spacer(modifier = modifier.weight(2f))
+
+                Column(modifier = Modifier.weight(3f)) {
+                    Row {
+                        IconButton(onClick = { isExpanded.value = !isExpanded.value }) {
+                            Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit current list")
+                        }
+                        IconButton(onClick = {
+                            Toast.makeText(context,"Deleting item...", Toast.LENGTH_SHORT).show()
+                            onDelete(item.id)
+                        }) {
+                            Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete current list")
+                        }
+                    }
                 }
             }
-
-            Spacer(modifier = modifier.weight(2f))
-
-            Column(modifier = Modifier.weight(3f)) {
-                Row {
-                    IconButton(
-                        onClick = {
-                            Toast.makeText(context,"pressed on edit button", Toast.LENGTH_SHORT).show()
-                        }
-                    ) {
-                        Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit current list")
-                    }
-                    IconButton(onClick = {
-                        Toast.makeText(context,"Deleting item...", Toast.LENGTH_SHORT).show()
-                        onDelete(item.id)
-                    }) {
-                        Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete current list")
-                    }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start,
+                modifier = Modifier.padding(4.dp)
+            ) {
+                if (isExpanded.value){
+                    EditScreen(
+                        item = item,
+                        isExpanded = isExpanded,
+                        onSubmit = onEdit
+                    )
                 }
             }
         }
@@ -244,7 +269,7 @@ fun NewPurchaseListItemDialog(
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
+                modifier = modifier
                     .padding(8.dp)
             ) {
                 //Header of dialog
@@ -353,13 +378,22 @@ fun NewPurchaseListItemDialog(
     }
 }
 
-@Preview(showBackground = true)
+
 @Composable
-fun EditScreen(modifier: Modifier = Modifier){
-    var fieldValue by remember{ mutableStateOf(TextFieldValue("")) }
-    var weight by remember { mutableStateOf(TextFieldValue("")) }
-    var price by remember { mutableStateOf(TextFieldValue("")) }
-    var totalPrice : Float = 0.0f
+fun EditScreen(
+    item: Item,
+    isExpanded: MutableState<Boolean>,
+    onSubmit: (Item)-> Unit,
+    modifier: Modifier = Modifier
+){
+    var fieldValue by remember{ mutableStateOf(TextFieldValue(item.name)) }
+    var weight by remember { mutableStateOf(TextFieldValue(item.weight.toString())) }
+    var price by remember { mutableStateOf(TextFieldValue(item.price.toString())) }
+    var totalPrice : Float = item.weight * item.price
+
+    var errorMessage by remember { mutableStateOf(false) }
+
+    Log.d(TAG,"MY ID ISSSSS in EDIT : ${item.id}")
 
     Column(
         verticalArrangement = Arrangement.Center,
@@ -432,16 +466,40 @@ fun EditScreen(modifier: Modifier = Modifier){
 
             IconButton(
                 modifier = Modifier.weight(1f),
-                onClick = { /*TODO*/ }
+                onClick = {
+                    if(fieldValue.text.isBlank() || weight.text.isBlank() || price.text.isBlank()){
+                        errorMessage = true
+                    }else{
+                        val temp = Item(
+                            id = item.id,
+                            name = fieldValue.text,
+                            weight = weight.text.toFloat(),
+                            price = price.text.toFloat(),
+                            total = weight.text.toFloat() * price.text.toFloat(),
+                            listId = item.listId
+                        )
+                        isExpanded.value = false
+                        onSubmit(temp)
+                    }
+                }
             ) {
                 Icon(imageVector = Icons.Default.Check, contentDescription = "check")
             }
             IconButton(
                 modifier = Modifier.weight(1f),
-                onClick = { /*TODO*/ }
+                onClick = { isExpanded.value = false }
             ) {
                 Icon(imageVector = Icons.Default.Cancel, contentDescription = "cancel")
             }
+        }
+        if (errorMessage){
+            Text(
+                text = "*Sure that you fill all fields, if message still remains, check symbols",
+                color = Color.Red,
+                modifier = Modifier.padding(start = 12.dp)
+            )
+        } else{
+            Spacer(modifier = Modifier.height(20.dp))
         }
     }
 

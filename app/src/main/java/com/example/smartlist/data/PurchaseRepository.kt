@@ -75,7 +75,8 @@ class DefaultPurchaseRepository(
             name = item.name,
             weight = item.weight,
             price = item.price,
-            total = item.total
+            total = item.total,
+            listId = item.listId
         )
     }
 }

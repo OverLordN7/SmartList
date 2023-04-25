@@ -170,7 +170,6 @@ fun ItemCard(
         modifier = modifier
             .padding(8.dp)
             .fillMaxWidth()
-            .clickable {/*TODO*/ }
     ) {
         Column() {
             Row(

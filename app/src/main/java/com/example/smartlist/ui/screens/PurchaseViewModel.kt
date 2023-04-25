@@ -98,6 +98,31 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
             withContext(Dispatchers.IO){
                 purchaseRepository.insertPurchaseList(list)
             }
+
+            //Refresh List
+            getPurchaseLists()
+        }
+    }
+
+    fun deletePurchaseList(listId: UUID){
+        viewModelScope.launch {
+            withContext(Dispatchers.IO){
+                purchaseRepository.deleteList(listId)
+            }
+
+            //Refresh List
+            getPurchaseLists()
+        }
+    }
+
+    fun updateList(list: PurchaseList){
+        viewModelScope.launch {
+            withContext(Dispatchers.IO){
+                purchaseRepository.updateList(list)
+            }
+
+            //Refresh List
+            getPurchaseLists()
         }
     }
 

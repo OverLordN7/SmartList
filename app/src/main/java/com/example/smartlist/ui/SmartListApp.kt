@@ -64,7 +64,9 @@ fun SmartListApp(){
                 navController = navController,
                 purchaseViewModel = purchaseViewModel,
                 onSubmit = purchaseViewModel::insertPurchaseList,
-                onRefresh = purchaseViewModel::getPurchaseLists
+                onRefresh = purchaseViewModel::getPurchaseLists,
+                onEdit = purchaseViewModel::updateList,
+                onDelete = purchaseViewModel::deletePurchaseList,
             )
         }
 

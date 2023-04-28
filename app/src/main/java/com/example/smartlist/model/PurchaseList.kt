@@ -28,6 +28,7 @@ data class Item(
     @PrimaryKey val id: UUID = UUID.randomUUID(),
     val name: String,
     val weight: Float,
+    val weightType: String,
     val price : Float,
     val total: Float,
     val listId: UUID, //foreign key to purchase list

@@ -107,6 +107,7 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
     fun deletePurchaseList(listId: UUID){
         viewModelScope.launch {
             withContext(Dispatchers.IO){
+                purchaseRepository.deleteItemsAssociatedWithList(listId)
                 purchaseRepository.deleteList(listId)
             }
 

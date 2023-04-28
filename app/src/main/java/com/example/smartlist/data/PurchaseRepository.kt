@@ -28,6 +28,8 @@ interface PurchaseRepository{
     suspend fun getListName(id: UUID): String
 
     suspend fun updateItem(item: Item)
+
+    suspend fun deleteItemsAssociatedWithList(listId: UUID)
 }
 
 class DefaultPurchaseRepository(
@@ -83,9 +85,16 @@ class DefaultPurchaseRepository(
             id = item.id,
             name = item.name,
             weight = item.weight,
+            weightType = item.weightType,
             price = item.price,
             total = item.total,
             listId = item.listId
         )
     }
+
+    override suspend fun deleteItemsAssociatedWithList(listId: UUID) {
+        itemDao.deleteItemsAssociatedWithList(listId)
+    }
+
+
 }

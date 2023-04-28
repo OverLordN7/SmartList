@@ -2,11 +2,7 @@ package com.example.smartlist.ui.screens
 
 import android.util.Log
 import android.widget.Toast
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,12 +12,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
 import androidx.compose.material.Card
+import androidx.compose.material.DropdownMenuItem
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ExposedDropdownMenuBox
+import androidx.compose.material.ExposedDropdownMenuDefaults
 import androidx.compose.material.FabPosition
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
@@ -53,7 +52,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -160,10 +158,7 @@ fun ItemCard(
     onDelete: (UUID) -> Unit = {},
 ){
     val context = LocalContext.current
-    var isExpanded = remember { mutableStateOf(false) }
-
-    Log.d(TAG,"MY ID ISSSSS: ${item.id}")
-
+    val isExpanded = remember { mutableStateOf(false) }
 
     Card(
         elevation = 4.dp,
@@ -198,7 +193,7 @@ fun ItemCard(
                     )
                     Row(horizontalArrangement = Arrangement.SpaceBetween){
                         Text(
-                            text = "${item.weight} Kg",
+                            text = "${item.weight} ${item.weightType}",
                             fontSize = 16.sp,
                             color = Color.Gray,
                             modifier = modifier.weight(1f)
@@ -247,6 +242,7 @@ fun ItemCard(
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun NewPurchaseListItemDialog(
     listId: UUID,
@@ -259,6 +255,11 @@ fun NewPurchaseListItemDialog(
     var weight by remember { mutableStateOf(TextFieldValue("")) }
     var price by remember { mutableStateOf(TextFieldValue("")) }
     var totalPrice : Float = 0.0f
+
+    //values for DropDownMenu
+    val options = listOf("kgs","lbs","pcs","pkg")
+    var expanded by remember { mutableStateOf(false) }
+    var selectedOptionText by remember { mutableStateOf(options[0]) }
 
 
     Dialog(onDismissRequest = {setShowDialog(false)}) {
@@ -284,28 +285,68 @@ fun NewPurchaseListItemDialog(
                         Text(
                             text = "Enter new Item name: ",
                             color = Color.Black,
-                            fontSize = 20.sp,
+                            fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                         )
                     },
                 )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start
+                ) {
+                    OutlinedTextField(
+                        value = weight,
+                        onValueChange = {weight = it},
+                        placeholder = {Text(text = "ex 10.0")},
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        modifier = Modifier
+                            .padding(top = 4.dp)
+                            .weight(0.8f),
+                        label = {
+                            Text(
+                                text = "Weight: ",
+                                color = Color.Black,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        },
+                    )
 
-                OutlinedTextField(
-                    value = weight,
-                    onValueChange = {weight = it},
-                    placeholder = {Text(text = "ex 10.0")},
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    modifier = Modifier.padding(top = 4.dp),
-                    label = {
-                        Text(
-                            text = "Weight: ",
-                            color = Color.Black,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
+                    Spacer(modifier = Modifier.weight(0.2f))
+
+                    ExposedDropdownMenuBox(
+                        expanded = expanded,
+                        onExpandedChange = { expanded = !expanded},
+                        modifier = Modifier.weight(0.8f)
+                    ) {
+                        OutlinedTextField(
+                            readOnly = true,
+                            value = selectedOptionText,
+                            onValueChange = { },
+                            label = { Text("Unit", color = Color.Black)},
+                            trailingIcon = {
+                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                            },
+                            //colors =  ExposedDropdownMenuDefaults.textFieldColors()
                         )
-                    },
-                )
 
+                        ExposedDropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false }
+                        ) {
+                            options.forEach{ selectionOption ->
+                                DropdownMenuItem(
+                                    onClick = {
+                                        selectedOptionText = selectionOption
+                                        expanded = false
+                                    }
+                                ) {
+                                    Text(text = selectionOption)
+                                }
+                            }
+                        }
+                    }
+                }
                 OutlinedTextField(
                     value = price,
                     onValueChange = {price = it},
@@ -316,7 +357,7 @@ fun NewPurchaseListItemDialog(
                         Text(
                             text = "Price: ",
                             color = Color.Black,
-                            fontSize = 20.sp,
+                            fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                         )
                     },
@@ -353,6 +394,7 @@ fun NewPurchaseListItemDialog(
                                 val tempItem = Item(
                                     name = fieldValue.text,
                                     weight = weight.text.toFloat(),
+                                    weightType = selectedOptionText,
                                     price = price.text.toFloat(),
                                     total = totalPrice,
                                     listId = listId
@@ -378,6 +420,7 @@ fun NewPurchaseListItemDialog(
 }
 
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun EditScreen(
     item: Item,
@@ -389,25 +432,32 @@ fun EditScreen(
     var weight by remember { mutableStateOf(TextFieldValue(item.weight.toString())) }
     var price by remember { mutableStateOf(TextFieldValue(item.price.toString())) }
     var totalPrice : Float = item.weight * item.price
-
     var errorMessage by remember { mutableStateOf(false) }
 
-    Log.d(TAG,"MY ID ISSSSS in EDIT : ${item.id}")
+
+    //values for DropDownMenu
+    val options = listOf("kgs","lbs","pcs","pkg")
+    var expanded by remember { mutableStateOf(false) }
+    var selectedOptionText by remember { mutableStateOf(options[0]) }
+
 
     Column(
         verticalArrangement = Arrangement.Center,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(8.dp)
     ) {
-        Row(horizontalArrangement = Arrangement.Center) {
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             OutlinedTextField(
                 value = fieldValue,
                 onValueChange = {fieldValue = it},
                 placeholder = {Text(text = "ex Potato")},
                 modifier = Modifier
                     .padding(4.dp)
-                    .weight(1f),
+                    .weight(0.6f),
                 label = {
                     Text(
                         text = "Enter new Item name: ",
@@ -425,7 +475,7 @@ fun EditScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 modifier = Modifier
                     .padding(4.dp)
-                    .weight(1f),
+                    .weight(0.5f),
                 label = {
                     Text(
                         text = "Weight: ",
@@ -435,6 +485,40 @@ fun EditScreen(
                     )
                 },
             )
+
+            ExposedDropdownMenuBox(
+                expanded = expanded,
+                onExpandedChange = { expanded = !expanded},
+                modifier = Modifier.weight(0.5f)
+            ) {
+                OutlinedTextField(
+                    readOnly = true,
+                    value = selectedOptionText,
+                    onValueChange = { },
+                    label = { Text("Unit", color = Color.Black)},
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                    },
+                    //colors =  ExposedDropdownMenuDefaults.textFieldColors()
+                )
+
+                ExposedDropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    options.forEach{ selectionOption ->
+                        DropdownMenuItem(
+                            onClick = {
+                                selectedOptionText = selectionOption
+                                expanded = false
+                            }
+                        ) {
+                            Text(text = selectionOption)
+                        }
+                    }
+                }
+            }
+
         }
         Row(horizontalArrangement = Arrangement.Center) {
             OutlinedTextField(
@@ -473,6 +557,7 @@ fun EditScreen(
                             id = item.id,
                             name = fieldValue.text,
                             weight = weight.text.toFloat(),
+                            weightType = selectedOptionText,
                             price = price.text.toFloat(),
                             total = weight.text.toFloat() * price.text.toFloat(),
                             listId = item.listId

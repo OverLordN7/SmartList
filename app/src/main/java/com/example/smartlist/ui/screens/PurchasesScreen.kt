@@ -104,6 +104,13 @@ fun ResultScreen(
     onEdit: (PurchaseList) -> Unit,
     onDelete: (UUID) -> Unit,
 ){
+
+    //If no Item received but call ended with Success
+    if (lists.isEmpty()) {
+        EmptyListCard()
+        return Unit
+    }
+
     LazyColumn(){
         items(lists.size){index ->
             ListCard(
@@ -187,6 +194,16 @@ fun ListCard(
             }
         }
 
+    }
+}
+
+@Composable
+fun EmptyListCard(modifier: Modifier = Modifier){
+    Box(contentAlignment = Alignment.Center, modifier = modifier.fillMaxSize()) {
+        Column {
+            Text(text = "No lists to display", color = Color.Black)
+            Text(text = "Try to use + button", color = Color.Black)
+        }
     }
 }
 

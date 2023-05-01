@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
 import androidx.compose.material.Card
@@ -45,18 +46,28 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.example.smartlist.R
 import com.example.smartlist.model.Item
+import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
+import java.util.Locale
 import java.util.UUID
 
 private const val TAG = "DetailedPurchaseListScreen"
@@ -128,6 +139,9 @@ fun ResultItemScreen(
         return Unit
     }
     LazyColumn{
+        item{
+            ListInfoCard(itemsOfList)
+        }
         items(itemsOfList.size){
             ItemCard(
                 item = itemsOfList[it],
@@ -183,7 +197,7 @@ fun ItemCard(
 
                 Column(
                     modifier = Modifier
-                        .weight(6f)
+                        .weight(8f)
                         .padding(top = 4.dp)
                 ) {
                     Text(
@@ -191,27 +205,27 @@ fun ItemCard(
                         fontSize = 20.sp,
                         color = Color.Black
                     )
-                    Row(horizontalArrangement = Arrangement.SpaceBetween){
+                    Row(horizontalArrangement = Arrangement.SpaceAround){
                         Text(
                             text = "${item.weight} ${item.weightType}",
                             fontSize = 16.sp,
                             color = Color.Gray,
-                            modifier = modifier.weight(1f)
+                            modifier = modifier.weight(2f).padding(4.dp)
                         )
 
-                        Spacer(modifier = modifier.weight(0.5f))
+                        //Spacer(modifier = modifier.weight(0.5f))
                         Text(
                             text = "${item.price} UZS",
                             fontSize = 16.sp,
                             color = Color.Gray,
-                            modifier = modifier.weight(2f)
+                            modifier = modifier.weight(3f).padding(4.dp)
                         )
                     }
                 }
 
                 Spacer(modifier = modifier.weight(2f))
 
-                Column(modifier = Modifier.weight(3f)) {
+                Column(modifier = Modifier.weight(3f).padding(end = 4.dp)) {
                     Row {
                         IconButton(onClick = { isExpanded.value = !isExpanded.value }) {
                             Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit current list")
@@ -261,6 +275,9 @@ fun NewPurchaseListItemDialog(
     var expanded by remember { mutableStateOf(false) }
     var selectedOptionText by remember { mutableStateOf(options[0]) }
 
+    //keyboard focus
+    val focusManager = LocalFocusManager.current
+
 
     Dialog(onDismissRequest = {setShowDialog(false)}) {
         Surface(
@@ -281,6 +298,7 @@ fun NewPurchaseListItemDialog(
                     onValueChange = {fieldValue = it},
                     placeholder = {Text(text = "ex Potato")},
                     modifier = Modifier.padding(top = 4.dp),
+                    singleLine = true,
                     label = {
                         Text(
                             text = "Enter new Item name: ",
@@ -289,6 +307,12 @@ fun NewPurchaseListItemDialog(
                             fontWeight = FontWeight.Bold,
                         )
                     },
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        capitalization = KeyboardCapitalization.Sentences,
+                        autoCorrect = true,
+                        keyboardType = KeyboardType.Text,
+                        imeAction = ImeAction.Next
+                    ),
                 )
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -298,7 +322,6 @@ fun NewPurchaseListItemDialog(
                         value = weight,
                         onValueChange = {weight = it},
                         placeholder = {Text(text = "ex 10.0")},
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         modifier = Modifier
                             .padding(top = 4.dp)
                             .weight(0.8f),
@@ -351,7 +374,6 @@ fun NewPurchaseListItemDialog(
                     value = price,
                     onValueChange = {price = it},
                     placeholder = {Text(text = "ex 10000")},
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier.padding(top = 4.dp),
                     label = {
                         Text(
@@ -378,10 +400,20 @@ fun NewPurchaseListItemDialog(
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
+                    horizontalArrangement = Arrangement.SpaceAround
                 ){
+
                     Button(
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).padding(4.dp),
+                        onClick = { setShowDialog(false)}
+                    ) {
+                        Text(text = "Cancel")
+                    }
+
+                    //Spacer(modifier = Modifier.weight(1f))
+
+                    Button(
+                        modifier = Modifier.weight(1f).padding(4.dp),
                         onClick = {
 
                             //Check if all fields are not null
@@ -404,21 +436,39 @@ fun NewPurchaseListItemDialog(
                             }
                         }
                     ) { Text(text = "Confirm") }
-
-                    Spacer(modifier = Modifier.weight(1f))
-
-                    Button(
-                        modifier = Modifier.weight(1f),
-                        onClick = { setShowDialog(false)}
-                    ) {
-                        Text(text = "Cancel")
-                    }
                 }
             }
         }
     }
 }
 
+
+@Composable
+fun ListInfoCard(items: List<Item>, modifier: Modifier = Modifier){
+    var total = 0
+    items.forEach {
+        total += it.total.toInt()
+    }
+
+    Card(
+        elevation = 4.dp,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+            .height(40.dp)
+    ) {
+        Column(
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                "Total: ${DecimalFormat("#,###", DecimalFormatSymbols(Locale.US)).format(total)} UZS",
+                fontSize = 25.sp,
+                color = Color.Black
+            )
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable

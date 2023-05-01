@@ -151,7 +151,7 @@ fun ListCard(
                 modifier = Modifier.padding(4.dp)
             ) {
                 Column(
-                    modifier = Modifier.weight(3f)
+                    modifier = Modifier.weight(5f)
                 ) {
                     Text(
                         text = list.name,
@@ -165,7 +165,7 @@ fun ListCard(
                     )
                 }
 
-                Spacer(modifier = modifier.weight(5f))
+                Spacer(modifier = modifier.weight(3f))
 
                 Column(modifier = Modifier.weight(3f)) {
                     Row {
@@ -295,6 +295,7 @@ fun NewPurchaseListDialog(
     modifier: Modifier = Modifier,
 ){
     var fieldValue by remember{ mutableStateOf(TextFieldValue("")) }
+    var errorFieldStatus by remember { mutableStateOf(false) }
 
 
     Dialog(onDismissRequest = {setShowDialog(false)}) {
@@ -321,34 +322,56 @@ fun NewPurchaseListDialog(
                     },
                 )
 
+                if (errorFieldStatus){
+                    Text(
+                        text = "*Sure that you fill all fields, if message still remains, check symbols",
+                        color = Color.Red,
+                        modifier = Modifier
+                            .padding(start = 12.dp)
+                            .height(40.dp)
+                    )
+                } else{
+                    Spacer(modifier = Modifier.height(40.dp))
+                }
+
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
+                    horizontalArrangement = Arrangement.SpaceAround
                 ){
-                    Button(
-                        modifier = Modifier.weight(1f),
-                        onClick = {
-                            val date = LocalDate.now()
-                            val list = PurchaseList(
-                                name = fieldValue.text,
-                                listSize = 0,
-                                year = date.year,
-                                month = date.month.name,
-                                day = date.dayOfMonth
-                            )
-                            onConfirm(list)
-                            setShowDialog(false)
-                        }
-                    ) { Text(text = "Confirm") }
-
-                    Spacer(modifier = Modifier.weight(1f))
 
                     Button(
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(4.dp),
                         onClick = { setShowDialog(false)}
                     ) {
                         Text(text = "Cancel")
                     }
+
+                    Button(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(4.dp),
+                        onClick = {
+
+                            //Check if all fields are not null
+                            if (fieldValue.text.isBlank()){
+                                errorFieldStatus = true
+                            }
+                            else{
+                                val date = LocalDate.now()
+                                val list = PurchaseList(
+                                    name = fieldValue.text,
+                                    listSize = 0,
+                                    year = date.year,
+                                    month = date.month.name,
+                                    day = date.dayOfMonth
+                                )
+                                onConfirm(list)
+                                setShowDialog(false)
+                            }
+                        }
+                    ) { Text(text = "Confirm") }
                 }
             }
         }

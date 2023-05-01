@@ -173,25 +173,12 @@ fun ItemCard(
 ){
     val context = LocalContext.current
     val isExpanded = remember { mutableStateOf(false) }
-    var isCrossedOut by remember { mutableStateOf(true)}
 
     Card(
         elevation = 4.dp,
         modifier = modifier
             .padding(8.dp)
             .fillMaxWidth()
-            .drawBehind {
-                if (isCrossedOut){
-                    val strokeWidth = 4.dp.toPx()
-                    val y = size.height / 2
-                    drawLine(
-                        Color.Red,
-                        Offset(0f,y),
-                        Offset(size.width,y),
-                        strokeWidth
-                    )
-                }
-            }
     ) {
         Column() {
             Row(
@@ -210,7 +197,7 @@ fun ItemCard(
 
                 Column(
                     modifier = Modifier
-                        .weight(6f)
+                        .weight(8f)
                         .padding(top = 4.dp)
                 ) {
                     Text(
@@ -218,27 +205,27 @@ fun ItemCard(
                         fontSize = 20.sp,
                         color = Color.Black
                     )
-                    Row(horizontalArrangement = Arrangement.SpaceBetween){
+                    Row(horizontalArrangement = Arrangement.SpaceAround){
                         Text(
                             text = "${item.weight} ${item.weightType}",
                             fontSize = 16.sp,
                             color = Color.Gray,
-                            modifier = modifier.weight(1f)
+                            modifier = modifier.weight(2f).padding(4.dp)
                         )
 
-                        Spacer(modifier = modifier.weight(0.5f))
+                        //Spacer(modifier = modifier.weight(0.5f))
                         Text(
                             text = "${item.price} UZS",
                             fontSize = 16.sp,
                             color = Color.Gray,
-                            modifier = modifier.weight(2f)
+                            modifier = modifier.weight(3f).padding(4.dp)
                         )
                     }
                 }
 
                 Spacer(modifier = modifier.weight(2f))
 
-                Column(modifier = Modifier.weight(3f)) {
+                Column(modifier = Modifier.weight(3f).padding(end = 4.dp)) {
                     Row {
                         IconButton(onClick = { isExpanded.value = !isExpanded.value }) {
                             Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit current list")
@@ -413,10 +400,20 @@ fun NewPurchaseListItemDialog(
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
+                    horizontalArrangement = Arrangement.SpaceAround
                 ){
+
                     Button(
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).padding(4.dp),
+                        onClick = { setShowDialog(false)}
+                    ) {
+                        Text(text = "Cancel")
+                    }
+
+                    //Spacer(modifier = Modifier.weight(1f))
+
+                    Button(
+                        modifier = Modifier.weight(1f).padding(4.dp),
                         onClick = {
 
                             //Check if all fields are not null
@@ -439,15 +436,6 @@ fun NewPurchaseListItemDialog(
                             }
                         }
                     ) { Text(text = "Confirm") }
-
-                    Spacer(modifier = Modifier.weight(1f))
-
-                    Button(
-                        modifier = Modifier.weight(1f),
-                        onClick = { setShowDialog(false)}
-                    ) {
-                        Text(text = "Cancel")
-                    }
                 }
             }
         }

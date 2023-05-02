@@ -78,7 +78,7 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
             itemList = purchaseRepository.getItems(listId = currentListId)
         }
 
-        return itemList
+        return itemList.sortedBy { it.name }
     }
 
     fun getItemsOfPurchaseList(){
@@ -202,6 +202,17 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
         viewModelScope.launch {
             withContext(Dispatchers.IO){
                 purchaseRepository.updateItem(item)
+            }
+
+            //Refresh Item List
+            getItemsOfPurchaseList()
+        }
+    }
+
+    fun updateItemBoughtAttribute(item: Item, isBought: Boolean){
+        viewModelScope.launch {
+            withContext(Dispatchers.IO){
+                purchaseRepository.updateItemBoughtAttribute(item,isBought)
             }
 
             //Refresh Item List

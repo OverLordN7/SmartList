@@ -30,6 +30,8 @@ interface PurchaseRepository{
     suspend fun updateItem(item: Item)
 
     suspend fun deleteItemsAssociatedWithList(listId: UUID)
+
+    suspend fun updateItemBoughtAttribute(item: Item,isBought: Boolean)
 }
 
 class DefaultPurchaseRepository(
@@ -94,6 +96,13 @@ class DefaultPurchaseRepository(
 
     override suspend fun deleteItemsAssociatedWithList(listId: UUID) {
         itemDao.deleteItemsAssociatedWithList(listId)
+    }
+
+    override suspend fun updateItemBoughtAttribute(item: Item,isBought: Boolean) {
+        itemDao.updateItemBoughtAttribute(
+            id = item.id,
+            isBought = isBought
+        )
     }
 
 

@@ -3,6 +3,7 @@ package com.example.smartlist.ui.screens
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -79,6 +80,7 @@ fun DetailedPurchaseListScreen(
     onRefresh: ()->Unit,
     onDelete: (UUID) -> Unit,
     onEdit: (Item) -> Unit,
+    onItemBoughtChanged: (Item,Boolean)-> Unit,
     modifier: Modifier = Modifier
 ){
     val showDialog = remember { mutableStateOf(false) }
@@ -116,6 +118,7 @@ fun DetailedPurchaseListScreen(
                 is PurchaseItemUiState.Success ->{
                     ResultItemScreen(
                         itemsOfList = state.items,
+                        onItemBoughtChanged = onItemBoughtChanged,
                         onDelete = {itemId-> onDelete(itemId)},
                         onEdit = onEdit
                     )
@@ -129,6 +132,7 @@ fun DetailedPurchaseListScreen(
 @Composable
 fun ResultItemScreen(
     itemsOfList: List<Item>,
+    onItemBoughtChanged: (Item,Boolean)-> Unit,
     onEdit: (Item) -> Unit,
     onDelete: (UUID) -> Unit
 ){
@@ -145,6 +149,7 @@ fun ResultItemScreen(
         items(itemsOfList.size){
             ItemCard(
                 item = itemsOfList[it],
+                onClick = onItemBoughtChanged,
                 onDelete = {id-> onDelete(id) },
                 onEdit = onEdit
             )
@@ -167,18 +172,28 @@ fun EmptyCard(modifier: Modifier = Modifier){
 fun ItemCard(
     item: Item,
     modifier: Modifier = Modifier,
-    onClick: (Int) -> Unit = {},
+    onClick: (Item,Boolean) -> Unit,
     onEdit: (Item) -> Unit = {},
     onDelete: (UUID) -> Unit = {},
 ){
     val context = LocalContext.current
     val isExpanded = remember { mutableStateOf(false) }
 
+    var isBought by remember { mutableStateOf(item.isBought) }
+
+
+
     Card(
         elevation = 4.dp,
+        backgroundColor = if(isBought) Color.LightGray else Color.White,
         modifier = modifier
             .padding(8.dp)
             .fillMaxWidth()
+            .clickable {
+                isBought = !isBought
+                onClick(item, isBought)
+            }
+
     ) {
         Column() {
             Row(
@@ -210,22 +225,27 @@ fun ItemCard(
                             text = "${item.weight} ${item.weightType}",
                             fontSize = 16.sp,
                             color = Color.Gray,
-                            modifier = modifier.weight(2f).padding(4.dp)
+                            modifier = modifier
+                                .weight(2f)
+                                .padding(4.dp)
                         )
 
-                        //Spacer(modifier = modifier.weight(0.5f))
                         Text(
                             text = "${item.price} UZS",
                             fontSize = 16.sp,
                             color = Color.Gray,
-                            modifier = modifier.weight(3f).padding(4.dp)
+                            modifier = modifier
+                                .weight(3f)
+                                .padding(4.dp)
                         )
                     }
                 }
 
                 Spacer(modifier = modifier.weight(2f))
 
-                Column(modifier = Modifier.weight(3f).padding(end = 4.dp)) {
+                Column(modifier = Modifier
+                    .weight(3f)
+                    .padding(end = 4.dp)) {
                     Row {
                         IconButton(onClick = { isExpanded.value = !isExpanded.value }) {
                             Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit current list")
@@ -404,7 +424,9 @@ fun NewPurchaseListItemDialog(
                 ){
 
                     Button(
-                        modifier = Modifier.weight(1f).padding(4.dp),
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(4.dp),
                         onClick = { setShowDialog(false)}
                     ) {
                         Text(text = "Cancel")
@@ -413,7 +435,9 @@ fun NewPurchaseListItemDialog(
                     //Spacer(modifier = Modifier.weight(1f))
 
                     Button(
-                        modifier = Modifier.weight(1f).padding(4.dp),
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(4.dp),
                         onClick = {
 
                             //Check if all fields are not null

@@ -231,7 +231,7 @@ fun ItemCard(
                         )
 
                         Text(
-                            text = "${item.price} UZS",
+                            text = "${item.price.toInt()} UZS",
                             fontSize = 16.sp,
                             color = Color.Gray,
                             modifier = modifier
@@ -470,25 +470,45 @@ fun NewPurchaseListItemDialog(
 @Composable
 fun ListInfoCard(items: List<Item>, modifier: Modifier = Modifier){
     var total = 0
+    var left = 0
     items.forEach {
         total += it.total.toInt()
     }
+
+    left = total
+
+    items.forEach {
+        if (it.isBought){
+            left-=it.total.toInt()
+        }
+    }
+
+    val convertedTotal = DecimalFormat("#,###", DecimalFormatSymbols(Locale.US)).format(total)
+    val convertedLeft = DecimalFormat("#,###", DecimalFormatSymbols(Locale.US)).format(left)
 
     Card(
         elevation = 4.dp,
         modifier = modifier
             .fillMaxWidth()
             .padding(8.dp)
-            .height(40.dp)
+            .height(50.dp)
     ) {
-        Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.padding(4.dp)
         ) {
             Text(
-                "Total: ${DecimalFormat("#,###", DecimalFormatSymbols(Locale.US)).format(total)} UZS",
-                fontSize = 25.sp,
-                color = Color.Black
+                "Total: $convertedTotal UZS",
+                fontSize = 18.sp,
+                color = Color.Black,
+                modifier = Modifier.weight(1f).padding(4.dp)
+            )
+            Text(
+                "Left: $convertedLeft UZS",
+                fontSize = 18.sp,
+                color = Color.Gray,
+                modifier = Modifier.weight(1f).padding(4.dp)
             )
         }
     }

@@ -31,5 +31,6 @@ data class Item(
     val weightType: String,
     val price : Float,
     val total: Float,
+    val isBought: Boolean = false,
     val listId: UUID, //foreign key to purchase list
 )

@@ -50,5 +50,8 @@ interface ItemDao{
     @Query("UPDATE item_table SET name =:name,weight=:weight, weightType=:weightType, price=:price, total =:total, listId = CAST(:listId AS BLOB) WHERE id = CAST(:id AS BLOB)")
     fun updateItem(id: UUID,name: String, weight: Float,weightType: String, price: Float, total: Float,listId: UUID)
 
+    @Query("UPDATE item_table SET isBought=:isBought WHERE id=CAST(:id AS BLOB)")
+    fun updateItemBoughtAttribute(id: UUID,isBought: Boolean)
+
     //add other CRUD functions
 }

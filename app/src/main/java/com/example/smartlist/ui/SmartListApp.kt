@@ -96,7 +96,8 @@ fun SmartListApp(){
                 onSubmit = purchaseViewModel::insertItem,
                 onRefresh = purchaseViewModel::getItemsOfPurchaseList,
                 onDelete = purchaseViewModel::deleteItem,
-                onEdit = purchaseViewModel::updateItemInDb
+                onEdit = purchaseViewModel::updateItemInDb,
+                onItemBoughtChanged = purchaseViewModel::updateItemBoughtAttribute
             )
         }
 

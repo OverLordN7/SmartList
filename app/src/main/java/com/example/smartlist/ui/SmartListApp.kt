@@ -42,7 +42,10 @@ fun SmartListApp(){
 
         //Navigate to DishesScreen screen
         composable(route = Screen.DishesScreen.route){
-            DishesScreen()
+            DishesScreen(
+                navController = navController,
+                dishViewModel = dishViewModel,
+            )
         }
 
         //Navigate to GraphScreen screen

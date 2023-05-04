@@ -18,37 +18,7 @@ fun SmartListApp(){
 
     val purchaseViewModel: PurchaseViewModel = viewModel(factory = PurchaseViewModel.Factory)
 
-
-//    LaunchedEffect(key1 = "test"){
-//        coroutineScope.launch {
-//            val db = MyDatabase.getInstance(context = context)
-//            val purchaseListDao = db.purchaseListDao()
-//            val itemDao = db.itemDao()
-//
-//            val date = LocalDate.now()
-//            val list = PurchaseList(1,"List 1",0,date.year,date.month.name,date.dayOfMonth)
-//
-//            purchaseListDao.insertPurchaseList(list)
-//            val listId = list.id
-//
-//            val item1 = Item(1,"Potato",10f,1500f,10f*1500,listId)
-//            val item2 = Item(2,"Onion",2f,800f,2f*800,listId)
-//
-//            itemDao.insertItem(item1)
-//            itemDao.insertItem(item2)
-//
-//            val lists = purchaseListDao.getAllLists()
-//
-//            lists.forEach {
-//                Log.d(TAG,"${it.name}")
-//            }
-//        }
-//    }
-
-
-
-
-
+    val dishViewModel: DishViewModel = viewModel(factory = DishViewModel.Factory)
 
 
     NavHost(navController = navController, startDestination = Screen.HomeScreen.route){

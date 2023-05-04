@@ -491,7 +491,7 @@ fun ListInfoCard(items: List<Item>, modifier: Modifier = Modifier){
         modifier = modifier
             .fillMaxWidth()
             .padding(8.dp)
-            .height(50.dp)
+            .height(80.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,

@@ -7,6 +7,7 @@ import androidx.room.Room
 
 interface AppContainer{
     val purchaseRepository: PurchaseRepository
+    val dishRepository: DishRepository
 }
 
 class DefaultAppContainer(private val applicationContext: Context): AppContainer{
@@ -23,7 +24,15 @@ class DefaultAppContainer(private val applicationContext: Context): AppContainer
 
     private val itemDao by lazy { database.itemDao() }
 
+    private val dishListDao by lazy { database.dishListDao() }
+
+    private val dishComponentDao by lazy { database.dishComponentDao() }
+
     override val purchaseRepository: PurchaseRepository by lazy{
         DefaultPurchaseRepository(itemDao,purchaseListDao)
+    }
+
+    override val dishRepository: DishRepository by lazy{
+        DefaultDishRepository(dishComponentDao,dishListDao)
     }
 }

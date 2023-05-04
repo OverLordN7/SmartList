@@ -15,6 +15,7 @@ import com.example.smartlist.data.PurchaseRepository
 import com.example.smartlist.model.Item
 import com.example.smartlist.model.PurchaseList
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.*
@@ -217,6 +218,7 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
 
             //Refresh Item List
             getItemsOfPurchaseList()
+            delay(1500)
         }
     }
     //End of Item functions

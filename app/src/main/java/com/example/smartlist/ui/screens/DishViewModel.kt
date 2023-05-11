@@ -14,6 +14,7 @@ import com.example.smartlist.model.DishList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.UUID
 
 sealed interface DishUiState{
     data class Success(var dishList: List<DishList>): DishUiState
@@ -26,6 +27,8 @@ sealed interface DishUiState{
 class DishViewModel (private val dishRepository: DishRepository): ViewModel(){
 
     var dishUiState: DishUiState by mutableStateOf(DishUiState.Loading)
+
+    var currentListId: UUID by mutableStateOf(UUID.randomUUID())
 
 
     //DishList Functions
@@ -50,6 +53,41 @@ class DishViewModel (private val dishRepository: DishRepository): ViewModel(){
             } catch (e: Exception){
                 DishUiState.Error
             }
+        }
+    }
+
+    fun insertDishList(list: DishList){
+        viewModelScope.launch {
+            withContext(Dispatchers.IO){
+                dishRepository.insertDishList(list)
+            }
+
+            //Refresh DishList
+            getDishLists()
+        }
+    }
+
+    fun updateDishList(list: DishList){
+        viewModelScope.launch {
+            withContext(Dispatchers.IO){
+                dishRepository.updateList(list)
+            }
+
+
+            //Refresh List
+            getDishLists()
+        }
+    }
+
+    fun deleteDishList(listId: UUID){
+        viewModelScope.launch {
+            withContext(Dispatchers.IO){
+                dishRepository.deleteDishComponentsAssociatedWithList(listId)
+                dishRepository.deleteList(listId)
+            }
+
+            //Refresh List
+            getDishLists()
         }
     }
 

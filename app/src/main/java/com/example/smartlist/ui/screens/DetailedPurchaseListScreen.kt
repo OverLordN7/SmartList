@@ -353,6 +353,10 @@ fun NewPurchaseListItemDialog(
                                 fontWeight = FontWeight.Bold,
                             )
                         },
+                        keyboardOptions = KeyboardOptions.Default.copy(
+                            keyboardType = KeyboardType.Decimal,
+                            imeAction = ImeAction.Next
+                        ),
                     )
 
                     Spacer(modifier = Modifier.weight(0.2f))
@@ -403,6 +407,10 @@ fun NewPurchaseListItemDialog(
                             fontWeight = FontWeight.Bold,
                         )
                     },
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        keyboardType = KeyboardType.Decimal,
+                        imeAction = ImeAction.Done
+                    ),
                 )
 
                 if (errorFieldStatus){
@@ -493,22 +501,23 @@ fun ListInfoCard(items: List<Item>, modifier: Modifier = Modifier){
             .padding(8.dp)
             .height(80.dp)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier.padding(4.dp)
+        Column(
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 "Total: $convertedTotal UZS",
                 fontSize = 18.sp,
                 color = Color.Black,
-                modifier = Modifier.weight(1f).padding(4.dp)
+                modifier = Modifier
+                    .weight(1f)
             )
             Text(
                 "Left: $convertedLeft UZS",
                 fontSize = 18.sp,
                 color = Color.Gray,
-                modifier = Modifier.weight(1f).padding(4.dp)
+                modifier = Modifier
+                    .weight(1f)
             )
         }
     }
@@ -560,13 +569,17 @@ fun EditScreen(
                         fontWeight = FontWeight.Bold,
                     )
                 },
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    autoCorrect = true,
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Next
+                ),
             )
 
             OutlinedTextField(
                 value = weight,
                 onValueChange = {weight = it},
                 placeholder = {Text(text = "ex 10.0")},
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 modifier = Modifier
                     .padding(4.dp)
                     .weight(0.5f),
@@ -578,6 +591,10 @@ fun EditScreen(
                         fontWeight = FontWeight.Bold,
                     )
                 },
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    keyboardType = KeyboardType.Decimal,
+                    imeAction = ImeAction.Next
+                ),
             )
 
             ExposedDropdownMenuBox(
@@ -619,7 +636,6 @@ fun EditScreen(
                 value = price,
                 onValueChange = {price = it},
                 placeholder = {Text(text = "ex 10000")},
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 modifier = Modifier
                     .padding(4.dp)
                     .weight(1f),
@@ -631,6 +647,10 @@ fun EditScreen(
                         fontWeight = FontWeight.Bold,
                     )
                 },
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    keyboardType = KeyboardType.Decimal,
+                    imeAction = ImeAction.Done
+                ),
             )
 
             //Plug for good view

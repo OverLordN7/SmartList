@@ -45,6 +45,9 @@ fun SmartListApp(){
             DishesScreen(
                 navController = navController,
                 dishViewModel = dishViewModel,
+                onSubmit = dishViewModel::insertDishList,
+                onEdit = dishViewModel::updateDishList,
+                onDelete = dishViewModel::deleteDishList
             )
         }
 
@@ -73,6 +76,17 @@ fun SmartListApp(){
                 onItemBoughtChanged = purchaseViewModel::updateItemBoughtAttribute
             )
         }
+
+        //Navigate to DetailedPurchaseListScreen Screen
+        composable(
+            route = Screen.DetailedDishesScreen.route
+        ){
+            DetailedDishesScreen(
+                dishViewModel = dishViewModel,
+                navController = navController
+            )
+        }
+
 
 
     }

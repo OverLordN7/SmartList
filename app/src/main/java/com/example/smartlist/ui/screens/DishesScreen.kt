@@ -50,6 +50,7 @@ import androidx.navigation.NavController
 import com.example.smartlist.R
 import com.example.smartlist.model.DishList
 import com.example.smartlist.model.PurchaseList
+import com.example.smartlist.navigation.Screen
 import java.time.LocalDate
 import java.util.UUID
 
@@ -57,6 +58,9 @@ import java.util.UUID
 fun DishesScreen(
     navController: NavController,
     dishViewModel: DishViewModel,
+    onSubmit: (DishList) -> Unit,
+    onEdit: (DishList) -> Unit,
+    onDelete: (UUID) -> Unit,
     modifier: Modifier = Modifier,
     onRefresh: ()->Unit = {/*TODO add refresh action in DishViewModel*/},
 ){
@@ -64,11 +68,9 @@ fun DishesScreen(
     val state: DishUiState = dishViewModel.dishUiState
 
     if (showDialog.value){
-        NewPurchaseListDialog(
+        NewDishListDialog(
             setShowDialog = {showDialog.value = it},
-            onConfirm = {newDishList ->
-                //TODO submit new DishList to database
-            }
+            onConfirm = onSubmit
         )
     }
 
@@ -92,9 +94,12 @@ fun DishesScreen(
                 is DishUiState.Success ->{
                     ResultScreen(
                         lists = state.dishList,
-                        onClick = {},
-                        onEdit = {},
-                        onDelete = {},
+                        onClick = {
+                                  dishViewModel.currentListId = it
+                            navController.navigate(Screen.DetailedDishesScreen.route)
+                        },
+                        onEdit = onEdit,
+                        onDelete = onDelete,
                     )
                 }
             }
@@ -106,7 +111,7 @@ fun DishesScreen(
 fun ResultScreen(
     lists: List<DishList>,
     onClick: (UUID) -> Unit,
-    onEdit: (PurchaseList) -> Unit,
+    onEdit: (DishList) -> Unit,
     onDelete: (UUID) -> Unit,
 ){
 
@@ -132,7 +137,7 @@ fun ResultScreen(
 fun DishListCard(
     list: DishList,
     onClick: (UUID) -> Unit,
-    onEdit: (PurchaseList) -> Unit,
+    onEdit: (DishList) -> Unit,
     onDelete: (UUID) -> Unit,
     modifier: Modifier = Modifier
 ){
@@ -205,7 +210,7 @@ fun DishListCard(
 fun DishEditScreen(
     list: DishList,
     isExpanded: MutableState<Boolean>,
-    onSubmit: (PurchaseList) -> Unit,
+    onSubmit: (DishList) -> Unit,
     modifier: Modifier = Modifier
 ){
     var name by remember { mutableStateOf(TextFieldValue(list.name)) }
@@ -245,7 +250,7 @@ fun DishEditScreen(
                         errorMessage = true
                     }
                     else{
-                        val newList = PurchaseList(
+                        val newList = DishList(
                             id = list.id,
                             name = name.text,
                             listSize = list.listSize,

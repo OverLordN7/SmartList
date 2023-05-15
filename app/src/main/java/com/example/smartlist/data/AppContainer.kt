@@ -28,11 +28,13 @@ class DefaultAppContainer(private val applicationContext: Context): AppContainer
 
     private val dishComponentDao by lazy { database.dishComponentDao() }
 
+    private val recipeDao by lazy { database.recipeDao()}
+
     override val purchaseRepository: PurchaseRepository by lazy{
         DefaultPurchaseRepository(itemDao,purchaseListDao)
     }
 
     override val dishRepository: DishRepository by lazy{
-        DefaultDishRepository(dishComponentDao,dishListDao)
+        DefaultDishRepository(dishComponentDao,dishListDao,recipeDao)
     }
 }

@@ -1,11 +1,14 @@
 package com.example.smartlist.data
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Update
 import com.example.smartlist.model.DishComponent
 import com.example.smartlist.model.DishList
 import com.example.smartlist.model.Item
+import com.example.smartlist.model.Recipe
 import java.util.UUID
 
 @Dao
@@ -34,8 +37,8 @@ interface DishListDao {
 
 @Dao
 interface DishComponentDao{
-    @Query("SELECT * FROM dish_component_table WHERE listId=:listId")
-    fun getDishComponentForDishList(listId:UUID): List<DishComponent>
+    @Query("SELECT * FROM dish_component_table WHERE recipeId=:recipeId")
+    fun getDishComponentForDishList(recipeId:UUID): List<DishComponent>
 
     @Insert
     fun insertDishComponent(component: DishComponent)
@@ -43,9 +46,24 @@ interface DishComponentDao{
     @Query("DELETE FROM dish_component_table WHERE id = CAST(:id AS BLOB)")
     fun deleteDishComponent(id: UUID)
 
-    @Query("DELETE FROM dish_component_table WHERE id = CAST(:listId AS BLOB)")
-    fun deleteDishComponentsAssociatedWithDishList(listId: UUID)
+    @Query("DELETE FROM dish_component_table WHERE id = CAST(:recipeId AS BLOB)")
+    fun deleteDishComponentsAssociatedWithDishList(recipeId: UUID)
 
-    @Query("UPDATE dish_component_table SET name =:name,weight=:weight, weightType=:weightType, listId = CAST(:listId AS BLOB) WHERE id = CAST(:id AS BLOB)")
-    fun updateDishComponent(id: UUID,name: String, weight: Float,weightType: String,listId: UUID)
+    @Query("UPDATE dish_component_table SET name =:name,weight=:weight, weightType=:weightType, recipeId = CAST(:recipeId AS BLOB) WHERE id = CAST(:id AS BLOB)")
+    fun updateDishComponent(id: UUID,name: String, weight: Float,weightType: String,recipeId: UUID)
+}
+
+@Dao
+interface RecipeDao{
+    @Insert
+    fun insertRecipe(recipe: Recipe)
+
+    @Delete
+    fun deleteRecipe(recipe: Recipe)
+
+    @Update
+    fun updateRecipe(recipe: Recipe)
+
+    @Query("SELECT * FROM recipe_table WHERE listId=CAST(:listId AS BLOB)")
+    fun getRecipeForDishList(listId: UUID): List<Recipe>
 }

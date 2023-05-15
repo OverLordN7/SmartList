@@ -10,15 +10,17 @@ import com.example.smartlist.model.DishComponent
 import com.example.smartlist.model.DishList
 import com.example.smartlist.model.Item
 import com.example.smartlist.model.PurchaseList
+import com.example.smartlist.model.Recipe
 
 @Database(
     entities = [
         PurchaseList::class,
         Item::class,
         DishList::class,
-        DishComponent::class
+        DishComponent::class,
+        Recipe::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 abstract class MyDatabase: RoomDatabase() {
@@ -30,6 +32,8 @@ abstract class MyDatabase: RoomDatabase() {
     abstract fun dishListDao(): DishListDao
 
     abstract fun dishComponentDao(): DishComponentDao
+
+    abstract fun recipeDao(): RecipeDao
 
     companion object{
         private const val DB_NAME = "database.db"

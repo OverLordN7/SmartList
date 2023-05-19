@@ -1,5 +1,6 @@
 package com.example.smartlist.ui.screens
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -11,15 +12,24 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.smartlist.SmartListApplication
 import com.example.smartlist.data.DishRepository
 import com.example.smartlist.model.DishList
+import com.example.smartlist.model.Recipe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.UUID
 
+
+private const val TAG = "DishViewModel"
 sealed interface DishUiState{
     data class Success(var dishList: List<DishList>): DishUiState
     object Error: DishUiState
     object Loading: DishUiState
+}
+
+sealed interface RecipeUiState{
+    data class Success(var recipeList: List<Recipe>): RecipeUiState
+    object Error: RecipeUiState
+    object Loading: RecipeUiState
 }
 
 
@@ -27,6 +37,8 @@ sealed interface DishUiState{
 class DishViewModel (private val dishRepository: DishRepository): ViewModel(){
 
     var dishUiState: DishUiState by mutableStateOf(DishUiState.Loading)
+
+    var recipeUiState: RecipeUiState by mutableStateOf(RecipeUiState.Loading)
 
     var currentListId: UUID by mutableStateOf(UUID.randomUUID())
 
@@ -73,7 +85,6 @@ class DishViewModel (private val dishRepository: DishRepository): ViewModel(){
                 dishRepository.updateList(list)
             }
 
-
             //Refresh List
             getDishLists()
         }
@@ -88,6 +99,58 @@ class DishViewModel (private val dishRepository: DishRepository): ViewModel(){
 
             //Refresh List
             getDishLists()
+        }
+    }
+
+    //Recipe functions
+    fun insertRecipe(recipe: Recipe){
+        viewModelScope.launch {
+            withContext(Dispatchers.IO){
+                dishRepository.insertRecipe(recipe)
+            }
+
+            getRecipesList()
+        }
+
+
+    }
+
+    fun deleteRecipe(recipe: Recipe){
+        viewModelScope.launch {
+            withContext(Dispatchers.IO){
+                dishRepository.deleteRecipe(recipe)
+            }
+
+            getRecipesList()
+        }
+    }
+
+    fun updateRecipe(recipe: Recipe){
+        viewModelScope.launch {
+            withContext(Dispatchers.IO){
+                dishRepository.updateRecipe(recipe)
+            }
+
+            getRecipesList()
+        }
+    }
+
+    private suspend fun getRecipeListFromDb(): List<Recipe>{
+        var recipeList: List<Recipe> = emptyList()
+        withContext(Dispatchers.IO){
+            recipeList = dishRepository.getRecipes(listId = currentListId)
+        }
+        return recipeList
+    }
+
+    fun getRecipesList(){
+        viewModelScope.launch {
+            recipeUiState = RecipeUiState.Loading
+            recipeUiState = try {
+                RecipeUiState.Success(getRecipeListFromDb())
+            } catch (e: Exception){
+                RecipeUiState.Error
+            }
         }
     }
 

@@ -83,7 +83,11 @@ fun SmartListApp(){
         ){
             DetailedDishesScreen(
                 dishViewModel = dishViewModel,
-                navController = navController
+                navController = navController,
+                onDelete = dishViewModel::deleteRecipe,
+                onSubmit = dishViewModel::updateRecipe,
+                onRefresh = dishViewModel::getRecipesList,
+                addNewRecipe = dishViewModel::insertRecipe,
             )
         }
 

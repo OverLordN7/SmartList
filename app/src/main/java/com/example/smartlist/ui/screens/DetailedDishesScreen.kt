@@ -1,10 +1,10 @@
 package com.example.smartlist.ui.screens
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,7 +14,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.Button
 import androidx.compose.material.Card
+import androidx.compose.material.FabPosition
+import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.OutlinedButton
@@ -24,11 +29,11 @@ import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.PlusOne
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -38,55 +43,92 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.modifier.modifierLocalConsumer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.example.smartlist.R
+import com.example.smartlist.model.Recipe
+import java.util.UUID
+
+
+private const val TAG = "DetailedDishesScreen"
 
 @Composable
 fun DetailedDishesScreen(
     dishViewModel: DishViewModel,
     navController: NavController,
+    onDelete: (Recipe) -> Unit,
+    onSubmit: (Recipe) -> Unit,
+    addNewRecipe: (Recipe) -> Unit,
     modifier: Modifier = Modifier,
+    onRefresh: ()->Unit,
 ){
+    val state: RecipeUiState = dishViewModel.recipeUiState
+    val showDialog = remember { mutableStateOf(false) }
+
+    if (showDialog.value){
+        NewRecipeDialog(
+            setShowDialog = {showDialog.value = it},
+            currentListId = dishViewModel.currentListId,
+            onConfirm = addNewRecipe,
+        )
+    }
+
     Scaffold(
-        topBar = { Text(text = stringResource(id = R.string.app_name))}
+        topBar = { DishAppBar {onRefresh()}},
+        floatingActionButtonPosition = FabPosition.End,
+        floatingActionButton = {
+            FloatingActionButton(onClick = {showDialog.value = true} ) {
+                Icon(imageVector = Icons.Filled.Add, contentDescription = "add new recipe")
+            }
+        }
     ) {
         Surface(modifier.padding(it)) {
-
-            //Main content
-            LazyColumn(){
-                item{
-                    SearchCard()
+            when(state){
+                is RecipeUiState.Loading ->{}
+                is RecipeUiState.Error ->{}
+                is RecipeUiState.Success ->{
+                    //Main content
+                    ResultScreen(
+                        list = state.recipeList,
+                        onDelete = onDelete,
+                        onSubmit = onSubmit,
+                    )
                 }
-                item{
-                    RecipeCard()
-                }
-                item{
-                    RecipeCard()
-                }
-                item{
-                    RecipeCard()
-                }
-                item{
-                    RecipeCard()
-                }
-                item{
-                    RecipeCard()
-                }
-
             }
         }
     }
+}
+
+@Composable
+fun ResultScreen(
+    list: List<Recipe>,
+    onDelete: (Recipe) -> Unit,
+    onSubmit: (Recipe) -> Unit,
+){
+    LazyColumn {
+        item{
+            SearchCard()
+        }
+
+        items(list.size){id->
+            RecipeCard(
+                recipe = list[id],
+                onDelete = onDelete,
+                onSubmit = onSubmit
+            )
+        }
+    }
+
 }
 
 @Composable
@@ -96,7 +138,7 @@ fun SearchCard(modifier: Modifier = Modifier){
 
     Card(
         elevation = 4.dp,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(8.dp)
     ) {
@@ -117,37 +159,31 @@ fun SearchCard(modifier: Modifier = Modifier){
     }
 }
 
-@Preview(showBackground = true)
+
 @Composable
-fun RecipeCard(modifier: Modifier = Modifier){
-
-    //variable section
-    var isExpanded = remember { mutableStateOf(false) }
-
-    var name = remember { mutableStateOf("Pasta Pepeproni por fovor") }
-
-    var portions = remember { mutableStateOf(5) }
-
+fun RecipeCard(
+    recipe: Recipe,
+    onDelete: (Recipe)->Unit,
+    onSubmit: (Recipe) -> Unit,
+    modifier: Modifier = Modifier
+){
+    val isExpanded = remember { mutableStateOf(false) }
 
     Card(
         elevation = 4.dp,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp)
+        modifier = modifier.fillMaxWidth().padding(8.dp)
     ) {
-        Column() {
+        Column {
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(){
+                Row {
                     Image(
                         painter = painterResource(id = R.drawable.pasta1),
-                        contentDescription = "",
+                        contentDescription = "Image of recipe",
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .size(64.dp)
-                            .border(2.dp, Color.Gray, CircleShape)
+                        modifier = Modifier.size(64.dp).border(2.dp, Color.Gray, CircleShape)
                     )
 
                     Column(
@@ -155,10 +191,9 @@ fun RecipeCard(modifier: Modifier = Modifier){
                         horizontalAlignment = Alignment.Start,
                         modifier = Modifier.padding(start = 4.dp)
                     ) {
-                        Text(text = name.value)
-                        Text(text = "Portions: ${portions.value}")
+                        Text(text = recipe.name)
+                        Text(text = "Portions: ${recipe.portions}")
                     }
-
                 }
 
                 Row(
@@ -167,20 +202,16 @@ fun RecipeCard(modifier: Modifier = Modifier){
                     modifier = Modifier.weight(1f)
                 ) {
                     IconButton(onClick = { isExpanded.value = !isExpanded.value }) {
-                        Icon(imageVector = Icons.Default.Edit, contentDescription = "")
+                        Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit recipe")
                     }
-                    IconButton(onClick = { /*TODO*/ }) {
-                        Icon(imageVector = Icons.Default.Delete, contentDescription = "")
+                    IconButton(onClick = {onDelete(recipe)} ) {
+                        Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete recipe")
                     }
                 }
             }
 
             if(isExpanded.value){
-                RecipeCardEditScreen(
-                    isExpanded = isExpanded,
-                    name = name,
-                    portions = portions,
-                )
+                RecipeCardEditScreen(recipe = recipe, isExpanded = isExpanded, onSubmit = onSubmit)
             }
         }
     }
@@ -188,24 +219,26 @@ fun RecipeCard(modifier: Modifier = Modifier){
 
 @Composable
 fun RecipeCardEditScreen(
+    recipe: Recipe,
     isExpanded: MutableState<Boolean>,
-    name: MutableState<String>,
-    portions: MutableState<Int>,
+    onSubmit: (Recipe)->Unit,
     modifier: Modifier = Modifier
 ){
-    var name by remember { mutableStateOf(TextFieldValue(name.value)) }
-    var portions by remember { mutableStateOf(portions.value) }
+    var nameField by remember { mutableStateOf(TextFieldValue(recipe.name)) }
+    var portionsField by remember { mutableStateOf(recipe.portions) }
+    var errorMessage by remember { mutableStateOf(false) }
 
     Column(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.Start,
         modifier = modifier.fillMaxWidth()
     ) {
+
         //Name
-        Row() {
+        Row {
             OutlinedTextField(
-                value = name,
-                onValueChange = {name = it},
+                value = nameField,
+                onValueChange = {nameField = it},
                 placeholder = {Text(text = "ex Peperoni")},
                 modifier = Modifier.padding(4.dp),
                 label = {
@@ -218,27 +251,26 @@ fun RecipeCardEditScreen(
                 },
             )
         }
+
+        //Portions
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(4.dp)
         ) {
-            //Portions
             Row(modifier = Modifier.weight(1f)) {
+
                 OutlinedButton(
-                    onClick = { if (portions != 0) portions-- },
+                    onClick = { if (portionsField != 0) portionsField-- },
                     modifier = Modifier.size(40.dp)
                 ) {
                     Text(text = "-")
                 }
 
-                Text(
-                    text = "$portions",
-                    modifier = Modifier.padding(8.dp)
-                )
+                Text(text = "$portionsField", modifier = Modifier.padding(8.dp) )
 
                 OutlinedButton(
-                    onClick = { portions++ },
+                    onClick = { portionsField++ },
                     modifier = Modifier.size(40.dp)
                 ) {
                     Text(text = "+")
@@ -248,11 +280,155 @@ fun RecipeCardEditScreen(
             Spacer(modifier = Modifier.weight(1f))
 
             Row(modifier = Modifier.weight(1f)) {
-                IconButton(onClick = { isExpanded.value = false }) {
+                IconButton(onClick = {
+                    if(nameField.text.isBlank() || portionsField <=0){
+                        errorMessage = true
+                    }
+                    else{
+                        val newRecipe = Recipe(
+                            id = recipe.id,
+                            name = nameField.text,
+                            listId = recipe.listId,
+                            portions = portionsField
+                        )
+
+                        isExpanded.value = false
+                        onSubmit(newRecipe)
+                    }
+                }) {
                     Icon(imageVector = Icons.Default.Check, contentDescription = "Submit changes")
                 }
                 IconButton(onClick = { isExpanded.value = false }) {
                     Icon(imageVector = Icons.Default.Cancel, contentDescription = "Cancel")
+                }
+            }
+        }
+
+        Row {
+            if (errorMessage){
+                Text(
+                    text = "*Sure that you fill all fields, if message still remains, check symbols",
+                    color = Color.Red,
+                    modifier = Modifier.padding(start = 12.dp)
+                )
+            } else{
+                Spacer(modifier = Modifier.height(20.dp))
+            }
+        }
+    }
+}
+
+@Composable
+fun NewRecipeDialog(
+    setShowDialog: (Boolean) -> Unit,
+    currentListId: UUID,
+    onConfirm: (Recipe) -> Unit,
+    modifier: Modifier = Modifier,
+){
+    var nameField by remember{ mutableStateOf(TextFieldValue("")) }
+    var errorFieldStatus by remember { mutableStateOf(false) }
+
+
+    Dialog(onDismissRequest = {setShowDialog(false)}) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = Color.White,
+        ) {
+            LazyColumn(modifier = modifier.fillMaxWidth()){
+                item{
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.padding(4.dp)
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.pasta1),
+                            contentDescription ="Test",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.size(64.dp),
+                        )
+                        Column(
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.Start,
+                            modifier = Modifier.padding(start = 4.dp)
+                        ) {
+                            OutlinedTextField(
+                                value = nameField,
+                                onValueChange = { nameField = it},
+                                placeholder = { Text(text = "Cake") },
+                                label = {
+                                    Text(
+                                        text = "Enter new recipe name",
+                                        color = Color.Black,
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                },
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Text,
+                                    autoCorrect = true,
+                                    imeAction = ImeAction.Next,
+                                )
+                            )
+                            Text(
+                                text = "Portions: 1",
+                                fontSize = 16.sp,
+                            )
+                        }
+                    }
+                }
+                item{
+                    if (errorFieldStatus){
+                        Text(
+                            text = "*Sure that you fill all fields, if message still remains, check symbols",
+                            color = Color.Red,
+                            modifier = Modifier
+                                .padding(start = 12.dp)
+                                .height(40.dp)
+                        )
+                    }
+                    else{
+                        Spacer(modifier = Modifier.height(40.dp))
+                    }
+
+
+
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceAround,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(4.dp)
+                    ) {
+                        Button(
+                            modifier = Modifier.weight(1f),
+                            onClick = { setShowDialog(false) }
+                        ) {
+                            Text(text = "Cancel")
+                        }
+
+                        Spacer(modifier = Modifier.weight(0.5f))
+
+                        Button(
+                            modifier = Modifier.weight(1f),
+                            onClick = {
+                                //Check if all fields are not null
+                                if (nameField.text.isBlank()){
+                                    errorFieldStatus = true
+                                }
+                                else{
+                                    val newRecipe = Recipe(
+                                        id = UUID.randomUUID(),
+                                        listId = currentListId,
+                                        name = nameField.text,
+                                        portions = 1,
+                                    )
+                                    onConfirm(newRecipe)
+                                    setShowDialog(false)
+                                }
+                            }
+                        ) {
+                            Text(text = "Confirm")
+                        }
+                    }
                 }
             }
         }

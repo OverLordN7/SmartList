@@ -14,9 +14,8 @@ data class DishList(
     val month: String,
     val day: Int,
 )
-
 @Entity(
-    tableName = "dish_component_table",
+    tableName = "recipe_table",
     foreignKeys = [ForeignKey(
         entity = DishList::class,
         parentColumns = ["id"],
@@ -24,10 +23,27 @@ data class DishList(
         onDelete = ForeignKey.CASCADE
     )]
 )
+data class Recipe(
+    @PrimaryKey val id: UUID = UUID.randomUUID(),
+    val listId: UUID,
+    val name: String,
+    val portions: Int,
+)
+
+@Entity(
+    tableName = "dish_component_table",
+    foreignKeys = [ForeignKey(
+        entity = Recipe::class,
+        parentColumns = ["id"],
+        childColumns = ["recipeId"],
+        onDelete = ForeignKey.CASCADE
+    )]
+)
 data class DishComponent(
     @PrimaryKey val id: UUID = UUID.randomUUID(),
     val name: String,
+    val recipeId:UUID,
     val weight: Float,
     val weightType: String,
-    val listId:UUID,
 )
+

@@ -2,6 +2,7 @@ package com.example.smartlist.data
 
 import com.example.smartlist.model.DishComponent
 import com.example.smartlist.model.DishList
+import com.example.smartlist.model.Recipe
 import java.util.UUID
 
 interface DishRepository {
@@ -29,11 +30,20 @@ interface DishRepository {
 
     suspend fun deleteDishComponentsAssociatedWithList(listId: UUID)
 
+    fun insertRecipe(recipe: Recipe)
+
+    suspend fun getRecipes(listId: UUID): List<Recipe>
+
+    fun deleteRecipe(recipe: Recipe)
+
+    fun updateRecipe(recipe: Recipe)
+
 }
 
 class DefaultDishRepository(
     private val dishComponentDao: DishComponentDao,
-    private val dishListDao: DishListDao
+    private val dishListDao: DishListDao,
+    private val recipeDao: RecipeDao
 ): DishRepository {
     override suspend fun getDishComponent(listId: UUID): List<DishComponent> {
         return dishComponentDao.getDishComponentForDishList(listId)
@@ -84,11 +94,31 @@ class DefaultDishRepository(
             name = component.name,
             weight = component.weight,
             weightType = component.weightType,
-            listId = component.listId
+            recipeId = component.recipeId
         )
     }
 
     override suspend fun deleteDishComponentsAssociatedWithList(listId: UUID) {
         dishComponentDao.deleteDishComponentsAssociatedWithDishList(listId)
+    }
+
+    override fun insertRecipe(recipe: Recipe) {
+        recipeDao.insertRecipe(recipe)
+    }
+
+    override suspend fun getRecipes(listId: UUID): List<Recipe> {
+        return recipeDao.getRecipeForDishList(listId)
+    }
+
+    override fun deleteRecipe(recipe: Recipe) {
+        recipeDao.deleteRecipe(recipe = recipe)
+    }
+
+    override fun updateRecipe(recipe: Recipe) {
+        recipeDao.updateRecipe(
+            id = recipe.id,
+            name = recipe.name,
+            portions = recipe.portions
+        )
     }
 }

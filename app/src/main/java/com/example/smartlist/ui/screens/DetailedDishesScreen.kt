@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -57,9 +56,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.example.smartlist.R
-import com.example.smartlist.model.DishList
 import com.example.smartlist.model.Recipe
-import java.time.LocalDate
 import java.util.UUID
 
 
@@ -78,8 +75,6 @@ fun DetailedDishesScreen(
     val state: RecipeUiState = dishViewModel.recipeUiState
     val showDialog = remember { mutableStateOf(false) }
 
-    Log.d(TAG, "the state is: $state")
-
     if (showDialog.value){
         NewRecipeDialog(
             setShowDialog = {showDialog.value = it},
@@ -88,28 +83,16 @@ fun DetailedDishesScreen(
         )
     }
 
-
     Scaffold(
         topBar = { DishAppBar {onRefresh()}},
         floatingActionButtonPosition = FabPosition.End,
         floatingActionButton = {
-            FloatingActionButton(onClick = {
-                /*TODO make a new dialog where user can add his custom recipe*/
-//                dishViewModel.insertRecipe(Recipe(
-//                    id = UUID.randomUUID(),
-//                    listId = dishViewModel.currentListId,
-//                    name = "Peperoni yetit",
-//                    portions = 1,
-//                ))
-                showDialog.value = true
-            }) {
+            FloatingActionButton(onClick = {showDialog.value = true} ) {
                 Icon(imageVector = Icons.Filled.Add, contentDescription = "add new recipe")
             }
         }
     ) {
         Surface(modifier.padding(it)) {
-
-
             when(state){
                 is RecipeUiState.Loading ->{}
                 is RecipeUiState.Error ->{}
@@ -121,8 +104,6 @@ fun DetailedDishesScreen(
                         onSubmit = onSubmit,
                     )
                 }
-
-                else -> {}
             }
         }
     }
@@ -135,6 +116,10 @@ fun ResultScreen(
     onSubmit: (Recipe) -> Unit,
 ){
     LazyColumn {
+        item{
+            SearchCard()
+        }
+
         items(list.size){id->
             RecipeCard(
                 recipe = list[id],
@@ -182,18 +167,11 @@ fun RecipeCard(
     onSubmit: (Recipe) -> Unit,
     modifier: Modifier = Modifier
 ){
-
-    //variable section
     val isExpanded = remember { mutableStateOf(false) }
-
-    val context = LocalContext.current
-
 
     Card(
         elevation = 4.dp,
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(8.dp)
+        modifier = modifier.fillMaxWidth().padding(8.dp)
     ) {
         Column {
             Row(
@@ -203,11 +181,9 @@ fun RecipeCard(
                 Row {
                     Image(
                         painter = painterResource(id = R.drawable.pasta1),
-                        contentDescription = "",
+                        contentDescription = "Image of recipe",
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .size(64.dp)
-                            .border(2.dp, Color.Gray, CircleShape)
+                        modifier = Modifier.size(64.dp).border(2.dp, Color.Gray, CircleShape)
                     )
 
                     Column(
@@ -218,7 +194,6 @@ fun RecipeCard(
                         Text(text = recipe.name)
                         Text(text = "Portions: ${recipe.portions}")
                     }
-
                 }
 
                 Row(
@@ -227,22 +202,16 @@ fun RecipeCard(
                     modifier = Modifier.weight(1f)
                 ) {
                     IconButton(onClick = { isExpanded.value = !isExpanded.value }) {
-                        Icon(imageVector = Icons.Default.Edit, contentDescription = "")
+                        Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit recipe")
                     }
-                    IconButton(onClick = {
-                        Toast.makeText(context,"Delete recipe", Toast.LENGTH_SHORT).show()
-                        onDelete(recipe) }) {
+                    IconButton(onClick = {onDelete(recipe)} ) {
                         Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete recipe")
                     }
                 }
             }
 
             if(isExpanded.value){
-                RecipeCardEditScreen(
-                    recipe = recipe,
-                    isExpanded = isExpanded,
-                    onSubmit = onSubmit,
-                )
+                RecipeCardEditScreen(recipe = recipe, isExpanded = isExpanded, onSubmit = onSubmit)
             }
         }
     }
@@ -257,7 +226,6 @@ fun RecipeCardEditScreen(
 ){
     var nameField by remember { mutableStateOf(TextFieldValue(recipe.name)) }
     var portionsField by remember { mutableStateOf(recipe.portions) }
-
     var errorMessage by remember { mutableStateOf(false) }
 
     Column(
@@ -265,6 +233,7 @@ fun RecipeCardEditScreen(
         horizontalAlignment = Alignment.Start,
         modifier = modifier.fillMaxWidth()
     ) {
+
         //Name
         Row {
             OutlinedTextField(
@@ -282,13 +251,15 @@ fun RecipeCardEditScreen(
                 },
             )
         }
+
+        //Portions
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(4.dp)
         ) {
-            //Portions
             Row(modifier = Modifier.weight(1f)) {
+
                 OutlinedButton(
                     onClick = { if (portionsField != 0) portionsField-- },
                     modifier = Modifier.size(40.dp)
@@ -296,10 +267,7 @@ fun RecipeCardEditScreen(
                     Text(text = "-")
                 }
 
-                Text(
-                    text = "$portionsField",
-                    modifier = Modifier.padding(8.dp)
-                )
+                Text(text = "$portionsField", modifier = Modifier.padding(8.dp) )
 
                 OutlinedButton(
                     onClick = { portionsField++ },

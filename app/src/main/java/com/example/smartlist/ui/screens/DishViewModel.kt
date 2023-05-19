@@ -131,17 +131,11 @@ class DishViewModel (private val dishRepository: DishRepository): ViewModel(){
                 dishRepository.updateRecipe(recipe)
             }
 
-
-            Log.d(TAG, "update is called")
-            Log.d(TAG,"current status UIstate is $recipeUiState")
-
             getRecipesList()
-
-            Log.d(TAG,"current status UIstate is $recipeUiState after refresh")
         }
     }
 
-    private suspend fun getRecipeList(): List<Recipe>{
+    private suspend fun getRecipeListFromDb(): List<Recipe>{
         var recipeList: List<Recipe> = emptyList()
         withContext(Dispatchers.IO){
             recipeList = dishRepository.getRecipes(listId = currentListId)
@@ -152,9 +146,8 @@ class DishViewModel (private val dishRepository: DishRepository): ViewModel(){
     fun getRecipesList(){
         viewModelScope.launch {
             recipeUiState = RecipeUiState.Loading
-
             recipeUiState = try {
-                RecipeUiState.Success(getRecipeList())
+                RecipeUiState.Success(getRecipeListFromDb())
             } catch (e: Exception){
                 RecipeUiState.Error
             }

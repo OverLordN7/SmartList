@@ -115,6 +115,10 @@ class DefaultDishRepository(
     }
 
     override fun updateRecipe(recipe: Recipe) {
-        recipeDao.updateRecipe(recipe)
+        recipeDao.updateRecipe(
+            id = recipe.id,
+            name = recipe.name,
+            portions = recipe.portions
+        )
     }
 }

@@ -72,6 +72,8 @@ import java.util.Locale
 import java.util.UUID
 
 private const val TAG = "DetailedPurchaseListScreen"
+
+
 @Composable
 fun DetailedPurchaseListScreen(
     listId: String,
@@ -85,6 +87,8 @@ fun DetailedPurchaseListScreen(
 ){
     val showDialog = remember { mutableStateOf(false) }
     val state: PurchaseItemUiState = purchaseViewModel.purchaseItemUiState
+
+    Log.d(TAG, "the state is: $state")
 
     if (showDialog.value){
         NewPurchaseListItemDialog(

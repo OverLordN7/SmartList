@@ -87,6 +87,7 @@ fun SmartListApp(){
                 onDelete = dishViewModel::deleteRecipe,
                 onSubmit = dishViewModel::updateRecipe,
                 onRefresh = dishViewModel::getRecipesList,
+                addNewRecipe = dishViewModel::insertRecipe,
             )
         }
 

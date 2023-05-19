@@ -103,6 +103,8 @@ fun DishesScreen(
                         onDelete = onDelete,
                     )
                 }
+
+                else -> {}
             }
         }
     }

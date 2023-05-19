@@ -1,5 +1,6 @@
 package com.example.smartlist.ui.screens
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
@@ -7,12 +8,16 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.Button
 import androidx.compose.material.Card
 import androidx.compose.material.FabPosition
 import androidx.compose.material.FloatingActionButton
@@ -43,15 +48,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.example.smartlist.R
+import com.example.smartlist.model.DishList
 import com.example.smartlist.model.Recipe
+import java.time.LocalDate
 import java.util.UUID
+
+
+private const val TAG = "DetailedDishesScreen"
 
 @Composable
 fun DetailedDishesScreen(
@@ -59,10 +71,22 @@ fun DetailedDishesScreen(
     navController: NavController,
     onDelete: (Recipe) -> Unit,
     onSubmit: (Recipe) -> Unit,
+    addNewRecipe: (Recipe) -> Unit,
     modifier: Modifier = Modifier,
-    onRefresh: ()->Unit = {/*TODO add refresh action in DishViewModel*/},
+    onRefresh: ()->Unit,
 ){
     val state: RecipeUiState = dishViewModel.recipeUiState
+    val showDialog = remember { mutableStateOf(false) }
+
+    Log.d(TAG, "the state is: $state")
+
+    if (showDialog.value){
+        NewRecipeDialog(
+            setShowDialog = {showDialog.value = it},
+            currentListId = dishViewModel.currentListId,
+            onConfirm = addNewRecipe,
+        )
+    }
 
 
     Scaffold(
@@ -71,12 +95,13 @@ fun DetailedDishesScreen(
         floatingActionButton = {
             FloatingActionButton(onClick = {
                 /*TODO make a new dialog where user can add his custom recipe*/
-                dishViewModel.insertRecipe(Recipe(
-                    id = UUID.randomUUID(),
-                    listId = dishViewModel.currentListId,
-                    name = "Peperoni yetit",
-                    portions = 1,
-                ))
+//                dishViewModel.insertRecipe(Recipe(
+//                    id = UUID.randomUUID(),
+//                    listId = dishViewModel.currentListId,
+//                    name = "Peperoni yetit",
+//                    portions = 1,
+//                ))
+                showDialog.value = true
             }) {
                 Icon(imageVector = Icons.Filled.Add, contentDescription = "add new recipe")
             }
@@ -96,6 +121,8 @@ fun DetailedDishesScreen(
                         onSubmit = onSubmit,
                     )
                 }
+
+                else -> {}
             }
         }
     }
@@ -108,9 +135,6 @@ fun ResultScreen(
     onSubmit: (Recipe) -> Unit,
 ){
     LazyColumn {
-        item{
-            SearchCard()
-        }
         items(list.size){id->
             RecipeCard(
                 recipe = list[id],
@@ -162,10 +186,6 @@ fun RecipeCard(
     //variable section
     val isExpanded = remember { mutableStateOf(false) }
 
-    val name = remember { mutableStateOf(recipe.name) }
-
-    val portions = remember { mutableStateOf(recipe.portions) }
-
     val context = LocalContext.current
 
 
@@ -195,8 +215,8 @@ fun RecipeCard(
                         horizontalAlignment = Alignment.Start,
                         modifier = Modifier.padding(start = 4.dp)
                     ) {
-                        Text(text = name.value)
-                        Text(text = "Portions: ${portions.value}")
+                        Text(text = recipe.name)
+                        Text(text = "Portions: ${recipe.portions}")
                     }
 
                 }
@@ -221,8 +241,6 @@ fun RecipeCard(
                 RecipeCardEditScreen(
                     recipe = recipe,
                     isExpanded = isExpanded,
-                    name = name,
-                    portions = portions,
                     onSubmit = onSubmit,
                 )
             }
@@ -234,13 +252,11 @@ fun RecipeCard(
 fun RecipeCardEditScreen(
     recipe: Recipe,
     isExpanded: MutableState<Boolean>,
-    name: MutableState<String>,
-    portions: MutableState<Int>,
     onSubmit: (Recipe)->Unit,
     modifier: Modifier = Modifier
 ){
-    var nameField by remember { mutableStateOf(TextFieldValue(name.value)) }
-    var portionsField by remember { mutableStateOf(portions.value) }
+    var nameField by remember { mutableStateOf(TextFieldValue(recipe.name)) }
+    var portionsField by remember { mutableStateOf(recipe.portions) }
 
     var errorMessage by remember { mutableStateOf(false) }
 
@@ -308,8 +324,8 @@ fun RecipeCardEditScreen(
                             portions = portionsField
                         )
 
-                        onSubmit(newRecipe)
                         isExpanded.value = false
+                        onSubmit(newRecipe)
                     }
                 }) {
                     Icon(imageVector = Icons.Default.Check, contentDescription = "Submit changes")
@@ -329,6 +345,123 @@ fun RecipeCardEditScreen(
                 )
             } else{
                 Spacer(modifier = Modifier.height(20.dp))
+            }
+        }
+    }
+}
+
+@Composable
+fun NewRecipeDialog(
+    setShowDialog: (Boolean) -> Unit,
+    currentListId: UUID,
+    onConfirm: (Recipe) -> Unit,
+    modifier: Modifier = Modifier,
+){
+    var nameField by remember{ mutableStateOf(TextFieldValue("")) }
+    var errorFieldStatus by remember { mutableStateOf(false) }
+
+
+    Dialog(onDismissRequest = {setShowDialog(false)}) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = Color.White,
+        ) {
+            LazyColumn(modifier = modifier.fillMaxWidth()){
+                item{
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.padding(4.dp)
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.pasta1),
+                            contentDescription ="Test",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.size(64.dp),
+                        )
+                        Column(
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.Start,
+                            modifier = Modifier.padding(start = 4.dp)
+                        ) {
+                            OutlinedTextField(
+                                value = nameField,
+                                onValueChange = { nameField = it},
+                                placeholder = { Text(text = "Cake") },
+                                label = {
+                                    Text(
+                                        text = "Enter new recipe name",
+                                        color = Color.Black,
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                },
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Text,
+                                    autoCorrect = true,
+                                    imeAction = ImeAction.Next,
+                                )
+                            )
+                            Text(
+                                text = "Portions: 1",
+                                fontSize = 16.sp,
+                            )
+                        }
+                    }
+                }
+                item{
+                    if (errorFieldStatus){
+                        Text(
+                            text = "*Sure that you fill all fields, if message still remains, check symbols",
+                            color = Color.Red,
+                            modifier = Modifier
+                                .padding(start = 12.dp)
+                                .height(40.dp)
+                        )
+                    }
+                    else{
+                        Spacer(modifier = Modifier.height(40.dp))
+                    }
+
+
+
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceAround,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(4.dp)
+                    ) {
+                        Button(
+                            modifier = Modifier.weight(1f),
+                            onClick = { setShowDialog(false) }
+                        ) {
+                            Text(text = "Cancel")
+                        }
+
+                        Spacer(modifier = Modifier.weight(0.5f))
+
+                        Button(
+                            modifier = Modifier.weight(1f),
+                            onClick = {
+                                //Check if all fields are not null
+                                if (nameField.text.isBlank()){
+                                    errorFieldStatus = true
+                                }
+                                else{
+                                    val newRecipe = Recipe(
+                                        id = UUID.randomUUID(),
+                                        listId = currentListId,
+                                        name = nameField.text,
+                                        portions = 1,
+                                    )
+                                    onConfirm(newRecipe)
+                                    setShowDialog(false)
+                                }
+                            }
+                        ) {
+                            Text(text = "Confirm")
+                        }
+                    }
+                }
             }
         }
     }

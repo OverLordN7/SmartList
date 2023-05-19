@@ -61,9 +61,9 @@ interface RecipeDao{
     @Delete
     fun deleteRecipe(recipe: Recipe)
 
-    @Update
-    fun updateRecipe(recipe: Recipe)
-
-    @Query("SELECT * FROM recipe_table WHERE listId=CAST(:listId AS BLOB)")
+     @Query("SELECT * FROM recipe_table WHERE listId=:listId")
     fun getRecipeForDishList(listId: UUID): List<Recipe>
+
+    @Query("UPDATE recipe_table SET name = :name, portions= :portions WHERE id = CAST(:id AS BLOB)")
+    fun updateRecipe(id: UUID, name: String, portions: Int)
 }

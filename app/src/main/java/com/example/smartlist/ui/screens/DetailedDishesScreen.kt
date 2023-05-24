@@ -63,6 +63,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.example.smartlist.R
+import com.example.smartlist.model.DishComponent
 import com.example.smartlist.model.Item
 import com.example.smartlist.model.Recipe
 import java.util.UUID
@@ -77,6 +78,7 @@ fun DetailedDishesScreen(
     onDelete: (Recipe) -> Unit,
     onSubmit: (Recipe) -> Unit,
     addNewRecipe: (Recipe) -> Unit,
+    insertNewDishComponent: (DishComponent) -> Unit,
     modifier: Modifier = Modifier,
     onRefresh: ()->Unit,
 ){
@@ -110,6 +112,7 @@ fun DetailedDishesScreen(
                         list = state.recipeList,
                         onDelete = onDelete,
                         onSubmit = onSubmit,
+                        insertNewDishComponent = insertNewDishComponent,
                     )
                 }
             }
@@ -122,6 +125,7 @@ fun ResultScreen(
     list: List<Recipe>,
     onDelete: (Recipe) -> Unit,
     onSubmit: (Recipe) -> Unit,
+    insertNewDishComponent: (DishComponent) -> Unit,
 ){
     LazyColumn {
         item{
@@ -132,7 +136,8 @@ fun ResultScreen(
             RecipeCard(
                 recipe = list[id],
                 onDelete = onDelete,
-                onSubmit = onSubmit
+                onSubmit = onSubmit,
+                insertNewDishComponent = insertNewDishComponent,
             )
         }
     }
@@ -173,6 +178,7 @@ fun RecipeCard(
     recipe: Recipe,
     onDelete: (Recipe)->Unit,
     onSubmit: (Recipe) -> Unit,
+    insertNewDishComponent: (DishComponent) -> Unit,
     modifier: Modifier = Modifier
 ){
     val isExpanded = remember { mutableStateOf(false) }
@@ -235,16 +241,27 @@ fun RecipeCard(
             }
 
             if(showDishComponents.value){
-                RecipeCardList()
+                RecipeCardList(
+                    recipeId = recipe.id,
+                    insertNewDishComponent = insertNewDishComponent,
+                )
             }
         }
     }
 }
 
 @Composable
-fun RecipeCardList(modifier: Modifier = Modifier){
+fun RecipeCardList(
+    recipeId: UUID,
+    insertNewDishComponent: (DishComponent) -> Unit,
+    modifier: Modifier = Modifier
+){
 
     val height by remember { mutableStateOf(300) }
+
+    val showDialog = remember { mutableStateOf(false) }
+
+
 
     val itemList = listOf<Item>(
         Item(
@@ -331,7 +348,20 @@ fun RecipeCardList(modifier: Modifier = Modifier){
                         .drawBehind { drawRoundRect(color = Color.DarkGray, style = stroke) }
                         .clickable {
                                    //TODO add a new ingredient to DB
-                                   Toast.makeText(context, "Adding new item...",Toast.LENGTH_SHORT).show()
+                                   //Toast.makeText(context, "Adding new item...",Toast.LENGTH_SHORT).show()
+                                   //TODO add custom dialog to insert new ingredient
+
+                                   val newIngredient = DishComponent(
+                                       id = UUID.randomUUID(),
+                                       recipeId = recipeId,
+                                       name = "Tomato",
+                                       weight = 2.0f,
+                                       weightType = "kg",
+                                       price = 5000.0f,
+                                       total = 5000.0f * 2.0f,
+                                   )
+
+                            insertNewDishComponent(newIngredient)
                         }
                     ,
                     contentAlignment = Alignment.Center

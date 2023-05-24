@@ -41,9 +41,11 @@ data class Recipe(
 )
 data class DishComponent(
     @PrimaryKey val id: UUID = UUID.randomUUID(),
-    val name: String,
     val recipeId:UUID,
+    val name: String,
     val weight: Float,
     val weightType: String,
+    val price: Float = 0.0f,
+    val total: Float = 0.0f,
 )
 

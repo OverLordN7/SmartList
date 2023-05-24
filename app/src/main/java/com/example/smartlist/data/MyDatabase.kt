@@ -20,7 +20,7 @@ import com.example.smartlist.model.Recipe
         DishComponent::class,
         Recipe::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 abstract class MyDatabase: RoomDatabase() {

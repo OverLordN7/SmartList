@@ -94,6 +94,8 @@ class DefaultDishRepository(
             name = component.name,
             weight = component.weight,
             weightType = component.weightType,
+            price = component.price,
+            total = component.total,
             recipeId = component.recipeId
         )
     }

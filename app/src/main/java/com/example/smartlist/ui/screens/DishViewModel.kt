@@ -11,6 +11,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.smartlist.SmartListApplication
 import com.example.smartlist.data.DishRepository
+import com.example.smartlist.model.DishComponent
 import com.example.smartlist.model.DishList
 import com.example.smartlist.model.Recipe
 import kotlinx.coroutines.Dispatchers
@@ -150,6 +151,17 @@ class DishViewModel (private val dishRepository: DishRepository): ViewModel(){
                 RecipeUiState.Success(getRecipeListFromDb())
             } catch (e: Exception){
                 RecipeUiState.Error
+            }
+        }
+    }
+
+
+    //Dish Component functions
+
+    fun insertDishComponent(component: DishComponent){
+        viewModelScope.launch {
+            withContext(Dispatchers.IO){
+                dishRepository.insertDishComponent(component)
             }
         }
     }

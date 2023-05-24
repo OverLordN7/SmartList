@@ -4,7 +4,9 @@ import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -43,7 +45,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PaintingStyle.Companion.Stroke
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -51,11 +57,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.example.smartlist.R
+import com.example.smartlist.model.Item
 import com.example.smartlist.model.Recipe
 import java.util.UUID
 
@@ -168,10 +176,20 @@ fun RecipeCard(
     modifier: Modifier = Modifier
 ){
     val isExpanded = remember { mutableStateOf(false) }
+    val showDishComponents = remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     Card(
         elevation = 4.dp,
-        modifier = modifier.fillMaxWidth().padding(8.dp)
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+            .clickable {
+                showDishComponents.value = !showDishComponents.value
+                Toast
+                    .makeText(context, "Card pressed", Toast.LENGTH_SHORT)
+                    .show()
+            }
     ) {
         Column {
             Row(
@@ -183,7 +201,9 @@ fun RecipeCard(
                         painter = painterResource(id = R.drawable.pasta1),
                         contentDescription = "Image of recipe",
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier.size(64.dp).border(2.dp, Color.Gray, CircleShape)
+                        modifier = Modifier
+                            .size(64.dp)
+                            .border(2.dp, Color.Gray, CircleShape)
                     )
 
                     Column(
@@ -213,7 +233,124 @@ fun RecipeCard(
             if(isExpanded.value){
                 RecipeCardEditScreen(recipe = recipe, isExpanded = isExpanded, onSubmit = onSubmit)
             }
+
+            if(showDishComponents.value){
+                RecipeCardList()
+            }
         }
+    }
+}
+
+@Composable
+fun RecipeCardList(modifier: Modifier = Modifier){
+
+    val height by remember { mutableStateOf(300) }
+
+    val itemList = listOf<Item>(
+        Item(
+            id = UUID.randomUUID(),
+            name = "Potato",
+            weight = 2.0f,
+            weightType = "kg",
+            price = 5000f,
+            total = 20000f,
+            isBought = false,
+            listId = UUID.randomUUID(),
+        ),
+        Item(
+            id = UUID.randomUUID(),
+            name = "Potato",
+            weight = 2.0f,
+            weightType = "kg",
+            price = 5000f,
+            total = 20000f,
+            isBought = false,
+            listId = UUID.randomUUID(),
+        ),
+        Item(
+            id = UUID.randomUUID(),
+            name = "Potato",
+            weight = 2.0f,
+            weightType = "kg",
+            price = 5000f,
+            total = 20000f,
+            isBought = false,
+            listId = UUID.randomUUID(),
+        ),
+        Item(
+            id = UUID.randomUUID(),
+            name = "Potato",
+            weight = 2.0f,
+            weightType = "kg",
+            price = 5000f,
+            total = 20000f,
+            isBought = false,
+            listId = UUID.randomUUID(),
+        ),
+        Item(
+            id = UUID.randomUUID(),
+            name = "Potato",
+            weight = 2.0f,
+            weightType = "kg",
+            price = 5000f,
+            total = 20000f,
+            isBought = false,
+            listId = UUID.randomUUID(),
+        ),
+        Item(
+            id = UUID.randomUUID(),
+            name = "Potato",
+            weight = 2.0f,
+            weightType = "kg",
+            price = 5000f,
+            total = 20000f,
+            isBought = false,
+            listId = UUID.randomUUID(),
+        ),
+    )
+
+    val context = LocalContext.current
+
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(height.dp)
+    ) {
+        LazyColumn{
+
+            item {
+                val stroke = Stroke(
+                    width = 2f,
+                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f,10f),0f))
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(60.dp)
+                        .padding(4.dp)
+                        .drawBehind { drawRoundRect(color = Color.DarkGray, style = stroke) }
+                        .clickable {
+                                   //TODO add a new ingredient to DB
+                                   Toast.makeText(context, "Adding new item...",Toast.LENGTH_SHORT).show()
+                        }
+                    ,
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(text = "Add a new ingredient", textAlign = TextAlign.Center)
+                }
+
+            }
+
+            items(itemList.size){
+                ItemCard(
+                    item = itemList[it],
+                    onClick = {_,_ ->
+                              Toast.makeText(context,"test",Toast.LENGTH_SHORT).show()
+                    },
+                )
+            }
+        }
+
     }
 }
 

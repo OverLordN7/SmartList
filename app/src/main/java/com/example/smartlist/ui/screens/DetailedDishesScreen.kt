@@ -39,6 +39,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -79,11 +80,14 @@ fun DetailedDishesScreen(
     onSubmit: (Recipe) -> Unit,
     addNewRecipe: (Recipe) -> Unit,
     insertNewDishComponent: (DishComponent) -> Unit,
+    loadDishComponent: (UUID) -> Unit,
     modifier: Modifier = Modifier,
     onRefresh: ()->Unit,
 ){
     val state: RecipeUiState = dishViewModel.recipeUiState
     val showDialog = remember { mutableStateOf(false) }
+
+    val dishComponentList = dishViewModel.dishComponents.collectAsState(emptyList())
 
     if (showDialog.value){
         NewRecipeDialog(
@@ -113,6 +117,8 @@ fun DetailedDishesScreen(
                         onDelete = onDelete,
                         onSubmit = onSubmit,
                         insertNewDishComponent = insertNewDishComponent,
+                        loadDishComponent = loadDishComponent,
+                        dishComponentList = dishComponentList.value
                     )
                 }
             }
@@ -123,9 +129,11 @@ fun DetailedDishesScreen(
 @Composable
 fun ResultScreen(
     list: List<Recipe>,
+    dishComponentList: List<DishComponent>,
     onDelete: (Recipe) -> Unit,
     onSubmit: (Recipe) -> Unit,
     insertNewDishComponent: (DishComponent) -> Unit,
+    loadDishComponent: (UUID) -> Unit,
 ){
     LazyColumn {
         item{
@@ -135,9 +143,12 @@ fun ResultScreen(
         items(list.size){id->
             RecipeCard(
                 recipe = list[id],
+                dishComponentList = dishComponentList,
                 onDelete = onDelete,
                 onSubmit = onSubmit,
                 insertNewDishComponent = insertNewDishComponent,
+                loadDishComponent = loadDishComponent
+
             )
         }
     }
@@ -176,9 +187,11 @@ fun SearchCard(modifier: Modifier = Modifier){
 @Composable
 fun RecipeCard(
     recipe: Recipe,
+    dishComponentList: List<DishComponent>,
     onDelete: (Recipe)->Unit,
     onSubmit: (Recipe) -> Unit,
     insertNewDishComponent: (DishComponent) -> Unit,
+    loadDishComponent: (UUID) -> Unit,
     modifier: Modifier = Modifier
 ){
     val isExpanded = remember { mutableStateOf(false) }
@@ -192,9 +205,7 @@ fun RecipeCard(
             .padding(8.dp)
             .clickable {
                 showDishComponents.value = !showDishComponents.value
-                Toast
-                    .makeText(context, "Card pressed", Toast.LENGTH_SHORT)
-                    .show()
+                loadDishComponent(recipe.id)
             }
     ) {
         Column {
@@ -243,6 +254,7 @@ fun RecipeCard(
             if(showDishComponents.value){
                 RecipeCardList(
                     recipeId = recipe.id,
+                    dishComponentList = dishComponentList,
                     insertNewDishComponent = insertNewDishComponent,
                 )
             }
@@ -253,6 +265,7 @@ fun RecipeCard(
 @Composable
 fun RecipeCardList(
     recipeId: UUID,
+    dishComponentList: List<DishComponent>,
     insertNewDishComponent: (DishComponent) -> Unit,
     modifier: Modifier = Modifier
 ){
@@ -261,70 +274,90 @@ fun RecipeCardList(
 
     val showDialog = remember { mutableStateOf(false) }
 
+//    dishComponentList.forEach {
+//        Log.d(TAG,"Name: ${it.name}")
+//    }
 
 
-    val itemList = listOf<Item>(
-        Item(
-            id = UUID.randomUUID(),
-            name = "Potato",
-            weight = 2.0f,
-            weightType = "kg",
-            price = 5000f,
-            total = 20000f,
+
+//    val itemList = listOf<Item>(
+//        Item(
+//            id = UUID.randomUUID(),
+//            name = "Potato",
+//            weight = 2.0f,
+//            weightType = "kg",
+//            price = 5000f,
+//            total = 20000f,
+//            isBought = false,
+//            listId = UUID.randomUUID(),
+//        ),
+//        Item(
+//            id = UUID.randomUUID(),
+//            name = "Potato",
+//            weight = 2.0f,
+//            weightType = "kg",
+//            price = 5000f,
+//            total = 20000f,
+//            isBought = false,
+//            listId = UUID.randomUUID(),
+//        ),
+//        Item(
+//            id = UUID.randomUUID(),
+//            name = "Potato",
+//            weight = 2.0f,
+//            weightType = "kg",
+//            price = 5000f,
+//            total = 20000f,
+//            isBought = false,
+//            listId = UUID.randomUUID(),
+//        ),
+//        Item(
+//            id = UUID.randomUUID(),
+//            name = "Potato",
+//            weight = 2.0f,
+//            weightType = "kg",
+//            price = 5000f,
+//            total = 20000f,
+//            isBought = false,
+//            listId = UUID.randomUUID(),
+//        ),
+//        Item(
+//            id = UUID.randomUUID(),
+//            name = "Potato",
+//            weight = 2.0f,
+//            weightType = "kg",
+//            price = 5000f,
+//            total = 20000f,
+//            isBought = false,
+//            listId = UUID.randomUUID(),
+//        ),
+//        Item(
+//            id = UUID.randomUUID(),
+//            name = "Potato",
+//            weight = 2.0f,
+//            weightType = "kg",
+//            price = 5000f,
+//            total = 20000f,
+//            isBought = false,
+//            listId = UUID.randomUUID(),
+//        ),
+//    )
+
+    val itemList: ArrayList<Item> = ArrayList()
+
+    dishComponentList.forEach {
+        val newItem = Item(
+            id = it.id,
+            name = it.name,
+            weight = it.weight,
+            weightType = it.weightType,
+            price = it.price,
+            total = it.total,
             isBought = false,
-            listId = UUID.randomUUID(),
-        ),
-        Item(
-            id = UUID.randomUUID(),
-            name = "Potato",
-            weight = 2.0f,
-            weightType = "kg",
-            price = 5000f,
-            total = 20000f,
-            isBought = false,
-            listId = UUID.randomUUID(),
-        ),
-        Item(
-            id = UUID.randomUUID(),
-            name = "Potato",
-            weight = 2.0f,
-            weightType = "kg",
-            price = 5000f,
-            total = 20000f,
-            isBought = false,
-            listId = UUID.randomUUID(),
-        ),
-        Item(
-            id = UUID.randomUUID(),
-            name = "Potato",
-            weight = 2.0f,
-            weightType = "kg",
-            price = 5000f,
-            total = 20000f,
-            isBought = false,
-            listId = UUID.randomUUID(),
-        ),
-        Item(
-            id = UUID.randomUUID(),
-            name = "Potato",
-            weight = 2.0f,
-            weightType = "kg",
-            price = 5000f,
-            total = 20000f,
-            isBought = false,
-            listId = UUID.randomUUID(),
-        ),
-        Item(
-            id = UUID.randomUUID(),
-            name = "Potato",
-            weight = 2.0f,
-            weightType = "kg",
-            price = 5000f,
-            total = 20000f,
-            isBought = false,
-            listId = UUID.randomUUID(),
-        ),
-    )
+            listId = it.recipeId
+        )
+        itemList.add(newItem)
+    }
 
     val context = LocalContext.current
 
@@ -347,19 +380,19 @@ fun RecipeCardList(
                         .padding(4.dp)
                         .drawBehind { drawRoundRect(color = Color.DarkGray, style = stroke) }
                         .clickable {
-                                   //TODO add a new ingredient to DB
-                                   //Toast.makeText(context, "Adding new item...",Toast.LENGTH_SHORT).show()
-                                   //TODO add custom dialog to insert new ingredient
+                            //TODO add a new ingredient to DB
+                            //Toast.makeText(context, "Adding new item...",Toast.LENGTH_SHORT).show()
+                            //TODO add custom dialog to insert new ingredient
 
-                                   val newIngredient = DishComponent(
-                                       id = UUID.randomUUID(),
-                                       recipeId = recipeId,
-                                       name = "Tomato",
-                                       weight = 2.0f,
-                                       weightType = "kg",
-                                       price = 5000.0f,
-                                       total = 5000.0f * 2.0f,
-                                   )
+                            val newIngredient = DishComponent(
+                                id = UUID.randomUUID(),
+                                recipeId = recipeId,
+                                name = "Tomato",
+                                weight = 2.0f,
+                                weightType = "kg",
+                                price = 5000.0f,
+                                total = 5000.0f * 2.0f,
+                            )
 
                             insertNewDishComponent(newIngredient)
                         }
@@ -371,7 +404,7 @@ fun RecipeCardList(
 
             }
 
-            items(itemList.size){
+            items(dishComponentList.size){
                 ItemCard(
                     item = itemList[it],
                     onClick = {_,_ ->

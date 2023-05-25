@@ -15,6 +15,9 @@ import com.example.smartlist.model.DishComponent
 import com.example.smartlist.model.DishList
 import com.example.smartlist.model.Recipe
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.UUID
@@ -42,6 +45,11 @@ class DishViewModel (private val dishRepository: DishRepository): ViewModel(){
     var recipeUiState: RecipeUiState by mutableStateOf(RecipeUiState.Loading)
 
     var currentListId: UUID by mutableStateOf(UUID.randomUUID())
+
+
+    private val _dishComponents = MutableStateFlow<List<DishComponent>>(emptyList())
+    val dishComponents: StateFlow<List<DishComponent>> get() = _dishComponents.asStateFlow()
+
 
 
     //DishList Functions
@@ -165,6 +173,18 @@ class DishViewModel (private val dishRepository: DishRepository): ViewModel(){
             }
         }
     }
+
+
+
+    fun loadDishComponents(recipeId: UUID) {
+        viewModelScope.launch {
+            dishRepository.getDishComponent(recipeId).collect { dishComponents ->
+                _dishComponents.value = dishComponents
+            }
+        }
+    }
+
+
 
 
 

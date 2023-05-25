@@ -9,6 +9,7 @@ import com.example.smartlist.model.DishComponent
 import com.example.smartlist.model.DishList
 import com.example.smartlist.model.Item
 import com.example.smartlist.model.Recipe
+import kotlinx.coroutines.flow.Flow
 import java.util.UUID
 
 @Dao
@@ -38,7 +39,7 @@ interface DishListDao {
 @Dao
 interface DishComponentDao{
     @Query("SELECT * FROM dish_component_table WHERE recipeId=:recipeId")
-    fun getDishComponentForDishList(recipeId:UUID): List<DishComponent>
+    fun getDishComponentForDishList(recipeId:UUID): Flow<List<DishComponent>>
 
     @Insert
     fun insertDishComponent(component: DishComponent)

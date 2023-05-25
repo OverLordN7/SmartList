@@ -88,7 +88,8 @@ fun SmartListApp(){
                 onSubmit = dishViewModel::updateRecipe,
                 onRefresh = dishViewModel::getRecipesList,
                 addNewRecipe = dishViewModel::insertRecipe,
-                insertNewDishComponent = dishViewModel::insertDishComponent
+                insertNewDishComponent = dishViewModel::insertDishComponent,
+                loadDishComponent = dishViewModel::loadDishComponents
             )
         }
 

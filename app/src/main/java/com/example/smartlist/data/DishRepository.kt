@@ -3,10 +3,11 @@ package com.example.smartlist.data
 import com.example.smartlist.model.DishComponent
 import com.example.smartlist.model.DishList
 import com.example.smartlist.model.Recipe
+import kotlinx.coroutines.flow.Flow
 import java.util.UUID
 
 interface DishRepository {
-    suspend fun getDishComponent(listId: UUID): List<DishComponent>
+    suspend fun getDishComponent(listId: UUID): Flow<List<DishComponent>>
 
     suspend fun insertDishComponent(component: DishComponent)
 
@@ -45,7 +46,7 @@ class DefaultDishRepository(
     private val dishListDao: DishListDao,
     private val recipeDao: RecipeDao
 ): DishRepository {
-    override suspend fun getDishComponent(listId: UUID): List<DishComponent> {
+    override suspend fun getDishComponent(listId: UUID): Flow<List<DishComponent>> {
         return dishComponentDao.getDishComponentForDishList(listId)
     }
 

@@ -184,6 +184,22 @@ class DishViewModel (private val dishRepository: DishRepository): ViewModel(){
         }
     }
 
+    fun deleteDishComponent(id: UUID){
+        viewModelScope.launch {
+            withContext(Dispatchers.IO){
+                dishRepository.deleteDishComponent(id)
+            }
+        }
+    }
+
+    fun updateDishComponent(dishComponent: DishComponent){
+        viewModelScope.launch {
+            withContext(Dispatchers.IO){
+                dishRepository.updateDishComponent(dishComponent)
+            }
+        }
+    }
+
 
 
 

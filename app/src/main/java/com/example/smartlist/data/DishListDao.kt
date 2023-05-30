@@ -7,7 +7,6 @@ import androidx.room.Query
 import androidx.room.Update
 import com.example.smartlist.model.DishComponent
 import com.example.smartlist.model.DishList
-import com.example.smartlist.model.Item
 import com.example.smartlist.model.Recipe
 import kotlinx.coroutines.flow.Flow
 import java.util.UUID

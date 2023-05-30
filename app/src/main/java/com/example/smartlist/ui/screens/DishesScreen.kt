@@ -49,7 +49,6 @@ import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.example.smartlist.R
 import com.example.smartlist.model.DishList
-import com.example.smartlist.model.PurchaseList
 import com.example.smartlist.navigation.Screen
 import java.time.LocalDate
 import java.util.UUID
@@ -84,7 +83,7 @@ fun DishesScreen(
         },
     ) {
         Surface(
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxSize()
                 .padding(it)
         ) {
@@ -94,8 +93,8 @@ fun DishesScreen(
                 is DishUiState.Success ->{
                     ResultScreen(
                         lists = state.dishList,
-                        onClick = {
-                            dishViewModel.currentListId = it
+                        onClick = { listId ->
+                            dishViewModel.currentListId = listId
                             dishViewModel.getRecipesList()
                             navController.navigate(Screen.DetailedDishesScreen.route)
                         },
@@ -103,8 +102,6 @@ fun DishesScreen(
                         onDelete = onDelete,
                     )
                 }
-
-                else -> {}
             }
         }
     }
@@ -117,14 +114,13 @@ fun ResultScreen(
     onEdit: (DishList) -> Unit,
     onDelete: (UUID) -> Unit,
 ){
-
     //If no Item received but call ended with Success
     if (lists.isEmpty()) {
         EmptyListCard()
-        return Unit
+        return
     }
 
-    LazyColumn(){
+    LazyColumn{
         items(lists.size){index ->
             DishListCard(
                 list = lists[index],
@@ -145,7 +141,7 @@ fun DishListCard(
     modifier: Modifier = Modifier
 ){
     val context = LocalContext.current
-    var isExpanded = remember { mutableStateOf(false) }
+    val isExpanded = remember { mutableStateOf(false) }
 
     Card(
         elevation = 4.dp,
@@ -156,7 +152,7 @@ fun DishListCard(
                 onClick(list.id)
             }
     ) {
-        Column() {
+        Column {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Start,
@@ -222,7 +218,7 @@ fun DishEditScreen(
     Column {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxWidth()
                 .padding(4.dp)
         ){
@@ -320,7 +316,7 @@ fun NewDishListDialog(
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
+                modifier = modifier
                     .padding(8.dp)
             ) {
                 OutlinedTextField(

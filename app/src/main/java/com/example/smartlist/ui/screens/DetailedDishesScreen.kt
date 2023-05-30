@@ -1,6 +1,5 @@
 package com.example.smartlist.ui.screens
 
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
@@ -52,7 +51,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PaintingStyle.Companion.Stroke
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
@@ -86,6 +84,8 @@ fun DetailedDishesScreen(
     addNewRecipe: (Recipe) -> Unit,
     insertNewDishComponent: (DishComponent) -> Unit,
     loadDishComponent: (UUID) -> Unit,
+    deleteDishComponent: (UUID) -> Unit,
+    onEdit: (DishComponent) -> Unit,
     modifier: Modifier = Modifier,
     onRefresh: ()->Unit,
 ){
@@ -123,7 +123,9 @@ fun DetailedDishesScreen(
                         onSubmit = onSubmit,
                         insertNewDishComponent = insertNewDishComponent,
                         loadDishComponent = loadDishComponent,
-                        dishComponentList = dishComponentList.value
+                        dishComponentList = dishComponentList.value,
+                        deleteDishComponent = deleteDishComponent,
+                        onEdit = onEdit,
                     )
                 }
             }
@@ -139,11 +141,11 @@ fun ResultScreen(
     onSubmit: (Recipe) -> Unit,
     insertNewDishComponent: (DishComponent) -> Unit,
     loadDishComponent: (UUID) -> Unit,
+    deleteDishComponent: (UUID) -> Unit,
+    onEdit: (DishComponent) -> Unit,
 ){
     LazyColumn {
-        item{
-            SearchCard()
-        }
+        item { SearchCard() }
 
         items(list.size){id->
             RecipeCard(
@@ -152,7 +154,9 @@ fun ResultScreen(
                 onDelete = onDelete,
                 onSubmit = onSubmit,
                 insertNewDishComponent = insertNewDishComponent,
-                loadDishComponent = loadDishComponent
+                loadDishComponent = loadDishComponent,
+                deleteDishComponent = deleteDishComponent,
+                onEdit = onEdit,
 
             )
         }
@@ -197,11 +201,12 @@ fun RecipeCard(
     onSubmit: (Recipe) -> Unit,
     insertNewDishComponent: (DishComponent) -> Unit,
     loadDishComponent: (UUID) -> Unit,
+    deleteDishComponent: (UUID) -> Unit,
+    onEdit: (DishComponent) -> Unit,
     modifier: Modifier = Modifier
 ){
     val isExpanded = remember { mutableStateOf(false) }
     val showDishComponents = remember { mutableStateOf(false) }
-    val context = LocalContext.current
 
     Card(
         elevation = 4.dp,
@@ -261,6 +266,9 @@ fun RecipeCard(
                     recipeId = recipe.id,
                     dishComponentList = dishComponentList,
                     insertNewDishComponent = insertNewDishComponent,
+                    onEdit = onEdit,
+                    deleteDishComponent = deleteDishComponent,
+
                 )
             }
         }
@@ -272,14 +280,14 @@ fun RecipeCardList(
     recipeId: UUID,
     dishComponentList: List<DishComponent>,
     insertNewDishComponent: (DishComponent) -> Unit,
+    deleteDishComponent: (UUID) -> Unit,
+    onEdit: (DishComponent) -> Unit,
     modifier: Modifier = Modifier
 ){
 
     val height by remember { mutableStateOf(300) }
 
     val showDialog = remember { mutableStateOf(false) }
-
-    val itemList: ArrayList<Item> = ArrayList()
 
     if (showDialog.value){
         NewDishComponentDialog(
@@ -290,22 +298,6 @@ fun RecipeCardList(
             }
         )
     }
-
-    dishComponentList.forEach {
-        val newItem = Item(
-            id = it.id,
-            name = it.name,
-            weight = it.weight,
-            weightType = it.weightType,
-            price = it.price,
-            total = it.total,
-            isBought = false,
-            listId = it.recipeId
-        )
-        itemList.add(newItem)
-    }
-
-    val context = LocalContext.current
 
     Card(
         modifier = modifier
@@ -325,26 +317,7 @@ fun RecipeCardList(
                         .height(60.dp)
                         .padding(4.dp)
                         .drawBehind { drawRoundRect(color = Color.DarkGray, style = stroke) }
-                        .clickable {
-                            //TODO add a new ingredient to DB
-                            //Toast.makeText(context, "Adding new item...",Toast.LENGTH_SHORT).show()
-                            //TODO add custom dialog to insert new ingredient
-
-//                            val newIngredient = DishComponent(
-//                                id = UUID.randomUUID(),
-//                                recipeId = recipeId,
-//                                name = "Tomato",
-//                                weight = 2.0f,
-//                                weightType = "kg",
-//                                price = 5000.0f,
-//                                total = 5000.0f * 2.0f,
-//                            )
-//
-//                            insertNewDishComponent(newIngredient)
-
-                                   showDialog.value = !showDialog.value
-                        }
-                    ,
+                        .clickable { showDialog.value = !showDialog.value },
                     contentAlignment = Alignment.Center
                 ) {
                     Text(text = "Add a new ingredient", textAlign = TextAlign.Center)
@@ -353,11 +326,11 @@ fun RecipeCardList(
             }
 
             items(dishComponentList.size){
-                ItemCard(
-                    item = itemList[it],
-                    onClick = {_,_ ->
-                              Toast.makeText(context,"test",Toast.LENGTH_SHORT).show()
-                    },
+                //TODO a different implementation of ItemCard suitable for DishComponent
+                DishComponentCard(
+                    component = dishComponentList[it],
+                    onEdit = onEdit,
+                    onDelete = deleteDishComponent,
                 )
             }
         }
@@ -464,6 +437,289 @@ fun RecipeCardEditScreen(
             }
         }
     }
+}
+
+@Composable
+fun DishComponentCard(
+    component: DishComponent,
+    modifier: Modifier = Modifier,
+    onEdit: (DishComponent) -> Unit = {},
+    onDelete: (UUID) -> Unit = {},
+){
+    val context = LocalContext.current
+    val isExpanded = remember { mutableStateOf(false) }
+
+    Card(
+        elevation = 4.dp,
+        modifier = modifier
+            .padding(8.dp)
+            .fillMaxWidth()
+
+    ) {
+        Column {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start,
+                modifier = Modifier.padding(4.dp)
+            ) {
+
+                Image(
+                    painter = painterResource(id = R.drawable.circle),
+                    contentDescription = "product picture",
+                    modifier = Modifier
+                        .weight(2f)
+                        .padding(start = 4.dp, end = 4.dp)
+                )
+
+                Column(
+                    modifier = Modifier
+                        .weight(8f)
+                        .padding(top = 4.dp)
+                ) {
+                    Text(
+                        text = component.name,
+                        fontSize = 20.sp,
+                        color = Color.Black
+                    )
+                    Row(horizontalArrangement = Arrangement.SpaceAround){
+                        Text(
+                            text = "${component.weight} ${component.weightType}",
+                            fontSize = 16.sp,
+                            color = Color.Gray,
+                            modifier = modifier
+                                .weight(2f)
+                                .padding(4.dp)
+                        )
+
+                        Text(
+                            text = "${component.price.toInt()} UZS",
+                            fontSize = 16.sp,
+                            color = Color.Gray,
+                            modifier = modifier
+                                .weight(3f)
+                                .padding(4.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = modifier.weight(2f))
+
+                Column(modifier = Modifier
+                    .weight(3f)
+                    .padding(end = 4.dp)) {
+                    Row {
+                        IconButton(onClick = { isExpanded.value = !isExpanded.value }) {
+                            Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit current list")
+                        }
+                        IconButton(onClick = {
+                            Toast.makeText(context,"Deleting item...", Toast.LENGTH_SHORT).show()
+                            onDelete(component.id)
+                        }) {
+                            Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete current list")
+                        }
+                    }
+                }
+            }
+            //TODO implementation regarding to DishComponent not to Item
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start,
+                modifier = Modifier.padding(4.dp)
+            ) {
+
+                if (isExpanded.value){
+                    DishComponentEditScreen(
+                        dishComponent = component,
+                        isExpanded = isExpanded,
+                        onSubmit = onEdit
+                    )
+                }
+            }
+
+        }
+    }
+}
+
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun DishComponentEditScreen(
+    dishComponent: DishComponent,
+    isExpanded: MutableState<Boolean>,
+    onSubmit: (DishComponent)-> Unit,
+    modifier: Modifier = Modifier
+){
+    var fieldValue by remember{ mutableStateOf(TextFieldValue(dishComponent.name)) }
+    var weight by remember { mutableStateOf(TextFieldValue(dishComponent.weight.toString())) }
+    var price by remember { mutableStateOf(TextFieldValue(dishComponent.price.toString())) }
+    var totalPrice : Float = dishComponent.weight * dishComponent.price
+    var errorMessage by remember { mutableStateOf(false) }
+
+
+    //values for DropDownMenu
+    val options = listOf("kgs","lbs","pcs","pkg")
+    var expanded by remember { mutableStateOf(false) }
+    var selectedOptionText by remember { mutableStateOf(options[0]) }
+
+
+    Column(
+        verticalArrangement = Arrangement.Center,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            OutlinedTextField(
+                value = fieldValue,
+                onValueChange = {fieldValue = it},
+                placeholder = {Text(text = "ex Potato")},
+                modifier = Modifier
+                    .padding(4.dp)
+                    .weight(0.6f),
+                label = {
+                    Text(
+                        text = "Enter new Item name: ",
+                        color = Color.Black,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                },
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    autoCorrect = true,
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Next
+                ),
+            )
+
+            OutlinedTextField(
+                value = weight,
+                onValueChange = {weight = it},
+                placeholder = {Text(text = "ex 10.0")},
+                modifier = Modifier
+                    .padding(4.dp)
+                    .weight(0.5f),
+                label = {
+                    Text(
+                        text = "Weight: ",
+                        color = Color.Black,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                },
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    keyboardType = KeyboardType.Decimal,
+                    imeAction = ImeAction.Next
+                ),
+            )
+
+            ExposedDropdownMenuBox(
+                expanded = expanded,
+                onExpandedChange = { expanded = !expanded},
+                modifier = Modifier.weight(0.5f)
+            ) {
+                OutlinedTextField(
+                    readOnly = true,
+                    value = selectedOptionText,
+                    onValueChange = { },
+                    label = { Text("Unit", color = Color.Black)},
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                    },
+                    //colors =  ExposedDropdownMenuDefaults.textFieldColors()
+                )
+
+                ExposedDropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    options.forEach{ selectionOption ->
+                        DropdownMenuItem(
+                            onClick = {
+                                selectedOptionText = selectionOption
+                                expanded = false
+                            }
+                        ) {
+                            Text(text = selectionOption)
+                        }
+                    }
+                }
+            }
+
+        }
+        Row(horizontalArrangement = Arrangement.Center) {
+            OutlinedTextField(
+                value = price,
+                onValueChange = {price = it},
+                placeholder = {Text(text = "ex 10000")},
+                modifier = Modifier
+                    .padding(4.dp)
+                    .weight(1f),
+                label = {
+                    Text(
+                        text = "Price: ",
+                        color = Color.Black,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                },
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    keyboardType = KeyboardType.Decimal,
+                    imeAction = ImeAction.Done
+                ),
+            )
+
+            //Plug for good view
+            Spacer(modifier = Modifier.weight(1f))
+        }
+        Row(horizontalArrangement = Arrangement.End) {
+
+            //Plug
+            Spacer(modifier = Modifier.weight(5f))
+
+            IconButton(
+                modifier = Modifier.weight(1f),
+                onClick = {
+                    if(fieldValue.text.isBlank() || weight.text.isBlank() || price.text.isBlank()){
+                        errorMessage = true
+                    }else{
+                        val temp = DishComponent(
+                            id = dishComponent.id,
+                            name = fieldValue.text,
+                            weight = weight.text.toFloat(),
+                            weightType = selectedOptionText,
+                            price = price.text.toFloat(),
+                            total = weight.text.toFloat() * price.text.toFloat(),
+                            recipeId = dishComponent.recipeId
+                        )
+                        isExpanded.value = false
+                        onSubmit(temp)
+                    }
+                }
+            ) {
+                Icon(imageVector = Icons.Default.Check, contentDescription = "check")
+            }
+            IconButton(
+                modifier = Modifier.weight(1f),
+                onClick = { isExpanded.value = false }
+            ) {
+                Icon(imageVector = Icons.Default.Cancel, contentDescription = "cancel")
+            }
+        }
+        if (errorMessage){
+            Text(
+                text = "*Sure that you fill all fields, if message still remains, check symbols",
+                color = Color.Red,
+                modifier = Modifier.padding(start = 12.dp)
+            )
+        } else{
+            Spacer(modifier = Modifier.height(20.dp))
+        }
+    }
+
+
 }
 
 @Composable
@@ -591,11 +847,10 @@ fun NewDishComponentDialog(
     onConfirm: (DishComponent) -> Unit,
     modifier: Modifier = Modifier,
 ){
-    var errorFieldStatus by remember { mutableStateOf(false) }
-    var fieldValue by remember{ mutableStateOf(TextFieldValue("")) }
+    var error by remember { mutableStateOf(false) }
+    var name by remember{ mutableStateOf(TextFieldValue("")) }
     var weight by remember { mutableStateOf(TextFieldValue("")) }
     var price by remember { mutableStateOf(TextFieldValue("")) }
-    var totalPrice : Float = 0.0f
 
     //values for DropDownMenu
     val options = listOf("kgs","lbs","pcs","pkg")
@@ -603,22 +858,19 @@ fun NewDishComponentDialog(
     var selectedOptionText by remember { mutableStateOf(options[0]) }
 
     Dialog(onDismissRequest = {setShowDialog(false)}) {
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = Color.White,
-        ) {
+
+        Surface( shape = RoundedCornerShape(16.dp), color = Color.White) {
+
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = modifier
-                    .padding(8.dp)
+                modifier = modifier.padding(8.dp)
             ) {
                 //Header of dialog
-                Text(text = "New Item", color = Color.Black, fontSize = 28.sp)
-                Spacer(modifier = Modifier.height(20.dp))
+                Text(text = "New DishComponent", color = Color.Black, fontSize = 28.sp)
 
                 OutlinedTextField(
-                    value = fieldValue,
-                    onValueChange = {fieldValue = it},
+                    value = name,
+                    onValueChange = {name = it},
                     placeholder = {Text(text = "ex Potato")},
                     modifier = Modifier.padding(top = 4.dp),
                     singleLine = true,
@@ -716,7 +968,7 @@ fun NewDishComponentDialog(
                     ),
                 )
 
-                if (errorFieldStatus){
+                if (error){
                     Text(
                         text = "*Sure that you fill all fields, if message still remains, check symbols",
                         color = Color.Red,
@@ -752,17 +1004,15 @@ fun NewDishComponentDialog(
                         onClick = {
 
                             //Check if all fields are not null
-                            if (fieldValue.text.isBlank() || weight.text.isBlank() || price.text.isBlank()){
-                                errorFieldStatus = true
+                            if (name.text.isBlank() || weight.text.isBlank() || price.text.isBlank()){
+                                error = true
                             }
                             else{
                                 //Check is OK, continue..
-                                totalPrice = weight.text.toFloat() * price.text.toFloat()
-                                //TODO create a new DishComponent and submit it
                                 val newDishComponent = DishComponent(
                                     id = UUID.randomUUID(),
                                     recipeId = recipeId,
-                                    name = fieldValue.text,
+                                    name = name.text,
                                     weight = weight.text.toFloat(),
                                     weightType = selectedOptionText,
                                     price = price.text.toFloat(),
@@ -777,6 +1027,4 @@ fun NewDishComponentDialog(
             }
         }
     }
-
-
 }

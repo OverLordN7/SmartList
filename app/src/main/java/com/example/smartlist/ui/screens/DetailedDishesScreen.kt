@@ -263,7 +263,7 @@ fun RecipeCard(
 
             if(showDishComponents.value){
                 RecipeCardList(
-                    recipeId = recipe.id,
+                    recipe = recipe,
                     dishComponentList = dishComponentList,
                     insertNewDishComponent = insertNewDishComponent,
                     onEdit = onEdit,
@@ -277,7 +277,7 @@ fun RecipeCard(
 
 @Composable
 fun RecipeCardList(
-    recipeId: UUID,
+    recipe: Recipe,
     dishComponentList: List<DishComponent>,
     insertNewDishComponent: (DishComponent) -> Unit,
     deleteDishComponent: (UUID) -> Unit,
@@ -291,12 +291,20 @@ fun RecipeCardList(
 
     if (showDialog.value){
         NewDishComponentDialog(
-            recipeId = recipeId,
+            recipeId = recipe.id,
             setShowDialog = {showDialog.value = it},
             onConfirm = {
                 insertNewDishComponent(it)
             }
         )
+    }
+
+    //Adapt dishComponentList to portions
+    // multiply each dishComponent weight by portions of recipe
+    // recalculate total price of each DishComponent
+    dishComponentList.forEach {
+        it.weight = it.weight * recipe.portions
+        it.total = it.weight * it.price
     }
 
     Card(
@@ -326,7 +334,7 @@ fun RecipeCardList(
             }
 
             items(dishComponentList.size){
-                //TODO a different implementation of ItemCard suitable for DishComponent
+
                 DishComponentCard(
                     component = dishComponentList[it],
                     onEdit = onEdit,
@@ -492,7 +500,7 @@ fun DishComponentCard(
                         )
 
                         Text(
-                            text = "${component.price.toInt()} UZS",
+                            text = "${component.total.toInt()} UZS",
                             fontSize = 16.sp,
                             color = Color.Gray,
                             modifier = modifier

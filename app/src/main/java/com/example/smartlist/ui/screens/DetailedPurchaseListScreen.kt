@@ -235,7 +235,7 @@ fun ItemCard(
                         )
 
                         Text(
-                            text = "${item.price.toInt()} UZS",
+                            text = "${item.total.toInt()} UZS",
                             fontSize = 16.sp,
                             color = Color.Gray,
                             modifier = modifier

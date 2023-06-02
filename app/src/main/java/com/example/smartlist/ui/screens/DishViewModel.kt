@@ -176,9 +176,13 @@ class DishViewModel (private val dishRepository: DishRepository): ViewModel(){
 
 
 
-    fun loadDishComponents(recipeId: UUID) {
+    fun loadDishComponents(recipe: Recipe) {
         viewModelScope.launch {
-            dishRepository.getDishComponent(recipeId).collect { dishComponents ->
+            dishRepository.getDishComponent(recipe.id).collect { dishComponents ->
+                dishComponents.forEach {
+                    it.weight = it.weight * recipe.portions
+                    it.total = it.weight * it.price
+                }
                 _dishComponents.value = dishComponents
             }
         }

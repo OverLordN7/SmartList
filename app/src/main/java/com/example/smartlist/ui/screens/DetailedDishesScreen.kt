@@ -83,7 +83,7 @@ fun DetailedDishesScreen(
     onSubmit: (Recipe) -> Unit,
     addNewRecipe: (Recipe) -> Unit,
     insertNewDishComponent: (DishComponent) -> Unit,
-    loadDishComponent: (UUID) -> Unit,
+    loadDishComponent: (Recipe) -> Unit,
     deleteDishComponent: (UUID) -> Unit,
     onEdit: (DishComponent) -> Unit,
     modifier: Modifier = Modifier,
@@ -140,7 +140,7 @@ fun ResultScreen(
     onDelete: (Recipe) -> Unit,
     onSubmit: (Recipe) -> Unit,
     insertNewDishComponent: (DishComponent) -> Unit,
-    loadDishComponent: (UUID) -> Unit,
+    loadDishComponent: (Recipe) -> Unit,
     deleteDishComponent: (UUID) -> Unit,
     onEdit: (DishComponent) -> Unit,
 ){
@@ -200,7 +200,7 @@ fun RecipeCard(
     onDelete: (Recipe)->Unit,
     onSubmit: (Recipe) -> Unit,
     insertNewDishComponent: (DishComponent) -> Unit,
-    loadDishComponent: (UUID) -> Unit,
+    loadDishComponent: (Recipe) -> Unit,
     deleteDishComponent: (UUID) -> Unit,
     onEdit: (DishComponent) -> Unit,
     modifier: Modifier = Modifier
@@ -215,7 +215,7 @@ fun RecipeCard(
             .padding(8.dp)
             .clickable {
                 showDishComponents.value = !showDishComponents.value
-                loadDishComponent(recipe.id)
+                loadDishComponent(recipe)
             }
     ) {
         Column {
@@ -299,13 +299,13 @@ fun RecipeCardList(
         )
     }
 
-    //Adapt dishComponentList to portions
-    // multiply each dishComponent weight by portions of recipe
-    // recalculate total price of each DishComponent
-    dishComponentList.forEach {
-        it.weight = it.weight * recipe.portions
-        it.total = it.weight * it.price
-    }
+//    //Adapt dishComponentList to portions
+//    // multiply each dishComponent weight by portions of recipe
+//    // recalculate total price of each DishComponent
+//    dishComponentList.forEach {
+//        it.weight = it.weight * recipe.portions
+//        it.total = it.weight * it.price
+//    }
 
     Card(
         modifier = modifier

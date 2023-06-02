@@ -27,7 +27,7 @@ data class PurchaseList(
 data class Item(
     @PrimaryKey val id: UUID = UUID.randomUUID(),
     val name: String,
-    val weight: Float,
+    var weight: Float,
     val weightType: String,
     val price : Float,
     val total: Float,

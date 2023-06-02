@@ -92,6 +92,7 @@ fun SmartListApp(){
                 loadDishComponent = dishViewModel::loadDishComponents,
                 deleteDishComponent = dishViewModel::deleteDishComponent,
                 onEdit = dishViewModel::updateDishComponent,
+                onExport = dishViewModel::convertDishListToPurchaseList
             )
         }
 

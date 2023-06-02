@@ -40,6 +40,9 @@ interface DishComponentDao{
     @Query("SELECT * FROM dish_component_table WHERE recipeId=:recipeId")
     fun getDishComponentForDishList(recipeId:UUID): Flow<List<DishComponent>>
 
+    @Query("SELECT * FROM dish_component_table WHERE recipeId=:recipeId")
+    fun getDishComponents(recipeId:UUID): List<DishComponent>
+
     @Insert
     fun insertDishComponent(component: DishComponent)
 

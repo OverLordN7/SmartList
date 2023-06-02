@@ -11,8 +11,11 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.smartlist.SmartListApplication
 import com.example.smartlist.data.DishRepository
+import com.example.smartlist.data.PurchaseRepository
 import com.example.smartlist.model.DishComponent
 import com.example.smartlist.model.DishList
+import com.example.smartlist.model.Item
+import com.example.smartlist.model.PurchaseList
 import com.example.smartlist.model.Recipe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,7 +41,10 @@ sealed interface RecipeUiState{
 
 
 
-class DishViewModel (private val dishRepository: DishRepository): ViewModel(){
+class DishViewModel (
+    private val dishRepository: DishRepository,
+    private val purchaseRepository: PurchaseRepository,
+    ): ViewModel(){
 
     var dishUiState: DishUiState by mutableStateOf(DishUiState.Loading)
 
@@ -108,6 +114,92 @@ class DishViewModel (private val dishRepository: DishRepository): ViewModel(){
 
             //Refresh List
             getDishLists()
+        }
+    }
+
+    fun convertDishListToPurchaseList(){
+        //Create an empty PurchaseList
+
+        //Prepare data of DishList
+            // 1 adapt DishComponent to recipe portions
+                //1.1 get a list of recipes
+                //1.2 get DishesComponent associated with current recipe
+                //1.3 modify weight and price
+            //2 Add dc components to exportList
+
+        viewModelScope.launch {
+            var exportPurchaseList = PurchaseList(
+                id = UUID.randomUUID(),
+                name = "Test",
+                listSize = 0,
+                year = 2023,
+                month = "JUNE",
+                day = 2
+            )
+
+            var exportItemList: ArrayList<Item> = arrayListOf()
+
+
+            var tempRecipeList: List<Recipe> = emptyList()
+            withContext(Dispatchers.IO){
+                tempRecipeList = getRecipeListFromDb()
+            }
+
+            tempRecipeList.forEach {
+                //Log.d(TAG,"templist recipe name: ${it.name} with portions: ${it.portions}")
+
+                var tempDCList: List<DishComponent> = emptyList()
+
+                withContext(Dispatchers.IO){
+                    tempDCList = dishRepository.getDishComponents(it.id)
+                }
+
+                tempDCList.forEach { dc->
+                    dc.weight = dc.weight * it.portions
+                    dc.total = dc.weight * dc.price
+                    //Log.d(TAG,"DC name: ${dc.name} weight: ${dc.weight} total: ${dc.total}")
+
+                    val isDishComponentPresent = exportItemList.find { item-> item.name == dc.name && item.price == dc.price}
+
+                    if (isDishComponentPresent != null ){
+                        isDishComponentPresent.weight += dc.weight
+                    }
+                    else{
+                        exportItemList.add(
+                            Item(
+                                id = UUID.randomUUID(),
+                                name = dc.name,
+                                weight = dc.weight,
+                                weightType = dc.weightType,
+                                price = dc.price,
+                                total = dc.total,
+                                isBought = false,
+                                listId = exportPurchaseList.id
+                            )
+                        )
+                    }
+                }
+                //Log.d(TAG,"-----------------")
+
+            }
+
+            withContext(Dispatchers.IO){
+                purchaseRepository.insertPurchaseList(exportPurchaseList)
+            }
+
+            exportItemList.forEach {
+                Log.d(TAG,"exportItemList item name: ${it.name} weight: ${it.weight} total: ${it.total}")
+                withContext(Dispatchers.IO){
+                    purchaseRepository.insertItem(it)
+                }
+            }
+
+
+
+
+
+
+
         }
     }
 
@@ -213,7 +305,8 @@ class DishViewModel (private val dishRepository: DishRepository): ViewModel(){
             initializer {
                 val application = (this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as SmartListApplication)
                 val dishRepository = application.container.dishRepository
-                DishViewModel(dishRepository)
+                val purchaseRepository = application.container.purchaseRepository
+                DishViewModel(dishRepository, purchaseRepository)
             }
         }
     }

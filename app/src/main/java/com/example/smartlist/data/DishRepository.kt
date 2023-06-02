@@ -39,6 +39,8 @@ interface DishRepository {
 
     fun updateRecipe(recipe: Recipe)
 
+    fun getDishComponents(recipeId:UUID): List<DishComponent>
+
 }
 
 class DefaultDishRepository(
@@ -123,5 +125,9 @@ class DefaultDishRepository(
             name = recipe.name,
             portions = recipe.portions
         )
+    }
+
+    override fun getDishComponents(recipeId: UUID): List<DishComponent> {
+        return dishComponentDao.getDishComponents(recipeId)
     }
 }

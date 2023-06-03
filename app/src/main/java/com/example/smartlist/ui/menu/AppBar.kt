@@ -1,5 +1,6 @@
 package com.example.smartlist.ui.menu
 
+import android.widget.Toast
 import androidx.compose.material.DropdownMenu
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.Icon
@@ -11,6 +12,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.example.smartlist.R
 
@@ -20,6 +22,8 @@ fun MainAppBar(
     retryAction: () -> Unit,
     onExport: ()-> Unit,
 ){
+    val context = LocalContext.current
+
     TopAppBar(
         title = { Text(text = stringResource(id = R.string.app_name)) },
         actions = {
@@ -35,9 +39,9 @@ fun MainAppBar(
             DropdownMenu( expanded = menuState.value, onDismissRequest = { menuState.value = false} ) {
                 DropdownMenuItem(
                     onClick = {
-                        //TODO add a call to export DC components to PurchaseList
                         menuState.value = false
                         onExport()
+                        Toast.makeText(context,"Data exported successfully", Toast.LENGTH_SHORT).show()
                     } ) {
                     Text(text = "Export ingredients")
                 }

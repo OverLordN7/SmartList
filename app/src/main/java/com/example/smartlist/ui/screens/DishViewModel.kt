@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -23,6 +24,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.time.LocalDate
 import java.util.UUID
 
 
@@ -128,16 +130,17 @@ class DishViewModel (
             //2 Add dc components to exportList
 
         viewModelScope.launch {
-            var exportPurchaseList = PurchaseList(
+            val date = LocalDate.now()
+            val exportPurchaseList = PurchaseList(
                 id = UUID.randomUUID(),
                 name = "Test",
                 listSize = 0,
-                year = 2023,
-                month = "JUNE",
-                day = 2
+                year = date.year,
+                month = date.month.name,
+                day = date.dayOfMonth
             )
-
-            var exportItemList: ArrayList<Item> = arrayListOf()
+            var listSize = 0
+            val exportItemList: ArrayList<Item> = arrayListOf()
 
 
             var tempRecipeList: List<Recipe> = emptyList()
@@ -146,8 +149,6 @@ class DishViewModel (
             }
 
             tempRecipeList.forEach {
-                //Log.d(TAG,"templist recipe name: ${it.name} with portions: ${it.portions}")
-
                 var tempDCList: List<DishComponent> = emptyList()
 
                 withContext(Dispatchers.IO){
@@ -157,7 +158,6 @@ class DishViewModel (
                 tempDCList.forEach { dc->
                     dc.weight = dc.weight * it.portions
                     dc.total = dc.weight * dc.price
-                    //Log.d(TAG,"DC name: ${dc.name} weight: ${dc.weight} total: ${dc.total}")
 
                     val isDishComponentPresent = exportItemList.find { item-> item.name == dc.name && item.price == dc.price}
 
@@ -177,29 +177,21 @@ class DishViewModel (
                                 listId = exportPurchaseList.id
                             )
                         )
+                        listSize++ // increment listSize of new Purchase list
                     }
                 }
-                //Log.d(TAG,"-----------------")
-
             }
 
             withContext(Dispatchers.IO){
                 purchaseRepository.insertPurchaseList(exportPurchaseList)
+                purchaseRepository.updateListSize(listSize,exportPurchaseList.id)
             }
 
             exportItemList.forEach {
-                Log.d(TAG,"exportItemList item name: ${it.name} weight: ${it.weight} total: ${it.total}")
                 withContext(Dispatchers.IO){
                     purchaseRepository.insertItem(it)
                 }
             }
-
-
-
-
-
-
-
         }
     }
 

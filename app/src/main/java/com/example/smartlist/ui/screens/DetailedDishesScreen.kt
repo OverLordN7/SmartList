@@ -525,7 +525,7 @@ fun DishComponentCard(
 
                 Column(modifier = Modifier
                     .weight(3f)
-                    .padding(end = 4.dp)) {
+                ) {
                     Row {
                         IconButton(onClick = { isExpanded.value = !isExpanded.value }) {
                             Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit current list")

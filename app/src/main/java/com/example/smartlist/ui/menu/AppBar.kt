@@ -18,14 +18,16 @@ import com.example.smartlist.R
 
 @Composable
 fun MainAppBar(
+    name: String,
     menuState:MutableState<Boolean>,
     retryAction: () -> Unit,
     onExport: ()-> Unit,
 ){
     val context = LocalContext.current
+    var title = stringResource(id = R.string.app_name)
 
     TopAppBar(
-        title = { Text(text = stringResource(id = R.string.app_name)) },
+        title = { Text(text = "$title > $name") },
         actions = {
 
             IconButton(onClick = retryAction) {

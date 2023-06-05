@@ -96,6 +96,8 @@ fun DishesScreen(
                         onClick = { listId ->
                             dishViewModel.currentListId = listId
                             dishViewModel.getRecipesList()
+                            dishViewModel.getListName(listId)
+                            dishViewModel.getListSize(listId)
                             navController.navigate(Screen.DetailedDishesScreen.route)
                         },
                         onEdit = onEdit,

@@ -110,6 +110,7 @@ fun DetailedDishesScreen(
     Scaffold(
         topBar = {
             MainAppBar(
+                name = dishViewModel.currentName,
                 menuState = menuState,
                 retryAction = onRefresh,
                 onExport = onExport

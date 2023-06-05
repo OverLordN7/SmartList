@@ -54,6 +54,10 @@ class DishViewModel (
 
     var currentListId: UUID by mutableStateOf(UUID.randomUUID())
 
+    var currentName: String by mutableStateOf("List unknown")
+
+    var currentListSize: Int by mutableStateOf(0)
+
 
     private val _dishComponents = MutableStateFlow<List<DishComponent>>(emptyList())
     val dishComponents: StateFlow<List<DishComponent>> get() = _dishComponents.asStateFlow()
@@ -195,13 +199,54 @@ class DishViewModel (
         }
     }
 
+    fun getListName(id: UUID){
+        viewModelScope.launch {
+            withContext(Dispatchers.IO){
+                currentName = dishRepository.getListName(id)
+            }
+        }
+    }
+
+    fun getListSize(id: UUID){
+        viewModelScope.launch {
+            currentListSize = parseListSize(id)
+        }
+    }
+
+    private suspend fun parseListSize(listId: UUID):Int{
+        return withContext(Dispatchers.IO){
+            dishRepository.getListSize(listId)
+        }
+    }
+
+    private fun updateListSize(value: Int, listId: UUID){
+        viewModelScope.launch{
+            withContext(Dispatchers.IO){
+                dishRepository.updateListSize(value, listId)
+            }
+        }
+    }
+
     //Recipe functions
     fun insertRecipe(recipe: Recipe){
         viewModelScope.launch {
+
+            //Get listSize from DB
+            val listSize = parseListSize(currentListId)
+
+            Log.d(TAG,"current listID: $currentListId")
+            Log.d(TAG,"current listSize: $listSize")
+            Log.d(TAG,"current listSize fun: ${parseListSize(currentListId)}")
+
+            //Increase value of listSize in DB
+            updateListSize(listSize+1, currentListId)
+
+            //Insert a Recipe to DB
             withContext(Dispatchers.IO){
                 dishRepository.insertRecipe(recipe)
             }
 
+            //Refresh Recipe list
             getRecipesList()
         }
 
@@ -210,10 +255,18 @@ class DishViewModel (
 
     fun deleteRecipe(recipe: Recipe){
         viewModelScope.launch {
+            //Get listSize from DB
+            val listSize = parseListSize(currentListId)
+
+            //Decrease value of listSize in DB
+            updateListSize(listSize-1, currentListId)
+
+            //Delete a Recipe from DB
             withContext(Dispatchers.IO){
                 dishRepository.deleteRecipe(recipe)
             }
 
+            //Refresh Recipe list
             getRecipesList()
         }
     }
@@ -224,6 +277,7 @@ class DishViewModel (
                 dishRepository.updateRecipe(recipe)
             }
 
+            //Refresh Recipe list
             getRecipesList()
         }
     }

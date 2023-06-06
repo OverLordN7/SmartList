@@ -143,7 +143,7 @@ fun ResultItemScreen(
 
     //If no Item received but call ended with Success
     if (itemsOfList.isEmpty()) {
-        EmptyCard()
+        EmptyCard("items")
         return Unit
     }
     LazyColumn{
@@ -163,10 +163,10 @@ fun ResultItemScreen(
 }
 
 @Composable
-fun EmptyCard(modifier: Modifier = Modifier){
+fun EmptyCard(itemType: String, modifier: Modifier = Modifier){
     Box(contentAlignment = Alignment.Center, modifier = modifier.fillMaxSize()) {
         Column {
-            Text(text = "No items to display", color = Color.Black)
+            Text(text = "No $itemType to display", color = Color.Black)
             Text(text = "Try to use + button", color = Color.Black)
         }
     }

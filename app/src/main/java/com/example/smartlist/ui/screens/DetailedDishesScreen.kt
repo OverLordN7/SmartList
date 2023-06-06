@@ -68,10 +68,12 @@ import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.example.smartlist.R
 import com.example.smartlist.model.DishComponent
+import com.example.smartlist.model.DishList
 import com.example.smartlist.model.Item
 import com.example.smartlist.model.Recipe
 import com.example.smartlist.ui.menu.MainAppBar
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import java.util.UUID
 
 
@@ -90,12 +92,12 @@ fun DetailedDishesScreen(
     onEdit: (DishComponent) -> Unit,
     modifier: Modifier = Modifier,
     onRefresh: ()->Unit,
-    onExport: ()->Unit,
+    onExport: (String)->Unit,
 ){
     val state: RecipeUiState = dishViewModel.recipeUiState
     val showDialog = remember { mutableStateOf(false) }
 
-    var menuState = remember { mutableStateOf(false) }
+    val menuState = remember { mutableStateOf(false) }
 
     val dishComponentList = dishViewModel.dishComponents.collectAsState(emptyList())
 
@@ -156,6 +158,11 @@ fun ResultScreen(
     deleteDishComponent: (UUID) -> Unit,
     onEdit: (DishComponent) -> Unit,
 ){
+    if(dishComponentList.isEmpty()){
+        EmptyCard("recipes")
+        return
+    }
+
     LazyColumn {
         item { SearchCard() }
 

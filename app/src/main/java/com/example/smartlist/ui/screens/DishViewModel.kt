@@ -123,7 +123,7 @@ class DishViewModel (
         }
     }
 
-    fun convertDishListToPurchaseList(){
+    fun convertDishListToPurchaseList(exportName: String){
         //Create an empty PurchaseList
 
         //Prepare data of DishList
@@ -137,7 +137,7 @@ class DishViewModel (
             val date = LocalDate.now()
             val exportPurchaseList = PurchaseList(
                 id = UUID.randomUUID(),
-                name = "Test",
+                name = exportName,
                 listSize = 0,
                 year = date.year,
                 month = date.month.name,
@@ -233,10 +233,6 @@ class DishViewModel (
 
             //Get listSize from DB
             val listSize = parseListSize(currentListId)
-
-            Log.d(TAG,"current listID: $currentListId")
-            Log.d(TAG,"current listSize: $listSize")
-            Log.d(TAG,"current listSize fun: ${parseListSize(currentListId)}")
 
             //Increase value of listSize in DB
             updateListSize(listSize+1, currentListId)

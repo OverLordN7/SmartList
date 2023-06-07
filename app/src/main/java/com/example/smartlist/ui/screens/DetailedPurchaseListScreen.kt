@@ -1,6 +1,5 @@
 package com.example.smartlist.ui.screens
 
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -15,7 +14,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
 import androidx.compose.material.Card
@@ -31,53 +29,53 @@ import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.focus.FocusDirection
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.navigation.NavController
 import com.example.smartlist.R
 import com.example.smartlist.model.Item
+import com.example.smartlist.model.MenuItem
+import com.example.smartlist.navigation.Screen
+import com.example.smartlist.ui.menu.AppBarItem
+import com.example.smartlist.ui.menu.DrawerBody
+import com.example.smartlist.ui.menu.DrawerHeader
+import kotlinx.coroutines.launch
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.Locale
 import java.util.UUID
 
-private const val TAG = "DetailedPurchaseListScreen"
-
-
 @Composable
 fun DetailedPurchaseListScreen(
-    listId: String,
     purchaseViewModel: PurchaseViewModel,
+    navController: NavController,
     onSubmit: (Item) -> Unit,
     onRefresh: ()->Unit,
     onDelete: (UUID) -> Unit,
@@ -87,8 +85,9 @@ fun DetailedPurchaseListScreen(
 ){
     val showDialog = remember { mutableStateOf(false) }
     val state: PurchaseItemUiState = purchaseViewModel.purchaseItemUiState
-
-    Log.d(TAG, "the state is: $state")
+    val scaffoldState = rememberScaffoldState()
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     if (showDialog.value){
         NewPurchaseListItemDialog(
@@ -102,12 +101,70 @@ fun DetailedPurchaseListScreen(
     }
 
     Scaffold(
+        scaffoldState = scaffoldState,
         topBar = {
             AppBarItem(
                 purchaseViewModel.currentName,
+                onNavigationIconClick = {
+                    scope.launch { scaffoldState.drawerState.open()
+                    } },
                 retryAction = { onRefresh() }
+            )},
+        drawerContent = {
+            DrawerHeader()
+            DrawerBody(
+                items = listOf(
+                    MenuItem(
+                        id = "home",
+                        title = "Home",
+                        contentDescription = "Go to home screen",
+                        icon = Icons.Default.Home
+                    ),
+                    MenuItem(
+                        id = "purchaseList",
+                        title = "Purchase list",
+                        contentDescription = "Go to Purchase list screen",
+                        icon = Icons.Default.Home
+                    ),
+                    MenuItem(
+                        id = "dishList",
+                        title = "Dishes list",
+                        contentDescription = "Go to Dishes list screen",
+                        icon = Icons.Default.Home
+                    ),
+                    MenuItem(
+                        id = "graphs",
+                        title = "Graphs",
+                        contentDescription = "Go to graphs screen",
+                        icon = Icons.Default.Home
+                    ),
+                ),
+                onItemClick = {
+                    when(it.id){
+                        "dishList" ->{
+                            scope.launch { scaffoldState.drawerState.close() }
+                            navController.navigate(Screen.DishesScreen.route)
+                        }
+                        "purchaseList" ->{
+                            scope.launch { scaffoldState.drawerState.close() }
+                            navController.navigate(Screen.PurchasesScreen.route)
+                        }
+                        "graphs" ->{
+                            scope.launch { scaffoldState.drawerState.close() }
+                            navController.navigate(Screen.GraphScreen.route)
+                        }
+                        "home" ->{
+                            scope.launch { scaffoldState.drawerState.close() }
+                            navController.navigate(Screen.HomeScreen.route)
+                        }
+                        else -> {
+                            val message = context.getString(R.string.menu_item_toast_default,it.title)
+                            Toast.makeText(context,message,Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
             )
-                 },
+        },
         floatingActionButtonPosition = FabPosition.End,
         floatingActionButton = {
             FloatingActionButton(onClick = { showDialog.value = true}) {
@@ -143,7 +200,7 @@ fun ResultItemScreen(
 
     //If no Item received but call ended with Success
     if (itemsOfList.isEmpty()) {
-        EmptyCard()
+        EmptyCard("items")
         return Unit
     }
     LazyColumn{
@@ -163,10 +220,10 @@ fun ResultItemScreen(
 }
 
 @Composable
-fun EmptyCard(modifier: Modifier = Modifier){
+fun EmptyCard(itemType: String, modifier: Modifier = Modifier){
     Box(contentAlignment = Alignment.Center, modifier = modifier.fillMaxSize()) {
         Column {
-            Text(text = "No items to display", color = Color.Black)
+            Text(text = "No $itemType to display", color = Color.Black)
             Text(text = "Try to use + button", color = Color.Black)
         }
     }
@@ -706,17 +763,4 @@ fun EditScreen(
     }
 
 
-}
-
-@Composable
-fun AppBarItem(name: String, retryAction: () -> Unit) {
-    val title = stringResource(id = R.string.app_name)
-    TopAppBar(
-        title = { Text(text = "$title > $name") },
-        actions = {
-            IconButton(onClick = retryAction) {
-                Icon(Icons.Default.Refresh, "Refresh")
-            }
-        }
-    )
 }

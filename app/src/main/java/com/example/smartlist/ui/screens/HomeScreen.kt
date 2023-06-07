@@ -1,22 +1,101 @@
 package com.example.smartlist.ui.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.smartlist.R
+import com.example.smartlist.model.MenuItem
 import com.example.smartlist.navigation.Screen
+import com.example.smartlist.ui.menu.DishAppBar
+import com.example.smartlist.ui.menu.DrawerBody
+import com.example.smartlist.ui.menu.DrawerHeader
+import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(
     navController: NavController,
     modifier: Modifier = Modifier
 ){
-    Scaffold() {
+    val scaffoldState = rememberScaffoldState()
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+
+    Scaffold(
+        scaffoldState = scaffoldState,
+        topBar = {
+            DishAppBar(
+                onNavigationIconClick = {
+                    scope.launch { scaffoldState.drawerState.open()
+                    } },
+                retryAction = {}
+            )
+        },
+        drawerContent = {
+            DrawerHeader()
+            DrawerBody(
+                items = listOf(
+                    MenuItem(
+                        id = "home",
+                        title = "Home",
+                        contentDescription = "Go to home screen",
+                        icon = Icons.Default.Home
+                    ),
+                    MenuItem(
+                        id = "purchaseList",
+                        title = "Purchase list",
+                        contentDescription = "Go to Purchase list screen",
+                        icon = Icons.Default.Home
+                    ),
+                    MenuItem(
+                        id = "dishList",
+                        title = "Dishes list",
+                        contentDescription = "Go to Dishes list screen",
+                        icon = Icons.Default.Home
+                    ),
+                    MenuItem(
+                        id = "graphs",
+                        title = "Graphs",
+                        contentDescription = "Go to graphs screen",
+                        icon = Icons.Default.Home
+                    ),
+
+                    ),
+                onItemClick = {
+                    when(it.id){
+                        "dishList" ->{
+                            scope.launch { scaffoldState.drawerState.close() }
+                            navController.navigate(Screen.DishesScreen.route)
+                        }
+                        "purchaseList" ->{
+                            scope.launch { scaffoldState.drawerState.close() }
+                            navController.navigate(Screen.PurchasesScreen.route)
+                        }
+                        "graphs" ->{
+                            scope.launch { scaffoldState.drawerState.close() }
+                            navController.navigate(Screen.GraphScreen.route)
+                        }
+                        "home" ->{
+                            Toast.makeText(context,"You are already on this screen", Toast.LENGTH_SHORT).show()
+                        }
+                        else -> {
+                            val message = context.getString(R.string.menu_item_toast_default,it.title)
+                            Toast.makeText(context,message, Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            )
+        },
+    ) {
         Surface(
             modifier = modifier
                 .padding(it)

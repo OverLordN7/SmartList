@@ -22,8 +22,13 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.example.smartlist.R
+import com.example.smartlist.model.MenuItem
 import com.example.smartlist.model.PurchaseList
 import com.example.smartlist.navigation.Screen
+import com.example.smartlist.ui.menu.DishAppBar
+import com.example.smartlist.ui.menu.DrawerBody
+import com.example.smartlist.ui.menu.DrawerHeader
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.util.*
 
@@ -43,6 +48,9 @@ fun PurchasesScreen(
     val showDialog = remember { mutableStateOf(false) }
     val state: PurchaseUiState = purchaseViewModel.purchaseUiState
 
+    val scaffoldState = rememberScaffoldState()
+    val scope = rememberCoroutineScope()
+
     if (showDialog.value){
         NewPurchaseListDialog(
             setShowDialog = {showDialog.value = it},
@@ -53,7 +61,70 @@ fun PurchasesScreen(
     }
 
     Scaffold(
-        topBar = {AppBar(onRefresh)},
+        scaffoldState = scaffoldState,
+        topBar = {
+            DishAppBar(
+                onNavigationIconClick = {
+                    scope.launch { scaffoldState.drawerState.open()
+                    } },
+                retryAction = onRefresh
+            )
+        },
+        drawerContent = {
+            DrawerHeader()
+            DrawerBody(
+                items = listOf(
+                    MenuItem(
+                        id = "home",
+                        title = "Home",
+                        contentDescription = "Go to home screen",
+                        icon = Icons.Default.Home
+                    ),
+                    MenuItem(
+                        id = "purchaseList",
+                        title = "Purchase list",
+                        contentDescription = "Go to Purchase list screen",
+                        icon = Icons.Default.Home
+                    ),
+                    MenuItem(
+                        id = "dishList",
+                        title = "Dishes list",
+                        contentDescription = "Go to Dishes list screen",
+                        icon = Icons.Default.Home
+                    ),
+                    MenuItem(
+                        id = "graphs",
+                        title = "Graphs",
+                        contentDescription = "Go to graphs screen",
+                        icon = Icons.Default.Home
+                    ),
+
+                    ),
+                onItemClick = {
+                    when(it.id){
+                        "dishList" ->{
+                            scope.launch { scaffoldState.drawerState.close() }
+                            navController.navigate(Screen.DishesScreen.route)
+                        }
+                        "purchaseList" ->{
+                            Toast.makeText(context,"You are already on this screen", Toast.LENGTH_SHORT).show()
+                        }
+                        "graphs" ->{
+                            scope.launch { scaffoldState.drawerState.close() }
+                            navController.navigate(Screen.GraphScreen.route)
+                        }
+                        "home" ->{
+                            scope.launch { scaffoldState.drawerState.close() }
+                            navController.navigate(Screen.HomeScreen.route)
+                        }
+                        else -> {
+                            val message = context.getString(R.string.menu_item_toast_default,it.title)
+                            Toast.makeText(context,message,Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            )
+        },
         floatingActionButtonPosition = FabPosition.End,
         floatingActionButton = {
             FloatingActionButton(onClick = { showDialog.value = true}) {

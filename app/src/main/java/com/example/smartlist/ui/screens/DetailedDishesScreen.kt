@@ -39,13 +39,16 @@ import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -70,7 +73,11 @@ import com.example.smartlist.R
 import com.example.smartlist.model.DishComponent
 import com.example.smartlist.model.DishList
 import com.example.smartlist.model.Item
+import com.example.smartlist.model.MenuItem
 import com.example.smartlist.model.Recipe
+import com.example.smartlist.navigation.Screen
+import com.example.smartlist.ui.menu.DrawerBody
+import com.example.smartlist.ui.menu.DrawerHeader
 import com.example.smartlist.ui.menu.MainAppBar
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -101,6 +108,10 @@ fun DetailedDishesScreen(
 
     val dishComponentList = dishViewModel.dishComponents.collectAsState(emptyList())
 
+    val scaffoldState = rememberScaffoldState()
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+
     if (showDialog.value){
         NewRecipeDialog(
             setShowDialog = {showDialog.value = it},
@@ -110,12 +121,72 @@ fun DetailedDishesScreen(
     }
 
     Scaffold(
+        scaffoldState = scaffoldState,
         topBar = {
             MainAppBar(
                 name = dishViewModel.currentName,
                 menuState = menuState,
                 retryAction = onRefresh,
-                onExport = onExport
+                onExport = onExport,
+                onNavigationIconClick = {
+                    scope.launch { scaffoldState.drawerState.open()
+                    } },
+            )
+        },
+        drawerContent = {
+            DrawerHeader()
+            DrawerBody(
+                items = listOf(
+                    MenuItem(
+                        id = "home",
+                        title = "Home",
+                        contentDescription = "Go to home screen",
+                        icon = Icons.Default.Home
+                    ),
+                    MenuItem(
+                        id = "purchaseList",
+                        title = "Purchase list",
+                        contentDescription = "Go to Purchase list screen",
+                        icon = Icons.Default.Home
+                    ),
+                    MenuItem(
+                        id = "dishList",
+                        title = "Dishes list",
+                        contentDescription = "Go to Dishes list screen",
+                        icon = Icons.Default.Home
+                    ),
+                    MenuItem(
+                        id = "graphs",
+                        title = "Graphs",
+                        contentDescription = "Go to graphs screen",
+                        icon = Icons.Default.Home
+                    ),
+
+                    ),
+                onItemClick = {
+                    when(it.id){
+                        "dishList" ->{
+                            scope.launch { scaffoldState.drawerState.close() }
+                            navController.navigate(Screen.DishesScreen.route)
+                        }
+                        "purchaseList" ->{
+                            scope.launch { scaffoldState.drawerState.close() }
+                            navController.navigate(Screen.PurchasesScreen.route)
+                        }
+                        "graphs" ->{
+                            scope.launch { scaffoldState.drawerState.close() }
+                            navController.navigate(Screen.GraphScreen.route)
+                        }
+                        "home" ->{
+                            scope.launch { scaffoldState.drawerState.close() }
+                            navController.navigate(Screen.HomeScreen.route)
+                        }
+                        else -> {
+                            val message = context.getString(R.string.menu_item_toast_default,it.title)
+                            Toast.makeText(context,message,Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
             )
         },
         floatingActionButtonPosition = FabPosition.End,
@@ -158,11 +229,6 @@ fun ResultScreen(
     deleteDishComponent: (UUID) -> Unit,
     onEdit: (DishComponent) -> Unit,
 ){
-    if(dishComponentList.isEmpty()){
-        EmptyCard("recipes")
-        return
-    }
-
     LazyColumn {
         item { SearchCard() }
 
@@ -499,6 +565,8 @@ fun DishComponentCard(
                 )
 
                 Column(
+                    horizontalAlignment = Alignment.Start,
+                    verticalArrangement = Arrangement.Center,
                     modifier = Modifier
                         .weight(8f)
                         .padding(top = 4.dp)
@@ -514,7 +582,7 @@ fun DishComponentCard(
                             fontSize = 16.sp,
                             color = Color.Gray,
                             modifier = modifier
-                                .weight(2f)
+                                .weight(3f)
                                 .padding(4.dp)
                         )
 
@@ -523,16 +591,16 @@ fun DishComponentCard(
                             fontSize = 16.sp,
                             color = Color.Gray,
                             modifier = modifier
-                                .weight(3f)
+                                .weight(4f)
                                 .padding(4.dp)
                         )
                     }
                 }
 
-                Spacer(modifier = modifier.weight(2f))
+                Spacer(modifier = modifier.weight(1f))
 
                 Column(modifier = Modifier
-                    .weight(3f)
+                    .weight(4f)
                 ) {
                     Row {
                         IconButton(onClick = { isExpanded.value = !isExpanded.value }) {
@@ -547,7 +615,6 @@ fun DishComponentCard(
                     }
                 }
             }
-            //TODO implementation regarding to DishComponent not to Item
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Start,

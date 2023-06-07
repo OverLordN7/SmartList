@@ -18,6 +18,7 @@ import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.Composable
@@ -43,6 +44,7 @@ import com.example.smartlist.ui.screens.NewRecipeDialog
 fun MainAppBar(
     name: String,
     menuState:MutableState<Boolean>,
+    onNavigationIconClick:()->Unit,
     retryAction: () -> Unit,
     onExport: (String) -> Unit,
 ){
@@ -63,6 +65,13 @@ fun MainAppBar(
 
     TopAppBar(
         title = { Text(text = "$title > $name") },
+        navigationIcon = {
+            IconButton(onClick = onNavigationIconClick) {
+                Icon(
+                    imageVector = Icons.Default.Menu,
+                    contentDescription = "Toggle drawer")
+            }
+        },
         actions = {
 
             IconButton(onClick = retryAction) {
@@ -81,6 +90,56 @@ fun MainAppBar(
                     } ) {
                     Text(text = "Export ingredients")
                 }
+            }
+        }
+    )
+}
+
+@Composable
+fun DishAppBar(
+    onNavigationIconClick:()->Unit,
+    retryAction: () -> Unit,
+) {
+    TopAppBar(
+        title = { Text(text = stringResource(id = R.string.app_name)) },
+        navigationIcon = {
+                         IconButton(onClick = onNavigationIconClick) {
+                             Icon(
+                                 imageVector = Icons.Default.Menu,
+                                 contentDescription = "Toggle drawer")
+                         }
+        },
+        actions = {
+            IconButton(onClick = retryAction) {
+                Icon(Icons.Default.Refresh, "Refresh")
+            }
+        }
+    )
+}
+
+@Composable
+fun AppBarItem(
+    name: String,
+    onNavigationIconClick: () -> Unit,
+    retryAction: () -> Unit,
+) {
+    val context = LocalContext.current
+    val title = stringResource(id = R.string.app_name)
+    TopAppBar(
+        title = { Text(text = "$title > $name") },
+        navigationIcon = {
+            IconButton(onClick = {
+                onNavigationIconClick()
+                Toast.makeText(context,"Touched",Toast.LENGTH_SHORT).show()
+            }) {
+                Icon(
+                    imageVector = Icons.Default.Menu,
+                    contentDescription = "Toggle drawer")
+            }
+        },
+        actions = {
+            IconButton(onClick = retryAction) {
+                Icon(Icons.Default.Refresh, "Refresh")
             }
         }
     )

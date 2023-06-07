@@ -3,4 +3,5 @@
     <string name="purchases_screen_button">Purchases</string>
     <string name="dishes_screen_button">Dishes</string>
     <string name="graph_screen_button">Graphs</string>
+    <string name="menu_item_toast_default">You pressed on %1$s</string>
 </resources>

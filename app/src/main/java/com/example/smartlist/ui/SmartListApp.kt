@@ -53,7 +53,9 @@ fun SmartListApp(){
 
         //Navigate to GraphScreen screen
         composable(route = Screen.GraphScreen.route){
-            GraphScreen()
+            GraphScreen(
+                navController = navController
+            )
         }
 
         //Navigate to DetailedPurchaseListScreen Screen
@@ -67,8 +69,8 @@ fun SmartListApp(){
             )
         ){
             DetailedPurchaseListScreen(
-                listId = it.arguments?.getString("list_id")!!,
                 purchaseViewModel = purchaseViewModel,
+                navController = navController,
                 onSubmit = purchaseViewModel::insertItem,
                 onRefresh = purchaseViewModel::getItemsOfPurchaseList,
                 onDelete = purchaseViewModel::deleteItem,

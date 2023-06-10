@@ -57,6 +57,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -230,7 +231,7 @@ fun ResultScreen(
     onEdit: (DishComponent) -> Unit,
 ){
     LazyColumn {
-        item { SearchCard() }
+        //item { SearchCard() }
 
         items(list.size){id->
             RecipeCard(
@@ -249,33 +250,34 @@ fun ResultScreen(
 
 }
 
-@Composable
-fun SearchCard(modifier: Modifier = Modifier){
+//@Composable
+//fun SearchCard(modifier: Modifier = Modifier){
+//
+//    var searchText by remember { mutableStateOf("")}
+//
+//    Card(
+//        elevation = 4.dp,
+//        modifier = modifier
+//            .fillMaxWidth()
+//            .padding(8.dp)
+//    ) {
+//        Column(
+//            verticalArrangement = Arrangement.Center,
+//            horizontalAlignment = Alignment.CenterHorizontally,
+//        ) {
+//            TextField(
+//                value = searchText,
+//                onValueChange = {searchText = it},
+//                placeholder = { Text(text = "Search..") },
+//                leadingIcon = { Icon(imageVector = Icons.Default.Search, contentDescription = "Search") },
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(8.dp)
+//            )
+//        }
+//    }
+//}
 
-    var searchText by remember { mutableStateOf("")}
-
-    Card(
-        elevation = 4.dp,
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(8.dp)
-    ) {
-        Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            TextField(
-                value = searchText,
-                onValueChange = {searchText = it},
-                placeholder = { Text(text = "Search..") },
-                leadingIcon = { Icon(imageVector = Icons.Default.Search, contentDescription = "Search") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp)
-            )
-        }
-    }
-}
 
 
 @Composable
@@ -292,6 +294,7 @@ fun RecipeCard(
 ){
     val isExpanded = remember { mutableStateOf(false) }
     val showDishComponents = remember { mutableStateOf(false) }
+    val showCalTable = remember { mutableStateOf(false) }
 
     Card(
         elevation = 4.dp,
@@ -300,6 +303,7 @@ fun RecipeCard(
             .padding(8.dp)
             .clickable {
                 showDishComponents.value = !showDishComponents.value
+                showCalTable.value = !showCalTable.value
                 loadDishComponent(recipe)
             }
     ) {
@@ -345,6 +349,9 @@ fun RecipeCard(
             if(isExpanded.value){
                 RecipeCardEditScreen(recipe = recipe, isExpanded = isExpanded, onSubmit = onSubmit)
             }
+            if (showCalTable.value){
+                RecipeCardCalTable()
+            }
 
             if(showDishComponents.value){
                 RecipeCardList(
@@ -384,13 +391,6 @@ fun RecipeCardList(
         )
     }
 
-//    //Adapt dishComponentList to portions
-//    // multiply each dishComponent weight by portions of recipe
-//    // recalculate total price of each DishComponent
-//    dishComponentList.forEach {
-//        it.weight = it.weight * recipe.portions
-//        it.total = it.weight * it.price
-//    }
 
     Card(
         modifier = modifier
@@ -408,7 +408,7 @@ fun RecipeCardList(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(60.dp)
-                        .padding(4.dp)
+                        .padding(start = 8.dp, end = 8.dp, bottom = 4.dp, top = 16.dp)
                         .drawBehind { drawRoundRect(color = Color.DarkGray, style = stroke) }
                         .clickable { showDialog.value = !showDialog.value },
                     contentAlignment = Alignment.Center
@@ -528,6 +528,33 @@ fun RecipeCardEditScreen(
             } else{
                 Spacer(modifier = Modifier.height(20.dp))
             }
+        }
+    }
+}
+
+@Composable
+fun RecipeCardCalTable(modifier: Modifier = Modifier){
+    Card(
+        elevation = 4.dp,
+        modifier = modifier
+            .fillMaxWidth()
+            .height(50.dp)
+            .padding(8.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceAround
+        ) {
+            //TODO make colors of text (fats, protein, Ccal etc.) more soft
+            //Carbohydrates - Углеводы
+            Text(text = "Carb: 213 g", color = Color.Green)
+            // Fat - Жиры
+            Text(text = "Fat: 468 g", color = Color.Blue)
+            // Protein - Белки
+            Text(text = " Protein: 78 g", color = Color.Cyan)
+            //Calories - Калории
+            Text(text = " Ccal: 78 ", color = Color.Cyan)
+
         }
     }
 }

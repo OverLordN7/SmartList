@@ -12,6 +12,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.smartlist.SmartListApplication
 import com.example.smartlist.data.DishRepository
+import com.example.smartlist.data.ProductRepository
 import com.example.smartlist.data.PurchaseRepository
 import com.example.smartlist.model.DishComponent
 import com.example.smartlist.model.DishList
@@ -46,6 +47,7 @@ sealed interface RecipeUiState{
 class DishViewModel (
     private val dishRepository: DishRepository,
     private val purchaseRepository: PurchaseRepository,
+    private val productRepository: ProductRepository,
     ): ViewModel(){
 
     var dishUiState: DishUiState by mutableStateOf(DishUiState.Loading)
@@ -348,7 +350,8 @@ class DishViewModel (
                 val application = (this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as SmartListApplication)
                 val dishRepository = application.container.dishRepository
                 val purchaseRepository = application.container.purchaseRepository
-                DishViewModel(dishRepository, purchaseRepository)
+                val productRepository = application.container.productRepository
+                DishViewModel(dishRepository, purchaseRepository, productRepository)
             }
         }
     }

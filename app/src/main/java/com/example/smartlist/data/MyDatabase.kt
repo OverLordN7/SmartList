@@ -31,7 +31,7 @@ import java.util.UUID
         Recipe::class,
         Product::class
     ],
-    version = 6,
+    version = 7,
     exportSchema = false
 )
 abstract class MyDatabase: RoomDatabase() {

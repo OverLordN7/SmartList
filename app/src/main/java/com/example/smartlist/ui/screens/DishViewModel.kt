@@ -17,6 +17,7 @@ import com.example.smartlist.data.PurchaseRepository
 import com.example.smartlist.model.DishComponent
 import com.example.smartlist.model.DishList
 import com.example.smartlist.model.Item
+import com.example.smartlist.model.Product
 import com.example.smartlist.model.PurchaseList
 import com.example.smartlist.model.Recipe
 import kotlinx.coroutines.Dispatchers
@@ -304,8 +305,48 @@ class DishViewModel (
 
     fun insertDishComponent(component: DishComponent){
         viewModelScope.launch {
+            //get a list of product
+            var tempProductList: List<Product> = emptyList()
             withContext(Dispatchers.IO){
-                dishRepository.insertDishComponent(component)
+                tempProductList = productRepository.getAllProducts()
+            }
+
+            //received an empty list
+            if (tempProductList.isEmpty()){
+                Log.d(TAG,"list is empty")
+
+                withContext(Dispatchers.IO){
+                    dishRepository.insertDishComponent(component)
+                }
+
+            }
+            //received a list with product
+            else{
+                val mulFactor = when(component.weightType){
+                    "pcs"->{
+                        ((0.05 * component.weight) / 0.1).toFloat()
+                    }
+
+                    else->{
+                        (component.weight / 0.1).toFloat()
+                    }
+                }
+
+
+                for (product in tempProductList){
+                    if (component.name == product.name){
+                        component.carbs = product.carb * mulFactor
+                        component.fat = product.fat * mulFactor
+                        component.protein = product.protein * mulFactor
+                        component.cal = product.cal * mulFactor
+
+                        withContext(Dispatchers.IO){
+                            dishRepository.insertDishComponent(component)
+                        }
+
+                        break
+                    }
+                }
             }
         }
     }
@@ -334,8 +375,48 @@ class DishViewModel (
 
     fun updateDishComponent(dishComponent: DishComponent){
         viewModelScope.launch {
+            //get a list of product
+            var tempProductList: List<Product> = emptyList()
             withContext(Dispatchers.IO){
-                dishRepository.updateDishComponent(dishComponent)
+                tempProductList = productRepository.getAllProducts()
+            }
+
+            //received an empty list
+            if (tempProductList.isEmpty()){
+                Log.d(TAG,"list is empty")
+
+                withContext(Dispatchers.IO){
+                    dishRepository.updateDishComponent(dishComponent)
+                }
+
+            }
+
+            else{
+                val mulFactor = when(dishComponent.weightType){
+                    "pcs"->{
+                        ((0.05 * dishComponent.weight) / 0.1).toFloat()
+                    }
+
+                    else->{
+                        (dishComponent.weight / 0.1).toFloat()
+                    }
+                }
+
+
+                for (product in tempProductList){
+                    if (dishComponent.name == product.name){
+                        dishComponent.carbs = product.carb * mulFactor
+                        dishComponent.fat = product.fat * mulFactor
+                        dishComponent.protein = product.protein * mulFactor
+                        dishComponent.cal = product.cal * mulFactor
+
+                        withContext(Dispatchers.IO){
+                            dishRepository.updateDishComponent(dishComponent)
+                        }
+
+                        break
+                    }
+                }
             }
         }
     }

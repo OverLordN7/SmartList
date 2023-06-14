@@ -47,5 +47,9 @@ data class DishComponent(
     val weightType: String,
     val price: Float = 0.0f,
     var total: Float = 0.0f,
+    var carbs: Float = 0.0f,
+    var fat: Float = 0.0f,
+    var protein: Float = 0.0f,
+    var cal: Float = 0.0f
 )
 

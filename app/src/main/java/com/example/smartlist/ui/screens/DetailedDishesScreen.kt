@@ -350,7 +350,24 @@ fun RecipeCard(
                 RecipeCardEditScreen(recipe = recipe, isExpanded = isExpanded, onSubmit = onSubmit)
             }
             if (showCalTable.value){
-                RecipeCardCalTable()
+                var carbs = 0.0f
+                var fat = 0.0f
+                var protein = 0.0f
+                var cal = 0.0f
+
+                dishComponentList.forEach {
+                    carbs += it.carbs
+                    fat += it.fat
+                    protein +=it.protein
+                    cal += it.cal
+                }
+
+                RecipeCardCalTable(
+                    carbs = carbs * recipe.portions,
+                    fat = fat * recipe.portions,
+                    protein = protein * recipe.portions,
+                    cal = cal * recipe.portions
+                )
             }
 
             if(showDishComponents.value){
@@ -533,7 +550,13 @@ fun RecipeCardEditScreen(
 }
 
 @Composable
-fun RecipeCardCalTable(modifier: Modifier = Modifier){
+fun RecipeCardCalTable(
+    carbs: Float,
+    fat: Float,
+    protein: Float,
+    cal: Float,
+    modifier: Modifier = Modifier
+){
     Card(
         elevation = 4.dp,
         modifier = modifier
@@ -547,13 +570,13 @@ fun RecipeCardCalTable(modifier: Modifier = Modifier){
         ) {
             //TODO make colors of text (fats, protein, Ccal etc.) more soft
             //Carbohydrates - Углеводы
-            Text(text = "Carb: 213 g", color = Color.Green)
+            Text(text = "Carb: ${carbs.toInt()} g", color = Color.Green)
             // Fat - Жиры
-            Text(text = "Fat: 468 g", color = Color.Blue)
+            Text(text = "Fat: ${fat.toInt()} g", color = Color.Blue)
             // Protein - Белки
-            Text(text = " Protein: 78 g", color = Color.Cyan)
+            Text(text = " Protein: ${protein.toInt()} g", color = Color.Cyan)
             //Calories - Калории
-            Text(text = " Ccal: 78 ", color = Color.Cyan)
+            Text(text = " Ccal: ${cal.toInt()} ", color = Color.Red)
 
         }
     }

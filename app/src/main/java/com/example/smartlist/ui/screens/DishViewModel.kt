@@ -339,14 +339,13 @@ class DishViewModel (
                         component.fat = product.fat * mulFactor
                         component.protein = product.protein * mulFactor
                         component.cal = product.cal * mulFactor
-
-                        withContext(Dispatchers.IO){
-                            dishRepository.insertDishComponent(component)
-                        }
-
                         break
                     }
                 }
+            }
+
+            withContext(Dispatchers.IO){
+                dishRepository.insertDishComponent(component)
             }
         }
     }

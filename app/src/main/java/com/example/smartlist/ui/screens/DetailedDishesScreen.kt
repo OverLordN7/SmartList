@@ -1,6 +1,9 @@
 package com.example.smartlist.ui.screens
 
 import android.widget.Toast
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -9,6 +12,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -54,9 +58,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalContext
@@ -77,10 +83,17 @@ import com.example.smartlist.model.DishList
 import com.example.smartlist.model.Item
 import com.example.smartlist.model.MenuItem
 import com.example.smartlist.model.Recipe
+import com.example.smartlist.model.items
 import com.example.smartlist.navigation.Screen
 import com.example.smartlist.ui.menu.DrawerBody
 import com.example.smartlist.ui.menu.DrawerHeader
 import com.example.smartlist.ui.menu.MainAppBar
+import com.example.smartlist.ui.theme.Cal100
+import com.example.smartlist.ui.theme.Carb100
+import com.example.smartlist.ui.theme.Fats100
+import com.example.smartlist.ui.theme.Orange100
+import com.example.smartlist.ui.theme.Orange150
+import com.example.smartlist.ui.theme.Protein100
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.util.UUID
@@ -138,33 +151,7 @@ fun DetailedDishesScreen(
         drawerContent = {
             DrawerHeader()
             DrawerBody(
-                items = listOf(
-                    MenuItem(
-                        id = "home",
-                        title = "Home",
-                        contentDescription = "Go to home screen",
-                        icon = Icons.Default.Home
-                    ),
-                    MenuItem(
-                        id = "purchaseList",
-                        title = "Purchase list",
-                        contentDescription = "Go to Purchase list screen",
-                        icon = Icons.Default.Home
-                    ),
-                    MenuItem(
-                        id = "dishList",
-                        title = "Dishes list",
-                        contentDescription = "Go to Dishes list screen",
-                        icon = Icons.Default.Home
-                    ),
-                    MenuItem(
-                        id = "graphs",
-                        title = "Graphs",
-                        contentDescription = "Go to graphs screen",
-                        icon = Icons.Default.Home
-                    ),
-
-                    ),
+                items = items,
                 onItemClick = {
                     when(it.id){
                         "dishList" ->{
@@ -198,7 +185,7 @@ fun DetailedDishesScreen(
             }
         }
     ) {
-        Surface(modifier.padding(it)) {
+        Surface(modifier = modifier.padding(it).fillMaxSize()) {
             when(state){
                 is RecipeUiState.Loading ->{}
                 is RecipeUiState.Error ->{}
@@ -298,7 +285,7 @@ fun RecipeCard(
     val showCalTable = remember { mutableStateOf(false) }
 
     Card(
-        elevation = 4.dp,
+        backgroundColor = Orange100,
         modifier = modifier
             .fillMaxWidth()
             .padding(8.dp)
@@ -307,6 +294,14 @@ fun RecipeCard(
                 showCalTable.value = !showCalTable.value
                 loadDishComponent(recipe)
             }
+            .animateContentSize(
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioNoBouncy,
+                    stiffness = Spring.StiffnessMedium
+                )
+            ),
+        elevation = 4.dp,
+
     ) {
         Column {
             Row(
@@ -411,6 +406,7 @@ fun RecipeCardList(
 
 
     Card(
+        backgroundColor = Orange100,
         modifier = modifier
             .fillMaxWidth()
             .height(height.dp)
@@ -571,13 +567,13 @@ fun RecipeCardCalTable(
         ) {
             //TODO make colors of text (fats, protein, Ccal etc.) more soft
             //Carbohydrates - Углеводы
-            Text(text = "Carb: ${carbs.toInt()} g", color = Color.Green)
+            Text(text = "Carb: ${carbs.toInt()} g", color = Carb100)
             // Fat - Жиры
-            Text(text = "Fat: ${fat.toInt()} g", color = Color.Blue)
+            Text(text = "Fat: ${fat.toInt()} g", color = Fats100)
             // Protein - Белки
-            Text(text = " Protein: ${protein.toInt()} g", color = Color.Cyan)
+            Text(text = " Protein: ${protein.toInt()} g", color = Protein100)
             //Calories - Калории
-            Text(text = " Ccal: ${cal.toInt()} ", color = Color.Red)
+            Text(text = " Ccal: ${cal.toInt()} ", color = Cal100)
 
         }
     }

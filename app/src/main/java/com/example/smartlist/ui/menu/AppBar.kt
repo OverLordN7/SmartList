@@ -55,6 +55,7 @@ fun MainAppBar(
 
     if (showDialog.value){
         ExportListDialog(
+            title = name,
             setShowDialog = {showDialog.value = it},
             onConfirm = {exportName->
                 onExport(exportName)
@@ -148,11 +149,12 @@ fun AppBarItem(
 
 @Composable
 fun ExportListDialog(
+    title: String,
     setShowDialog: (Boolean) -> Unit,
     onConfirm: (String) -> Unit,
     modifier: Modifier = Modifier,
 ){
-    var fieldValue by remember{ mutableStateOf(TextFieldValue("")) }
+    var fieldValue by remember{ mutableStateOf(TextFieldValue(title)) }
     var errorFieldStatus by remember { mutableStateOf(false) }
 
 

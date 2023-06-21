@@ -62,6 +62,7 @@ import androidx.navigation.NavController
 import com.example.smartlist.R
 import com.example.smartlist.model.Item
 import com.example.smartlist.model.MenuItem
+import com.example.smartlist.model.items
 import com.example.smartlist.navigation.Screen
 import com.example.smartlist.ui.menu.AppBarItem
 import com.example.smartlist.ui.menu.DrawerBody
@@ -113,32 +114,7 @@ fun DetailedPurchaseListScreen(
         drawerContent = {
             DrawerHeader()
             DrawerBody(
-                items = listOf(
-                    MenuItem(
-                        id = "home",
-                        title = "Home",
-                        contentDescription = "Go to home screen",
-                        icon = Icons.Default.Home
-                    ),
-                    MenuItem(
-                        id = "purchaseList",
-                        title = "Purchase list",
-                        contentDescription = "Go to Purchase list screen",
-                        icon = Icons.Default.Home
-                    ),
-                    MenuItem(
-                        id = "dishList",
-                        title = "Dishes list",
-                        contentDescription = "Go to Dishes list screen",
-                        icon = Icons.Default.Home
-                    ),
-                    MenuItem(
-                        id = "graphs",
-                        title = "Graphs",
-                        contentDescription = "Go to graphs screen",
-                        icon = Icons.Default.Home
-                    ),
-                ),
+                items = items,
                 onItemClick = {
                     when(it.id){
                         "dishList" ->{

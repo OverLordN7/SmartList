@@ -185,7 +185,9 @@ fun DetailedDishesScreen(
             }
         }
     ) {
-        Surface(modifier = modifier.padding(it).fillMaxSize()) {
+        Surface(modifier = modifier
+            .padding(it)
+            .fillMaxSize()) {
             when(state){
                 is RecipeUiState.Loading ->{}
                 is RecipeUiState.Error ->{}
@@ -285,6 +287,7 @@ fun RecipeCard(
     val showCalTable = remember { mutableStateOf(false) }
 
     Card(
+        elevation = 4.dp,
         backgroundColor = Orange100,
         modifier = modifier
             .fillMaxWidth()
@@ -294,16 +297,17 @@ fun RecipeCard(
                 showCalTable.value = !showCalTable.value
                 loadDishComponent(recipe)
             }
-            .animateContentSize(
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioNoBouncy,
-                    stiffness = Spring.StiffnessMedium
-                )
-            ),
-        elevation = 4.dp,
-
     ) {
-        Column {
+        Column(
+            modifier = Modifier
+                .animateContentSize(
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioNoBouncy,
+                        stiffness = Spring.StiffnessMedium
+                    )
+                ),
+
+            ) {
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
@@ -323,7 +327,12 @@ fun RecipeCard(
                         horizontalAlignment = Alignment.Start,
                         modifier = Modifier.padding(start = 4.dp)
                     ) {
-                        Text(text = recipe.name)
+                        Text(
+                            text = recipe.name,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 17.sp,
+                            color = Color.Black
+                        )
                         Text(text = "Portions: ${recipe.portions}")
                     }
                 }
@@ -1009,306 +1018,357 @@ fun NewDishComponentDialog(
 
         Surface( shape = RoundedCornerShape(16.dp), color = Color.White) {
 
-            Column(
+
+            LazyColumn(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.Start,
                 modifier = modifier.padding(8.dp)
             ) {
                 //Header of dialog
-                Text(text = "New DishComponent", color = Color.Black, fontSize = 28.sp)
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.padding(4.dp)
-                ){
-                    Text(
-                        text = "Name: ",
-                        fontSize = 16.sp,
-                        modifier = Modifier.weight(1f)
-                    )
-                    OutlinedTextField(
-                        value = name,
-                        onValueChange = {name = it},
-                        placeholder = {Text(text = "ex Potato")},
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions.Default.copy(
-                            capitalization = KeyboardCapitalization.Sentences,
-                            autoCorrect = true,
-                            keyboardType = KeyboardType.Text,
-                            imeAction = ImeAction.Next
-                        ),
-                        modifier = Modifier.weight(2f)
-                    )
-
-                }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.padding(4.dp)
-                ) {
-                    Text(
-                        text = "Weight: ",
-                        fontSize = 16.sp,
-                        modifier = Modifier.weight(1f)
-                    )
-                    OutlinedTextField(
-                        value = weight,
-                        onValueChange = {weight = it},
-                        placeholder = {Text(text = "ex 10.0")},
-                        keyboardOptions = KeyboardOptions.Default.copy(
-                            keyboardType = KeyboardType.Decimal,
-                            imeAction = ImeAction.Next
-                        ),
-                        modifier = Modifier.weight(2f),
-                    )
-                }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.padding(4.dp)
-                ){
-                    Text(
-                        text = "Unit: ",
-                        fontSize = 16.sp,
-                        modifier = Modifier.weight(1f)
-                    )
-                    ExposedDropdownMenuBox(
-                        expanded = expanded,
-                        onExpandedChange = { expanded = !expanded},
-                        modifier = Modifier.weight(2f)
+                item{
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
+                        Text(text = "New DishComponent", color = Color.Black, fontSize = 28.sp)
+                    }
+                }
+
+                //Primary fields
+                item{
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.padding(4.dp)
+                    ){
+                        Text(
+                            text = "Name: ",
+                            fontSize = 16.sp,
+                            modifier = Modifier.weight(1f)
+                        )
                         OutlinedTextField(
-                            readOnly = true,
-                            value = selectedOptionText,
-                            onValueChange = { },
-                            label = { Text("Unit", color = Color.Black)},
-                            trailingIcon = {
-                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-                            },
-                            //colors =  ExposedDropdownMenuDefaults.textFieldColors()
+                            value = name,
+                            onValueChange = {name = it},
+                            placeholder = {Text(text = "ex Potato")},
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions.Default.copy(
+                                capitalization = KeyboardCapitalization.Sentences,
+                                autoCorrect = true,
+                                keyboardType = KeyboardType.Text,
+                                imeAction = ImeAction.Next
+                            ),
+                            modifier = Modifier.weight(2f)
                         )
 
-                        ExposedDropdownMenu(
+                    }
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.padding(4.dp)
+                    ) {
+                        Text(
+                            text = "Weight: ",
+                            fontSize = 16.sp,
+                            modifier = Modifier.weight(1f)
+                        )
+                        OutlinedTextField(
+                            value = weight,
+                            onValueChange = {weight = it},
+                            placeholder = {Text(text = "ex 10.0")},
+                            keyboardOptions = KeyboardOptions.Default.copy(
+                                keyboardType = KeyboardType.Decimal,
+                                imeAction = ImeAction.Next
+                            ),
+                            modifier = Modifier.weight(2f),
+                        )
+                    }
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.padding(4.dp)
+                    ){
+                        Text(
+                            text = "Unit: ",
+                            fontSize = 16.sp,
+                            modifier = Modifier.weight(1f)
+                        )
+                        ExposedDropdownMenuBox(
                             expanded = expanded,
-                            onDismissRequest = { expanded = false }
+                            onExpandedChange = { expanded = !expanded},
+                            modifier = Modifier.weight(2f)
                         ) {
-                            options.forEach{ selectionOption ->
-                                DropdownMenuItem(
-                                    onClick = {
-                                        selectedOptionText = selectionOption
-                                        expanded = false
+                            OutlinedTextField(
+                                readOnly = true,
+                                value = selectedOptionText,
+                                onValueChange = { },
+                                label = { Text("Unit", color = Color.Black)},
+                                trailingIcon = {
+                                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                                },
+                                //colors =  ExposedDropdownMenuDefaults.textFieldColors()
+                            )
+
+                            ExposedDropdownMenu(
+                                expanded = expanded,
+                                onDismissRequest = { expanded = false }
+                            ) {
+                                options.forEach{ selectionOption ->
+                                    DropdownMenuItem(
+                                        onClick = {
+                                            selectedOptionText = selectionOption
+                                            expanded = false
+                                        }
+                                    ) {
+                                        Text(text = selectionOption)
                                     }
-                                ) {
-                                    Text(text = selectionOption)
                                 }
                             }
                         }
                     }
-                }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.padding(4.dp)
-                ){
-                    Text(
-                        text = "Price: ",
-                        fontSize = 16.sp,
-                        modifier = Modifier.weight(1f)
-                    )
 
-                    OutlinedTextField(
-                        value = price,
-                        onValueChange = {price = it},
-                        placeholder = {Text(text = "ex 10000")},
-                        keyboardOptions = KeyboardOptions.Default.copy(
-                            keyboardType = KeyboardType.Decimal,
-                            imeAction = ImeAction.Done
-                        ),
-                        modifier = Modifier.weight(2f),
-                    )
-                }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.padding(4.dp)
-                ){
-                    if (error){
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.padding(4.dp)
+                    ){
                         Text(
-                            text = "*Sure that you fill all fields, if message still remains, check symbols",
-                            color = Color.Red,
-                            modifier = Modifier.padding(start = 12.dp)
+                            text = "Price: ",
+                            fontSize = 16.sp,
+                            modifier = Modifier.weight(1f)
                         )
-                    } else{
-                        Spacer(modifier = Modifier.height(30.dp))
+
+                        OutlinedTextField(
+                            value = price,
+                            onValueChange = {price = it},
+                            placeholder = {Text(text = "ex 10000")},
+                            keyboardOptions = KeyboardOptions.Default.copy(
+                                keyboardType = KeyboardType.Decimal,
+                                imeAction = ImeAction.Done
+                            ),
+                            modifier = Modifier.weight(2f),
+                        )
                     }
                 }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.padding(4.dp)
-                ) {
-                    Text(
-                        text = "Additional info: ",
-                        fontSize = 16.sp,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Switch(
-                        checked = switchState,
-                        onCheckedChange = {switchState = it},
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.padding(4.dp)
-                ){
-                    Text(
-                        text = "Carbs: ",
-                        fontSize = 16.sp,
-                        color = if(switchState) Color.Black else Color.Gray,
-                        modifier = Modifier.weight(1f)
-                    )
-                    OutlinedTextField(
-                        value = carbs,
-                        onValueChange = {carbs = it},
-                        placeholder = {Text(text = "ex 5.3")},
-                        keyboardOptions = KeyboardOptions.Default.copy(
-                            keyboardType = KeyboardType.Decimal,
-                            imeAction = ImeAction.Next
-                        ),
-                        enabled = switchState,
-                        modifier = Modifier.weight(2f),
 
-                    )
-                }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.padding(4.dp)
-                ){
-                    Text(
-                        text = "Fats: ",
-                        fontSize = 16.sp,
-                        color = if(switchState) Color.Black else Color.Gray,
-                        modifier = Modifier.weight(1f)
-                    )
-                    OutlinedTextField(
-                        value = fats,
-                        onValueChange = {fats = it},
-                        placeholder = {Text(text = "ex 10.5")},
-                        keyboardOptions = KeyboardOptions.Default.copy(
-                            keyboardType = KeyboardType.Decimal,
-                            imeAction = ImeAction.Next
-                        ),
-                        enabled = switchState,
-                        modifier = Modifier.weight(2f),
-
-                        )
-                }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.padding(4.dp)
-                ){
-                    Text(
-                        text = "Protein: ",
-                        fontSize = 16.sp,
-                        color = if(switchState) Color.Black else Color.Gray,
-                        modifier = Modifier.weight(1f)
-                    )
-                    OutlinedTextField(
-                        value = protein,
-                        onValueChange = {protein = it},
-                        placeholder = {Text(text = "ex 7.1")},
-                        keyboardOptions = KeyboardOptions.Default.copy(
-                            keyboardType = KeyboardType.Decimal,
-                            imeAction = ImeAction.Next
-                        ),
-                        enabled = switchState,
-                        modifier = Modifier.weight(2f),
-
-                        )
-                }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.padding(4.dp)
-                ){
-                    Text(
-                        text = "Cals: ",
-                        fontSize = 16.sp,
-                        color = if(switchState) Color.Black else Color.Gray,
-                        modifier = Modifier.weight(1f)
-                    )
-                    OutlinedTextField(
-                        value = cal,
-                        onValueChange = {cal = it},
-                        placeholder = {Text(text = "ex 200")},
-                        keyboardOptions = KeyboardOptions.Default.copy(
-                            keyboardType = KeyboardType.Decimal,
-                            imeAction = ImeAction.Done
-                        ),
-                        enabled = switchState,
-                        modifier = Modifier.weight(2f),
-
-                        )
-                }
-
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceAround
-                ){
-
-                    Button(
-                        onClick = { setShowDialog(false)},
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(4.dp),
+                //Switch
+                item{
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.padding(4.dp)
                     ) {
-                        Text(text = "Cancel")
+                        Text(
+                            text = "Additional info: ",
+                            fontSize = 16.sp,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Switch(
+                            checked = switchState,
+                            onCheckedChange = {switchState = it},
+                            modifier = Modifier.weight(1f)
+                        )
                     }
+                }
 
-                    Button(
-                        onClick = {
-                            //Check if all fields are not null
-                            if (checkForError(name, weight, price)){
-                                error = true
-                            }
-                            else{
-                                //Check is OK, continue..
-                                var newDishComponent = DishComponent(
-                                    id = UUID.randomUUID(),
-                                    recipeId = recipeId,
-                                    name = name.text,
-                                    weight = weight.text.toFloat(),
-                                    weightType = selectedOptionText,
-                                    price = price.text.toFloat(),
-                                    total = weight.text.toFloat() * price.text.toFloat(),
+                //Additional section
+                item{
+                    if(switchState){
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.padding(4.dp)
+                        ){
+                            Text(
+                                text = "Carbs: ",
+                                fontSize = 16.sp,
+                                color = if(switchState) Color.Black else Color.Gray,
+                                modifier = Modifier.weight(1f)
+                            )
+                            OutlinedTextField(
+                                value = carbs,
+                                onValueChange = {carbs = it},
+                                placeholder = {Text(text = "ex 5.3")},
+                                keyboardOptions = KeyboardOptions.Default.copy(
+                                    keyboardType = KeyboardType.Decimal,
+                                    imeAction = ImeAction.Next
+                                ),
+                                enabled = switchState,
+                                modifier = Modifier.weight(2f),
+
                                 )
+                        }
 
-                                if (checkSwitchForError(switchState, carbs, fats, protein, cal)){
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.padding(4.dp)
+                        ){
+                            Text(
+                                text = "Fats: ",
+                                fontSize = 16.sp,
+                                color = if(switchState) Color.Black else Color.Gray,
+                                modifier = Modifier.weight(1f)
+                            )
+                            OutlinedTextField(
+                                value = fats,
+                                onValueChange = {fats = it},
+                                placeholder = {Text(text = "ex 10.5")},
+                                keyboardOptions = KeyboardOptions.Default.copy(
+                                    keyboardType = KeyboardType.Decimal,
+                                    imeAction = ImeAction.Next
+                                ),
+                                enabled = switchState,
+                                modifier = Modifier.weight(2f),
+
+                                )
+                        }
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.padding(4.dp)
+                        ){
+                            Text(
+                                text = "Protein: ",
+                                fontSize = 16.sp,
+                                color = if(switchState) Color.Black else Color.Gray,
+                                modifier = Modifier.weight(1f)
+                            )
+                            OutlinedTextField(
+                                value = protein,
+                                onValueChange = {protein = it},
+                                placeholder = {Text(text = "ex 7.1")},
+                                keyboardOptions = KeyboardOptions.Default.copy(
+                                    keyboardType = KeyboardType.Decimal,
+                                    imeAction = ImeAction.Next
+                                ),
+                                enabled = switchState,
+                                modifier = Modifier.weight(2f),
+
+                                )
+                        }
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.padding(4.dp)
+                        ){
+                            Text(
+                                text = "Cals: ",
+                                fontSize = 16.sp,
+                                color = if(switchState) Color.Black else Color.Gray,
+                                modifier = Modifier.weight(1f)
+                            )
+                            OutlinedTextField(
+                                value = cal,
+                                onValueChange = {cal = it},
+                                placeholder = {Text(text = "ex 200")},
+                                keyboardOptions = KeyboardOptions.Default.copy(
+                                    keyboardType = KeyboardType.Decimal,
+                                    imeAction = ImeAction.Done
+                                ),
+                                enabled = switchState,
+                                modifier = Modifier.weight(2f),
+
+                                )
+                        }
+                    }
+                }
+
+                // Error message
+                item{
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.padding(4.dp)
+                    ){
+                        if (error){
+                            Text(
+                                text = "*Sure that you fill all fields, if message still remains, check symbols",
+                                color = Color.Red,
+                                modifier = Modifier.padding(start = 12.dp)
+                            )
+                        } else{
+                            Spacer(modifier = Modifier.height(30.dp))
+                        }
+                    }
+                }
+
+                //Buttons
+                item{
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceAround
+                    ){
+
+                        Button(
+                            onClick = { setShowDialog(false)},
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(4.dp),
+                        ) {
+                            Text(text = "Cancel")
+                        }
+
+                        Button(
+                            onClick = {
+
+                                //Check if all primary fields are not empty
+                                if (checkForError(name, weight, price)){
                                     error = true
-                                }
-                                else{
-                                    newDishComponent = newDishComponent.copy(
-                                        carbs = carbs.text.toFloat(),
-                                        fat = fats.text.toFloat(),
-                                        protein = protein.text.toFloat(),
-                                        cal = cal.text.toFloat()
-                                    )
-                                }
+                                } else{
+                                    //Check if additional section is enabled
+                                    if(switchState){
+                                        //Switch is on, check all fields on negative numbers and blank spaces
+                                        if(checkSwitchForError(carbs, fats, protein, cal)){
+                                            //If true, some fields are empty or negative value
+                                            error = true
+                                        } else{
+                                            //is OK, can continue
+                                            val newDishComponent = DishComponent(
+                                                id = UUID.randomUUID(),
+                                                recipeId = recipeId,
+                                                name = name.text,
+                                                weight = weight.text.toFloat(),
+                                                weightType = selectedOptionText,
+                                                price = price.text.toFloat(),
+                                                total = weight.text.toFloat() * price.text.toFloat(),
+                                                carbs = carbs.text.toFloat(),
+                                                fat = fats.text.toFloat(),
+                                                protein = protein.text.toFloat(),
+                                                cal = cal.text.toFloat()
+                                            )
 
-                                setShowDialog(false)
-                                onConfirm(newDishComponent)
-                            }
-                        },
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(4.dp),
+                                            //Submit new DishComponent and close dialog
+                                            setShowDialog(false)
+                                            onConfirm(newDishComponent)
+                                        }
+                                    } else{
+                                        //Additional section is disabled
+                                        val newDishComponent = DishComponent(
+                                            id = UUID.randomUUID(),
+                                            recipeId = recipeId,
+                                            name = name.text,
+                                            weight = weight.text.toFloat(),
+                                            weightType = selectedOptionText,
+                                            price = price.text.toFloat(),
+                                            total = weight.text.toFloat() * price.text.toFloat(),
+                                        )
 
-                    ) { Text(text = "Confirm") }
+                                        //Submit new DishComponent and close dialog
+                                        setShowDialog(false)
+                                        onConfirm(newDishComponent)
+                                    }
+                                }
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(4.dp),
+
+                            ) { Text(text = "Confirm") }
+                    }
                 }
             }
         }
@@ -1319,13 +1379,11 @@ fun checkForError(name: TextFieldValue, weight: TextFieldValue, price: TextField
     return name.text.isBlank() || weight.text.isBlank() || (price.text.isBlank() || price.text.toFloat() <= 0.0f)
 }
 
-fun checkSwitchForError(switchState: Boolean, carbs: TextFieldValue, fats: TextFieldValue, protein: TextFieldValue, cal: TextFieldValue):Boolean{
-    return if (switchState){
-        (carbs.text.isBlank() || carbs.text.toFloat() <0.0f) ||
-                (fats.text.isBlank() || fats.text.toFloat() <0.0f) ||
-                (protein.text.isBlank() || protein.text.toFloat() <0.0f) ||
-                (cal.text.isBlank() || cal.text.toFloat() <0.0f)
-    } else{
-        false
-    }
+fun checkSwitchForError(carbs: TextFieldValue, fats: TextFieldValue, protein: TextFieldValue, cal: TextFieldValue):Boolean{
+    return (
+            (carbs.text.isBlank() || carbs.text.toFloat() < 0.0f) ||
+            (fats.text.isBlank() || fats.text.toFloat() < 0.0f) ||
+            (protein.text.isBlank() || protein.text.toFloat() < 0.0f) ||
+            (cal.text.isBlank() || cal.text.toFloat() < 0.0f)
+            )
 }

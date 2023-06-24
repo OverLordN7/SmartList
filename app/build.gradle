@@ -23,7 +23,6 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
             shrinkResources true
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
@@ -94,5 +93,8 @@ dependencies {
     implementation "androidx.room:room-ktx:$room_version"
 
     //extended icons
-    implementation 'androidx.compose.material:material-icons-extended:1.4.2'
+    implementation 'androidx.compose.material:material-icons-extended:1.4.3'
+
+    //statusbar
+    implementation "com.google.accompanist:accompanist-systemuicontroller:0.27.0"
 }

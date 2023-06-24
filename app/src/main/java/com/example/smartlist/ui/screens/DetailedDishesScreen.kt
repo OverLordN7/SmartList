@@ -80,10 +80,16 @@ import com.example.smartlist.ui.menu.DrawerBody
 import com.example.smartlist.ui.menu.DrawerHeader
 import com.example.smartlist.ui.menu.MainAppBar
 import com.example.smartlist.ui.theme.Cal100
+import com.example.smartlist.ui.theme.Cal200
 import com.example.smartlist.ui.theme.Carb100
+import com.example.smartlist.ui.theme.Carb200
+import com.example.smartlist.ui.theme.Fat200
 import com.example.smartlist.ui.theme.Fats100
+import com.example.smartlist.ui.theme.LightBlue200
+import com.example.smartlist.ui.theme.LightBlue300
 import com.example.smartlist.ui.theme.Orange100
 import com.example.smartlist.ui.theme.Protein100
+import com.example.smartlist.ui.theme.Protein200
 import kotlinx.coroutines.launch
 import java.util.UUID
 
@@ -117,7 +123,7 @@ fun DetailedDishesScreen(
     val context = LocalContext.current
 
     if (showDialog.value){
-        NewRecipeDialog1(
+        NewRecipeDialog(
             setShowDialog = {showDialog.value = it},
             currentListId = dishViewModel.currentListId,
             onConfirm = addNewRecipe,
@@ -263,7 +269,7 @@ fun RecipeCard(
 
     Card(
         elevation = 4.dp,
-        backgroundColor = Orange100,
+        backgroundColor = LightBlue200,
         modifier = modifier
             .fillMaxWidth()
             .padding(8.dp)
@@ -390,7 +396,7 @@ fun RecipeCardList(
 
 
     Card(
-        backgroundColor = Orange100,
+        backgroundColor = LightBlue200,
         modifier = modifier
             .fillMaxWidth()
             .height(height.dp)
@@ -550,13 +556,13 @@ fun RecipeCardCalTable(
             horizontalArrangement = Arrangement.SpaceAround
         ) {
             //Carbohydrates - Углеводы
-            Text(text = "Carb: ${carbs.toInt()} g", color = Carb100)
+            Text(text = "Carb: ${carbs.toInt()} g", color = Carb200)
             // Fat - Жиры
-            Text(text = "Fat: ${fat.toInt()} g", color = Fats100)
+            Text(text = "Fat: ${fat.toInt()} g", color = Fat200)
             // Protein - Белки
-            Text(text = " Protein: ${protein.toInt()} g", color = Protein100)
+            Text(text = " Protein: ${protein.toInt()} g", color = Protein200)
             //Calories - Калории
-            Text(text = " Ccal: ${cal.toInt()} ", color = Cal100)
+            Text(text = " Ccal: ${cal.toInt()} ", color = Cal200)
 
         }
     }
@@ -854,123 +860,7 @@ fun NewRecipeDialog(
     modifier: Modifier = Modifier,
 ){
     var nameField by remember{ mutableStateOf(TextFieldValue("")) }
-    var errorFieldStatus by remember { mutableStateOf(false) }
-
-
-    Dialog(onDismissRequest = {setShowDialog(false)}) {
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = Color.White,
-        ) {
-            LazyColumn(modifier = modifier.fillMaxWidth()){
-                item{
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier.padding(4.dp)
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.pasta1),
-                            contentDescription ="Test",
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.size(64.dp),
-                        )
-                        Column(
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.Start,
-                            modifier = Modifier.padding(start = 4.dp)
-                        ) {
-                            OutlinedTextField(
-                                value = nameField,
-                                onValueChange = { nameField = it},
-                                placeholder = { Text(text = "Cake") },
-                                label = {
-                                    Text(
-                                        text = "Enter new recipe name",
-                                        color = Color.Black,
-                                        fontSize = 16.sp,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                },
-                                keyboardOptions = KeyboardOptions(
-                                    keyboardType = KeyboardType.Text,
-                                    autoCorrect = true,
-                                    imeAction = ImeAction.Next,
-                                )
-                            )
-                            Text(
-                                text = "Portions: 1",
-                                fontSize = 16.sp,
-                            )
-                        }
-                    }
-                }
-                item{
-                    if (errorFieldStatus){
-                        Text(
-                            text = "*Sure that you fill all fields, if message still remains, check symbols",
-                            color = Color.Red,
-                            modifier = Modifier
-                                .padding(start = 12.dp)
-                                .height(40.dp)
-                        )
-                    }
-                    else{
-                        Spacer(modifier = Modifier.height(40.dp))
-                    }
-
-
-
-                    Row(
-                        horizontalArrangement = Arrangement.SpaceAround,
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(4.dp)
-                    ) {
-                        Button(
-                            modifier = Modifier.weight(1f),
-                            onClick = { setShowDialog(false) }
-                        ) {
-                            Text(text = "Cancel")
-                        }
-
-                        Spacer(modifier = Modifier.weight(0.5f))
-
-                        Button(
-                            modifier = Modifier.weight(1f),
-                            onClick = {
-                                //Check if all fields are not null
-                                if (nameField.text.isBlank()){
-                                    errorFieldStatus = true
-                                }
-                                else{
-                                    val newRecipe = Recipe(
-                                        id = UUID.randomUUID(),
-                                        listId = currentListId,
-                                        name = nameField.text,
-                                        portions = 1,
-                                    )
-                                    onConfirm(newRecipe)
-                                    setShowDialog(false)
-                                }
-                            }
-                        ) {
-                            Text(text = "Confirm")
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun NewRecipeDialog1(
-    setShowDialog: (Boolean) -> Unit,
-    currentListId: UUID,
-    onConfirm: (Recipe) -> Unit,
-    modifier: Modifier = Modifier,
-){
-    var nameField by remember{ mutableStateOf(TextFieldValue("")) }
+    var portionsField by remember { mutableStateOf(TextFieldValue("1")) }
     var errorFieldStatus by remember { mutableStateOf(false) }
 
 
@@ -986,6 +876,7 @@ fun NewRecipeDialog1(
                     .fillMaxWidth()
                     .padding(8.dp)
             ){
+
                 //Header
                 item{
                     Box(
@@ -1023,7 +914,7 @@ fun NewRecipeDialog1(
                             keyboardOptions = KeyboardOptions(
                                 keyboardType = KeyboardType.Text,
                                 autoCorrect = true,
-                                imeAction = ImeAction.Done,
+                                imeAction = ImeAction.Next,
                             ),
                             singleLine = true,
                             modifier = Modifier.weight(2f)
@@ -1050,11 +941,14 @@ fun NewRecipeDialog1(
                             color = Color.Black,
                             modifier = Modifier.weight(1f)
                         )
-                        //TODO add a new OutlinedTextField for portions
-                        Text(
-                            text = "1",
-                            fontSize = 16.sp,
-                            color = Color.Black,
+                        OutlinedTextField(
+                            value = portionsField,
+                            onValueChange = { portionsField = it},
+                            placeholder = { Text(text = "ex 1") },
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Number,
+                                imeAction = ImeAction.Done,
+                            ),
                             modifier = Modifier.weight(2f)
                         )
                     }
@@ -1091,7 +985,7 @@ fun NewRecipeDialog1(
                             modifier = Modifier.weight(1f),
                             onClick = {
                                 //Check if all fields are not null
-                                if (nameField.text.isBlank()){
+                                if (nameField.text.isBlank() || portionsField.text.isBlank()){
                                     errorFieldStatus = true
                                 }
                                 else{
@@ -1099,7 +993,7 @@ fun NewRecipeDialog1(
                                         id = UUID.randomUUID(),
                                         listId = currentListId,
                                         name = nameField.text,
-                                        portions = 1,
+                                        portions = portionsField.text.toFloat().toInt(),
                                     )
                                     onConfirm(newRecipe)
                                     setShowDialog(false)

@@ -101,7 +101,8 @@ private fun ScreensButtonsMenu(
         Card(
             elevation = 4.dp,
             modifier = Modifier
-                .size(120.dp)
+                .weight(1f)
+                .height(120.dp)
                 .padding(8.dp)
         ) {
             Button(onClick = {onPurchaseScreenButton() }) {
@@ -111,7 +112,8 @@ private fun ScreensButtonsMenu(
         Card(
             elevation = 4.dp,
             modifier = Modifier
-                .size(120.dp)
+                .weight(1f)
+                .height(120.dp)
                 .padding(8.dp)
         ) {
             Button(onClick = { onDishesScreenButton() }) {
@@ -121,7 +123,8 @@ private fun ScreensButtonsMenu(
         Card(
             elevation = 4.dp,
             modifier = Modifier
-                .size(120.dp)
+                .weight(1f)
+                .height(120.dp)
                 .padding(8.dp)
         ) {
             Button(onClick = { onGraphScreenButton() }) {

@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.smartlist.R
 import com.example.smartlist.model.MenuItem
+import com.example.smartlist.ui.theme.LightBlue500
 import com.example.smartlist.ui.theme.Orange200
 
 
@@ -31,7 +32,7 @@ fun DrawerHeader(modifier: Modifier = Modifier){
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .fillMaxWidth()
-            .background(Orange200)
+            .background(LightBlue500)
             .height(200.dp),
     ){
         Text(

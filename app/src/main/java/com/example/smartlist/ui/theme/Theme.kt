@@ -15,9 +15,9 @@ private val DarkColorPalette = darkColors(
 )
 
 private val LightColorPalette = lightColors(
-    primary = Orange200,
-    primaryVariant = Orange700,
-    secondary = Orange100
+    primary = LightBlue500,
+    primaryVariant = LightBlue700,
+    secondary = LightBlue200
 
     /* Other default colors to override
     background = Color.White,
@@ -45,7 +45,7 @@ fun SmartListTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composa
         )
     }else{
         systemUiController.setSystemBarsColor(
-            color = Orange150
+            color = LightBlue300
         )
     }
 

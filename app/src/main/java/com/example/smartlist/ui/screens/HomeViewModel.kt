@@ -11,21 +11,28 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.smartlist.SmartListApplication
 import com.example.smartlist.data.VoiceToTextParser
 import com.example.smartlist.data.VoiceToTextParserState
+import com.example.smartlist.model.VoiceCommand
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 private const val TAG = "HomeViewModel"
 
 class HomeViewModel( val voiceToTextParser: VoiceToTextParser):ViewModel() {
 
-    var textFromSpeech: String? by mutableStateOf(null)
-
-
+    private val _voiceCommand  = MutableStateFlow<VoiceCommand?>(null)
+    val voiceCommand: StateFlow<VoiceCommand?>
+        get() = _voiceCommand
 
 
     init {
-        Log.d(TAG,"HomeViewModel is alive")
-        Log.d(TAG, voiceToTextParser.TAG)
+        voiceToTextParser.commandCallBack = { command ->
+            _voiceCommand.value = command
+        }
+    }
 
+    fun clearVoiceCommand(){
+        _voiceCommand.value = null
     }
 
     fun startListening(languageCode: String = "ru") {

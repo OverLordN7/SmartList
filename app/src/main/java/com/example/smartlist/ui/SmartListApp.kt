@@ -41,6 +41,7 @@ fun SmartListApp(
             PurchasesScreen(
                 navController = navController,
                 purchaseViewModel = purchaseViewModel,
+                homeViewModel = homeViewModel,
                 onSubmit = purchaseViewModel::insertPurchaseList,
                 onRefresh = purchaseViewModel::getPurchaseLists,
                 onEdit = purchaseViewModel::updateList,
@@ -53,6 +54,7 @@ fun SmartListApp(
             DishesScreen(
                 navController = navController,
                 dishViewModel = dishViewModel,
+                homeViewModel = homeViewModel,
                 onSubmit = dishViewModel::insertDishList,
                 onEdit = dishViewModel::updateDishList,
                 onDelete = dishViewModel::deleteDishList,
@@ -63,6 +65,7 @@ fun SmartListApp(
         composable(route = Screen.GraphScreen.route){
             GraphScreen(
                 navController = navController,
+                homeViewModel = homeViewModel,
             )
         }
 

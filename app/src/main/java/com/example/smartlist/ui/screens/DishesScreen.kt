@@ -33,7 +33,9 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -59,6 +61,7 @@ import com.example.smartlist.navigation.Screen
 import com.example.smartlist.ui.menu.DishAppBar
 import com.example.smartlist.ui.menu.DrawerBody
 import com.example.smartlist.ui.menu.DrawerHeader
+import com.example.smartlist.ui.menu.HomeAppBar
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.util.UUID
@@ -67,6 +70,7 @@ import java.util.UUID
 fun DishesScreen(
     navController: NavController,
     dishViewModel: DishViewModel,
+    homeViewModel: HomeViewModel,
     onSubmit: (DishList) -> Unit,
     onEdit: (DishList) -> Unit,
     onDelete: (UUID) -> Unit,
@@ -80,6 +84,26 @@ fun DishesScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
+    //Voice attributes
+    val voiceState by homeViewModel.voiceToTextParser.state.collectAsState()
+    val voiceCommand by homeViewModel.voiceCommand.collectAsState()
+
+    //When switch to different screen, refresh command
+    LaunchedEffect(navController.currentBackStackEntry){
+        homeViewModel.clearVoiceCommand()
+    }
+
+    //Process command
+    voiceCommand?.let { command->
+        when(command.text){
+            "список покупок"->{ navController.navigate(Screen.PurchasesScreen.route)}
+            "список блюд"->{Toast.makeText(context,"Already here", Toast.LENGTH_SHORT).show()}
+            "графики"->{navController.navigate(Screen.GraphScreen.route)}
+            "домашняя страница"->{navController.navigate(Screen.HomeScreen.route)}
+            else->{Toast.makeText(context,"Unknown command", Toast.LENGTH_SHORT).show()}
+        }
+    }
+
     if (showDialog.value){
         NewDishListDialog(
             setShowDialog = {showDialog.value = it},
@@ -90,11 +114,21 @@ fun DishesScreen(
     Scaffold(
         scaffoldState = scaffoldState,
         topBar = {
-            DishAppBar(
+            HomeAppBar(
+                state = voiceState,
                 onNavigationIconClick = {
                     scope.launch { scaffoldState.drawerState.open()
                     } },
-                retryAction = onRefresh,
+                retryAction = {},
+                onMicrophoneOn = {
+                    if(it){
+                        homeViewModel.startListening()
+                        //Log.d("HomeScreen","textFromSpeech inside startListen: ${homeViewModel.textFromSpeech}")
+
+                    }else{
+                        homeViewModel.stopListening()
+                    }
+                }
             )
         },
         drawerContent = {

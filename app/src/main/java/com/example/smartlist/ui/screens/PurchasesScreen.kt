@@ -30,6 +30,7 @@ import com.example.smartlist.navigation.Screen
 import com.example.smartlist.ui.menu.DishAppBar
 import com.example.smartlist.ui.menu.DrawerBody
 import com.example.smartlist.ui.menu.DrawerHeader
+import com.example.smartlist.ui.menu.HomeAppBar
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.util.*
@@ -40,6 +41,7 @@ private const val TAG = "PurchasesScreen"
 fun PurchasesScreen(
     navController: NavController,
     purchaseViewModel: PurchaseViewModel,
+    homeViewModel: HomeViewModel,
     onSubmit: (PurchaseList) -> Unit,
     onRefresh: () -> Unit,
     onEdit: (PurchaseList) -> Unit,
@@ -53,6 +55,10 @@ fun PurchasesScreen(
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
 
+    //Voice attributes
+    val voiceState by homeViewModel.voiceToTextParser.state.collectAsState()
+    val voiceCommand by homeViewModel.voiceCommand.collectAsState()
+
     if (showDialog.value){
         NewPurchaseListDialog(
             setShowDialog = {showDialog.value = it},
@@ -62,14 +68,38 @@ fun PurchasesScreen(
         )
     }
 
+    LaunchedEffect(navController.currentBackStackEntry){
+        homeViewModel.clearVoiceCommand()
+    }
+
+    voiceCommand?.let { command->
+        when(command.text){
+            "список покупок"->{Toast.makeText(context,"Already here", Toast.LENGTH_SHORT).show()}
+            "список блюд"->{navController.navigate(Screen.DishesScreen.route)}
+            "графики"->{navController.navigate(Screen.GraphScreen.route)}
+            "домашняя страница"->{navController.navigate(Screen.HomeScreen.route)}
+            else->{Toast.makeText(context,"Unknown command", Toast.LENGTH_SHORT).show()}
+        }
+    }
+
     Scaffold(
         scaffoldState = scaffoldState,
         topBar = {
-            DishAppBar(
+            HomeAppBar(
+                state = voiceState,
                 onNavigationIconClick = {
                     scope.launch { scaffoldState.drawerState.open()
                     } },
-                retryAction = onRefresh,
+                retryAction = {},
+                onMicrophoneOn = {
+                    if(it){
+                        homeViewModel.startListening()
+                        //Log.d("HomeScreen","textFromSpeech inside startListen: ${homeViewModel.textFromSpeech}")
+
+                    }else{
+                        homeViewModel.stopListening()
+                    }
+                }
             )
         },
         drawerContent = {

@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
+import com.example.smartlist.model.VoiceCommand
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,7 +15,8 @@ import kotlinx.coroutines.flow.update
 data class VoiceToTextParserState(
     val spokenText: String = "",
     val isSpeaking: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val command: VoiceCommand? = null
 )
 
 class VoiceToTextParser(private val app: Application): RecognitionListener {
@@ -22,6 +24,8 @@ class VoiceToTextParser(private val app: Application): RecognitionListener {
     private val _state = MutableStateFlow(VoiceToTextParserState())
     val state: StateFlow<VoiceToTextParserState>
         get() = _state.asStateFlow()
+
+    var commandCallBack: ((VoiceCommand)-> Unit)? = null
 
     val recognizer = SpeechRecognizer.createSpeechRecognizer(app)
 
@@ -97,11 +101,14 @@ class VoiceToTextParser(private val app: Application): RecognitionListener {
             ?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
             ?.getOrNull(0)
             ?.let { result->
+                val command = VoiceCommand(result)
                 _state.update {
                     it.copy(
-                        spokenText = result
+                        spokenText = result,
+                        command = command
                     )
                 }
+                commandCallBack?.invoke(command)
             }
     }
 

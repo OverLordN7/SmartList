@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.example.smartlist.R
+import com.example.smartlist.data.VoiceToTextParser
 import com.example.smartlist.model.DishList
 import com.example.smartlist.model.MenuItem
 import com.example.smartlist.model.items
@@ -93,7 +94,7 @@ fun DishesScreen(
                 onNavigationIconClick = {
                     scope.launch { scaffoldState.drawerState.open()
                     } },
-                retryAction = onRefresh
+                retryAction = onRefresh,
             )
         },
         drawerContent = {

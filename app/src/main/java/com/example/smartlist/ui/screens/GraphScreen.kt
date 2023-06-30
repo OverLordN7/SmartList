@@ -16,6 +16,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import com.example.smartlist.R
+import com.example.smartlist.data.VoiceToTextParser
 import com.example.smartlist.model.MenuItem
 import com.example.smartlist.model.items
 import com.example.smartlist.navigation.Screen
@@ -27,7 +28,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun GraphScreen(
     navController: NavController,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ){
 
     val scaffoldState = rememberScaffoldState()
@@ -41,7 +42,7 @@ fun GraphScreen(
                 onNavigationIconClick = {
                     scope.launch { scaffoldState.drawerState.open()
                     } },
-                retryAction = {/*TODO add Refresh action*/}
+                retryAction = {/*TODO add Refresh action*/},
             )
         },
         drawerContent = {

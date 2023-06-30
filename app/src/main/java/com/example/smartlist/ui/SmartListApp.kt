@@ -7,25 +7,33 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.smartlist.data.VoiceToTextParser
 import com.example.smartlist.navigation.Screen
 import com.example.smartlist.ui.screens.*
 
 
 private const val TAG = "SmartListApp"
 @Composable
-fun SmartListApp(){
+fun SmartListApp(
+){
     val navController = rememberNavController()
 
     val purchaseViewModel: PurchaseViewModel = viewModel(factory = PurchaseViewModel.Factory)
 
     val dishViewModel: DishViewModel = viewModel(factory = DishViewModel.Factory)
 
+    val homeViewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory)
+
+
 
     NavHost(navController = navController, startDestination = Screen.HomeScreen.route){
 
         //Navigate to HomeScreen screen
         composable(route = Screen.HomeScreen.route){
-            HomeScreen(navController)
+            HomeScreen(
+                navController = navController,
+                homeViewModel = homeViewModel,
+            )
         }
 
         //Navigate to PurchaseScreen screen
@@ -47,14 +55,14 @@ fun SmartListApp(){
                 dishViewModel = dishViewModel,
                 onSubmit = dishViewModel::insertDishList,
                 onEdit = dishViewModel::updateDishList,
-                onDelete = dishViewModel::deleteDishList
+                onDelete = dishViewModel::deleteDishList,
             )
         }
 
         //Navigate to GraphScreen screen
         composable(route = Screen.GraphScreen.route){
             GraphScreen(
-                navController = navController
+                navController = navController,
             )
         }
 

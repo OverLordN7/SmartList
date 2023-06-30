@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.example.smartlist.R
+import com.example.smartlist.data.VoiceToTextParser
 import com.example.smartlist.model.MenuItem
 import com.example.smartlist.model.PurchaseList
 import com.example.smartlist.model.items
@@ -43,7 +44,7 @@ fun PurchasesScreen(
     onRefresh: () -> Unit,
     onEdit: (PurchaseList) -> Unit,
     onDelete: (UUID) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ){
     val context = LocalContext.current
     val showDialog = remember { mutableStateOf(false) }
@@ -68,7 +69,7 @@ fun PurchasesScreen(
                 onNavigationIconClick = {
                     scope.launch { scaffoldState.drawerState.open()
                     } },
-                retryAction = onRefresh
+                retryAction = onRefresh,
             )
         },
         drawerContent = {

@@ -1,5 +1,9 @@
 package com.example.smartlist.ui.screens
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import android.widget.Toast
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
@@ -71,6 +75,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
+import com.example.smartlist.BuildConfig
 import com.example.smartlist.R
 import com.example.smartlist.model.DishComponent
 import com.example.smartlist.model.Recipe
@@ -90,6 +95,8 @@ import com.example.smartlist.ui.theme.LightBlue300
 import com.example.smartlist.ui.theme.Orange100
 import com.example.smartlist.ui.theme.Protein100
 import com.example.smartlist.ui.theme.Protein200
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.launch
 import java.util.UUID
 

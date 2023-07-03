@@ -1,7 +1,6 @@
 package com.example.smartlist
 
 import android.app.Application
-import androidx.compose.ui.platform.LocalContext
 import com.example.smartlist.data.AppContainer
 import com.example.smartlist.data.DefaultAppContainer
 

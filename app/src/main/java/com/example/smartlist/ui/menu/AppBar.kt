@@ -1,6 +1,9 @@
 package com.example.smartlist.ui.menu
 
+import android.Manifest
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,10 +22,14 @@ import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.MicOff
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,6 +45,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.example.smartlist.R
+import com.example.smartlist.data.VoiceToTextParser
+import com.example.smartlist.data.VoiceToTextParserState
+import com.example.smartlist.ui.screens.HomeViewModel
 import com.example.smartlist.ui.screens.NewRecipeDialog
 
 @Composable
@@ -96,23 +106,77 @@ fun MainAppBar(
     )
 }
 
+
+
 @Composable
-fun DishAppBar(
+fun HomeAppBar(
+    state:VoiceToTextParserState,
     onNavigationIconClick:()->Unit,
     retryAction: () -> Unit,
-) {
+    onMicrophoneOn: (Boolean) -> Unit = {},
+
+    ) {
+
+    var canRecord by remember { mutableStateOf(false) }
+
+    // Creates an permission request
+    val recordAudioLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted ->
+            canRecord = isGranted
+        }
+    )
+
+    LaunchedEffect(key1 = recordAudioLauncher) {
+        // Launches the permission request
+        recordAudioLauncher.launch(Manifest.permission.RECORD_AUDIO)
+    }
+
+
+
+    val context = LocalContext.current
+
+
+
     TopAppBar(
         title = { Text(text = stringResource(id = R.string.app_name)) },
         navigationIcon = {
-                         IconButton(onClick = onNavigationIconClick) {
-                             Icon(
-                                 imageVector = Icons.Default.Menu,
-                                 contentDescription = "Toggle drawer")
-                         }
+            IconButton(onClick = onNavigationIconClick) {
+                Icon(
+                    imageVector = Icons.Default.Menu,
+                    contentDescription = "Toggle drawer")
+            }
         },
         actions = {
             IconButton(onClick = retryAction) {
                 Icon(Icons.Default.Refresh, "Refresh")
+            }
+            IconButton(
+                onClick = {
+                    if(canRecord){
+                        if(!state.isSpeaking){
+                            onMicrophoneOn(true)
+                        }
+                        else{
+                            onMicrophoneOn(false)
+                        }
+                    }
+                    //canRecord = !canRecord
+                    //onMicrophoneOn(canRecord)
+                }
+            ) {
+                if (!state.isSpeaking){
+                    Icon(
+                        imageVector = Icons.Default.Mic,
+                        contentDescription = "mic is on"
+                    )
+                }
+                else{
+                    Icon(
+                        imageVector = Icons.Default.MicOff,
+                        contentDescription = "mic is off"
+                    )
+                }
             }
         }
     )

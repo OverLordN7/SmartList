@@ -127,15 +127,6 @@ class DishViewModel (
     }
 
     fun convertDishListToPurchaseList(exportName: String){
-        //Create an empty PurchaseList
-
-        //Prepare data of DishList
-            // 1 adapt DishComponent to recipe portions
-                //1.1 get a list of recipes
-                //1.2 get DishesComponent associated with current recipe
-                //1.3 modify weight and price
-            //2 Add dc components to exportList
-
         viewModelScope.launch {
             val date = LocalDate.now()
             val exportPurchaseList = PurchaseList(
@@ -349,8 +340,6 @@ class DishViewModel (
             }
         }
     }
-
-
 
     fun loadDishComponents(recipe: Recipe) {
         viewModelScope.launch {

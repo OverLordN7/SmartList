@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+
+    <string name="app_name">SmartList</string>
+    <string name="purchases_screen_button">Покупки</string>
+    <string name="dishes_screen_button">Блюда</string>
+    <string name="graph_screen_button">График</string>
+    <string name="menu_item_toast_default">Вы нажали на %1$s</string>
+    <string name="purchase_list">cписок покупок</string>
+
+    <string name="empty_card_message_1">Список пуст</string>
+    <string name="empty_card_message_2">Нажмите на кнопку +</string>
+
+    <string name="button_cancel">Отмена</string>
+    <string name="button_confirm">Подтвердить</string>
+
+    <string name="new_dish_list_name_title">Введите имя нового списка: </string>
+    <string name="new_dish_list_name_hint">напр. Обед</string>
+
+    <string name="error_message">*Убедитесь, что все поля заполены</string>
+
+    <string name="home_title">Дом</string>
+    <string name="purchase_list_title">Список покупок</string>
+    <string name="dish_list_title">Список блюд</string>
+    <string name="graphs_title">Графики</string>
+
+</resources>

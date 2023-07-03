@@ -4,4 +4,20 @@
     <string name="dishes_screen_button">Dishes</string>
     <string name="graph_screen_button">Graphs</string>
     <string name="menu_item_toast_default">You pressed on %1$s</string>
+
+
+    <string name="purchase_list">Purchase list</string>
+    <string name="empty_card_message_1">No lists to display</string>
+    <string name="empty_card_message_2">Try to use + button</string>
+    <string name="button_cancel">Cancel</string>
+    <string name="button_confirm">Confirm</string>
+
+    <string name="new_dish_list_name_title">Enter new list name: </string>
+    <string name="new_dish_list_name_hint">ex Lunch</string>
+    <string name="error_message">*Sure that you fill all fields</string>
+
+    <string name="home_title">Home</string>
+    <string name="purchase_list_title">Purchase list</string>
+    <string name="dish_list_title">Dish list</string>
+    <string name="graphs_title">Graphs</string>
 </resources>

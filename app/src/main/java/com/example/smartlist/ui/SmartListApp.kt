@@ -8,24 +8,39 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.smartlist.navigation.Screen
-import com.example.smartlist.ui.screens.*
+import com.example.smartlist.ui.screens.DetailedDishesScreen
+import com.example.smartlist.ui.screens.DetailedPurchaseListScreen
+import com.example.smartlist.ui.screens.DishViewModel
+import com.example.smartlist.ui.screens.DishesScreen
+import com.example.smartlist.ui.screens.GraphScreen
+import com.example.smartlist.ui.screens.HomeScreen
+import com.example.smartlist.ui.screens.HomeViewModel
+import com.example.smartlist.ui.screens.PurchaseViewModel
+import com.example.smartlist.ui.screens.PurchasesScreen
 
 
 private const val TAG = "SmartListApp"
 @Composable
-fun SmartListApp(){
+fun SmartListApp(
+){
     val navController = rememberNavController()
 
     val purchaseViewModel: PurchaseViewModel = viewModel(factory = PurchaseViewModel.Factory)
 
     val dishViewModel: DishViewModel = viewModel(factory = DishViewModel.Factory)
 
+    val homeViewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory)
+
+
 
     NavHost(navController = navController, startDestination = Screen.HomeScreen.route){
 
         //Navigate to HomeScreen screen
         composable(route = Screen.HomeScreen.route){
-            HomeScreen(navController)
+            HomeScreen(
+                navController = navController,
+                homeViewModel = homeViewModel,
+            )
         }
 
         //Navigate to PurchaseScreen screen
@@ -33,6 +48,7 @@ fun SmartListApp(){
             PurchasesScreen(
                 navController = navController,
                 purchaseViewModel = purchaseViewModel,
+                homeViewModel = homeViewModel,
                 onSubmit = purchaseViewModel::insertPurchaseList,
                 onRefresh = purchaseViewModel::getPurchaseLists,
                 onEdit = purchaseViewModel::updateList,
@@ -45,16 +61,18 @@ fun SmartListApp(){
             DishesScreen(
                 navController = navController,
                 dishViewModel = dishViewModel,
+                homeViewModel = homeViewModel,
                 onSubmit = dishViewModel::insertDishList,
                 onEdit = dishViewModel::updateDishList,
-                onDelete = dishViewModel::deleteDishList
+                onDelete = dishViewModel::deleteDishList,
             )
         }
 
         //Navigate to GraphScreen screen
         composable(route = Screen.GraphScreen.route){
             GraphScreen(
-                navController = navController
+                navController = navController,
+                homeViewModel = homeViewModel,
             )
         }
 

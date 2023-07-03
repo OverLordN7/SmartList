@@ -22,18 +22,17 @@ import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,15 +48,15 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.core.content.ContextCompat.getString
 import androidx.navigation.NavController
 import com.example.smartlist.R
 import com.example.smartlist.model.DishList
-import com.example.smartlist.model.MenuItem
 import com.example.smartlist.model.items
 import com.example.smartlist.navigation.Screen
-import com.example.smartlist.ui.menu.DishAppBar
 import com.example.smartlist.ui.menu.DrawerBody
 import com.example.smartlist.ui.menu.DrawerHeader
+import com.example.smartlist.ui.menu.HomeAppBar
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.util.UUID
@@ -66,6 +65,7 @@ import java.util.UUID
 fun DishesScreen(
     navController: NavController,
     dishViewModel: DishViewModel,
+    homeViewModel: HomeViewModel,
     onSubmit: (DishList) -> Unit,
     onEdit: (DishList) -> Unit,
     onDelete: (UUID) -> Unit,
@@ -79,6 +79,45 @@ fun DishesScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
+    //Voice attributes
+    val voiceState by homeViewModel.voiceToTextParser.state.collectAsState()
+    val voiceCommand by homeViewModel.voiceCommand.collectAsState()
+
+    //When switch to different screen, refresh command
+    LaunchedEffect(navController.currentBackStackEntry){
+        homeViewModel.clearVoiceCommand()
+    }
+
+    //Process command
+    voiceCommand?.let { command->
+        val parts = command.text.split(" ")
+
+        if (parts.size>=3 && parts[0] == "создай" && parts[1] == "новый" && parts[2] == "список"){
+            val newDishListName:String  = parts.subList(3,parts.size).joinToString("")
+            val currentDate = LocalDate.now()
+            val newDishList = DishList(
+                name = newDishListName,
+                listSize = 0,
+                year = currentDate.year,
+                month = currentDate.month.name,
+                day = currentDate.dayOfMonth
+            )
+            onSubmit(newDishList)
+            homeViewModel.clearVoiceCommand()
+        }
+
+        else{
+            val text: String = getString(context,R.string.purchase_list)
+            when(command.text){
+                "список покупок"->{ navController.navigate(Screen.PurchasesScreen.route)}
+                "список блюд"->{Toast.makeText(context,"Already here", Toast.LENGTH_SHORT).show()}
+                "графики"->{navController.navigate(Screen.GraphScreen.route)}
+                "домашняя страница"->{navController.navigate(Screen.HomeScreen.route)}
+                else->{Toast.makeText(context,"Unknown command", Toast.LENGTH_SHORT).show()}
+            }
+        }
+    }
+
     if (showDialog.value){
         NewDishListDialog(
             setShowDialog = {showDialog.value = it},
@@ -89,11 +128,21 @@ fun DishesScreen(
     Scaffold(
         scaffoldState = scaffoldState,
         topBar = {
-            DishAppBar(
+            HomeAppBar(
+                state = voiceState,
                 onNavigationIconClick = {
                     scope.launch { scaffoldState.drawerState.open()
                     } },
-                retryAction = onRefresh
+                retryAction = {},
+                onMicrophoneOn = {
+                    if(it){
+                        homeViewModel.startListening()
+                        //Log.d("HomeScreen","textFromSpeech inside startListen: ${homeViewModel.textFromSpeech}")
+
+                    }else{
+                        homeViewModel.stopListening()
+                    }
+                }
             )
         },
         drawerContent = {
@@ -357,18 +406,17 @@ fun NewDishListDialog(
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = modifier
-                    .padding(8.dp)
+                modifier = modifier.padding(8.dp)
             ) {
                 OutlinedTextField(
                     value = fieldValue,
                     onValueChange = {fieldValue = it},
-                    placeholder = {Text(text = "ex Lunch")},
+                    placeholder = {Text(text = stringResource(id = R.string.new_dish_list_name_hint))},
                     label = {
                         Text(
-                            text = "Enter new list name: ",
+                            text = stringResource(id = R.string.new_dish_list_name_title),
                             color = Color.Black,
-                            fontSize = 20.sp,
+                            fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                         )
                     },
@@ -376,7 +424,7 @@ fun NewDishListDialog(
 
                 if (errorFieldStatus){
                     Text(
-                        text = "*Sure that you fill all fields, if message still remains, check symbols",
+                        text = stringResource(id = R.string.error_message),
                         color = Color.Red,
                         modifier = Modifier
                             .padding(start = 12.dp)
@@ -397,7 +445,7 @@ fun NewDishListDialog(
                             .padding(4.dp),
                         onClick = { setShowDialog(false)}
                     ) {
-                        Text(text = "Cancel")
+                        Text(text = stringResource(id = R.string.button_cancel))
                     }
 
                     Button(
@@ -423,7 +471,7 @@ fun NewDishListDialog(
                                 setShowDialog(false)
                             }
                         }
-                    ) { Text(text = "Confirm") }
+                    ) { Text(text = stringResource(id = R.string.button_confirm)) }
                 }
             }
         }

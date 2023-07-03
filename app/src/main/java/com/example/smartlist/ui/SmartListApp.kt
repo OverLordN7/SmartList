@@ -7,9 +7,16 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.smartlist.data.VoiceToTextParser
 import com.example.smartlist.navigation.Screen
-import com.example.smartlist.ui.screens.*
+import com.example.smartlist.ui.screens.DetailedDishesScreen
+import com.example.smartlist.ui.screens.DetailedPurchaseListScreen
+import com.example.smartlist.ui.screens.DishViewModel
+import com.example.smartlist.ui.screens.DishesScreen
+import com.example.smartlist.ui.screens.GraphScreen
+import com.example.smartlist.ui.screens.HomeScreen
+import com.example.smartlist.ui.screens.HomeViewModel
+import com.example.smartlist.ui.screens.PurchaseViewModel
+import com.example.smartlist.ui.screens.PurchasesScreen
 
 
 private const val TAG = "SmartListApp"

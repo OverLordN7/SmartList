@@ -3,13 +3,45 @@ package com.example.smartlist.ui.screens
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
+import androidx.compose.material.Button
+import androidx.compose.material.Card
+import androidx.compose.material.FabPosition
+import androidx.compose.material.FloatingActionButton
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.OutlinedTextField
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Surface
+import androidx.compose.material.Text
+import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.rememberScaffoldState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,18 +54,15 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.example.smartlist.R
-import com.example.smartlist.data.VoiceToTextParser
-import com.example.smartlist.model.MenuItem
 import com.example.smartlist.model.PurchaseList
 import com.example.smartlist.model.items
 import com.example.smartlist.navigation.Screen
-import com.example.smartlist.ui.menu.DishAppBar
 import com.example.smartlist.ui.menu.DrawerBody
 import com.example.smartlist.ui.menu.DrawerHeader
 import com.example.smartlist.ui.menu.HomeAppBar
 import kotlinx.coroutines.launch
 import java.time.LocalDate
-import java.util.*
+import java.util.UUID
 
 
 private const val TAG = "PurchasesScreen"
@@ -276,9 +305,15 @@ fun ListCard(
 @Composable
 fun EmptyListCard(modifier: Modifier = Modifier){
     Box(contentAlignment = Alignment.Center, modifier = modifier.fillMaxSize()) {
-        Column {
-            Text(text = "No lists to display", color = Color.Black)
-            Text(text = "Try to use + button", color = Color.Black)
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = stringResource(id = R.string.empty_card_message_1),
+                color = Color.Black
+            )
+            Text(
+                text = stringResource(id = R.string.empty_card_message_2),
+                color = Color.Black
+            )
         }
     }
 }

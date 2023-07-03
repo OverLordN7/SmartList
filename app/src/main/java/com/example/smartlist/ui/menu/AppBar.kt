@@ -106,61 +106,7 @@ fun MainAppBar(
     )
 }
 
-@Composable
-fun DishAppBar(
-    onNavigationIconClick:()->Unit,
-    retryAction: () -> Unit,
-    onMicrophoneOn: () -> Unit = {},
 
-) {
-
-    var canRecord by remember { mutableStateOf(false) }
-
-    // Creates an permission request
-    val recordAudioLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission(),
-        onResult = { isGranted ->
-            canRecord = isGranted
-        }
-    )
-
-    LaunchedEffect(key1 = recordAudioLauncher) {
-        // Launches the permission request
-        recordAudioLauncher.launch(Manifest.permission.RECORD_AUDIO)
-    }
-
-
-
-    val context = LocalContext.current
-
-
-
-    TopAppBar(
-        title = { Text(text = stringResource(id = R.string.app_name)) },
-        navigationIcon = {
-                         IconButton(onClick = onNavigationIconClick) {
-                             Icon(
-                                 imageVector = Icons.Default.Menu,
-                                 contentDescription = "Toggle drawer")
-                         }
-        },
-        actions = {
-            IconButton(onClick = retryAction) {
-                Icon(Icons.Default.Refresh, "Refresh")
-            }
-            IconButton(onClick = {
-                if (canRecord){
-
-                }
-            }) {
-                Icon(
-                    imageVector = Icons.Default.Mic,
-                    contentDescription = "mic is on"
-                )
-            }
-        }
-    )
-}
 
 @Composable
 fun HomeAppBar(

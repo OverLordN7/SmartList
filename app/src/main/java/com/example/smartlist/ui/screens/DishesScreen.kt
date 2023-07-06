@@ -52,6 +52,7 @@ import androidx.core.content.ContextCompat.getString
 import androidx.navigation.NavController
 import com.example.smartlist.R
 import com.example.smartlist.model.DishList
+import com.example.smartlist.model.ListOfMenuItem
 import com.example.smartlist.model.items
 import com.example.smartlist.navigation.Screen
 import com.example.smartlist.ui.menu.DrawerBody
@@ -69,8 +70,8 @@ fun DishesScreen(
     onSubmit: (DishList) -> Unit,
     onEdit: (DishList) -> Unit,
     onDelete: (UUID) -> Unit,
+    onRefresh: ()->Unit,
     modifier: Modifier = Modifier,
-    onRefresh: ()->Unit = {/*TODO add refresh action in DishViewModel*/},
 ){
     val showDialog = remember { mutableStateOf(false) }
     val state: DishUiState = dishViewModel.dishUiState
@@ -78,6 +79,14 @@ fun DishesScreen(
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+
+    //Menu drawer items
+    val myItems = ListOfMenuItem(context).getItems()
+
+    //Navigation attributes
+    val navigationMessage = stringResource(id = R.string.navigation_message)
+    val navigationTransition = stringResource(id = R.string.navigation_transition)
+    val unknownVoiceCommandMessage = stringResource(id = R.string.unknown_command)
 
     //Voice attributes
     val voiceState by homeViewModel.voiceToTextParser.state.collectAsState()
@@ -88,7 +97,7 @@ fun DishesScreen(
         homeViewModel.clearVoiceCommand()
     }
 
-    //Process command
+    //Process voice command
     voiceCommand?.let { command->
         val parts = command.text.split(" ")
 
@@ -107,52 +116,43 @@ fun DishesScreen(
         }
 
         else{
-            val text: String = getString(context,R.string.purchase_list)
             when(command.text){
+                "список блюд"->{ Toast.makeText(context,navigationTransition, Toast.LENGTH_SHORT).show()}
                 "список покупок"->{ navController.navigate(Screen.PurchasesScreen.route)}
-                "список блюд"->{Toast.makeText(context,"Already here", Toast.LENGTH_SHORT).show()}
                 "графики"->{navController.navigate(Screen.GraphScreen.route)}
                 "домашняя страница"->{navController.navigate(Screen.HomeScreen.route)}
-                else->{Toast.makeText(context,"Unknown command", Toast.LENGTH_SHORT).show()}
+                else->{Toast.makeText(context,unknownVoiceCommandMessage, Toast.LENGTH_SHORT).show()}
             }
         }
     }
 
     if (showDialog.value){
-        NewDishListDialog(
-            setShowDialog = {showDialog.value = it},
-            onConfirm = onSubmit
-        )
+        NewDishListDialog(setShowDialog = {showDialog.value = it}, onConfirm = onSubmit)
     }
 
     Scaffold(
         scaffoldState = scaffoldState,
+
         topBar = {
             HomeAppBar(
                 state = voiceState,
-                onNavigationIconClick = {
-                    scope.launch { scaffoldState.drawerState.open()
-                    } },
-                retryAction = {},
+                onNavigationIconClick = { scope.launch { scaffoldState.drawerState.open() } },
+                retryAction = onRefresh,
                 onMicrophoneOn = {
-                    if(it){
-                        homeViewModel.startListening()
-                        //Log.d("HomeScreen","textFromSpeech inside startListen: ${homeViewModel.textFromSpeech}")
-
-                    }else{
-                        homeViewModel.stopListening()
-                    }
+                    if(it){ homeViewModel.startListening() }
+                    else{ homeViewModel.stopListening() }
                 }
             )
         },
+
         drawerContent = {
             DrawerHeader()
             DrawerBody(
-                items = items,
+                items = myItems,
                 onItemClick = {
                     when(it.id){
                         "dishList" ->{
-                            Toast.makeText(context,"You are already on this screen", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context,navigationMessage, Toast.LENGTH_SHORT).show()
                         }
                         "purchaseList" ->{
                             scope.launch { scaffoldState.drawerState.close() }
@@ -174,18 +174,22 @@ fun DishesScreen(
                 }
             )
         },
+
         floatingActionButtonPosition = FabPosition.End,
         floatingActionButton = {
+
             FloatingActionButton(onClick = { showDialog.value = true}) {
-                Icon(imageVector = Icons.Filled.Add, contentDescription = "Add new Dish")
+                Icon(
+                    imageVector = Icons.Filled.Add,
+                    contentDescription = stringResource(id = R.string.add_new_dish)
+                )
             }
         },
     ) {
-        Surface(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(it)
-        ) {
+        Surface(modifier = modifier
+            .fillMaxSize()
+            .padding(it)) {
+
             when(state){
                 is DishUiState.Loading ->{}
                 is DishUiState.Error ->{}
@@ -241,7 +245,6 @@ fun DishListCard(
     onDelete: (UUID) -> Unit,
     modifier: Modifier = Modifier
 ){
-    val context = LocalContext.current
     val isExpanded = remember { mutableStateOf(false) }
 
     Card(
@@ -259,9 +262,11 @@ fun DishListCard(
                 horizontalArrangement = Arrangement.Start,
                 modifier = Modifier.padding(4.dp)
             ) {
+
                 Column(
                     modifier = Modifier.weight(5f)
                 ) {
+
                     Text(
                         text = list.name,
                         fontSize = 20.sp,
@@ -277,28 +282,29 @@ fun DishListCard(
                 Spacer(modifier = modifier.weight(3f))
 
                 Column(modifier = Modifier.weight(3f)) {
+
                     Row {
+
                         IconButton(onClick = { isExpanded.value = !isExpanded.value}) {
-                            Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit current list")
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = stringResource(id = R.string.edit_current_list)
+                            )
                         }
-                        IconButton(
-                            onClick = {
-                                Toast.makeText(context,"Deleting list..", Toast.LENGTH_SHORT).show()
-                                onDelete(list.id)
-                            }
-                        ) {
-                            Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete current list")
+
+                        IconButton(onClick = { onDelete(list.id) }) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = stringResource(id = R.string.delete_current_list)
+                            )
                         }
+
                     }
                 }
             }
             Row{
                 if(isExpanded.value){
-                    DishEditScreen(
-                        list = list,
-                        isExpanded = isExpanded,
-                        onSubmit = onEdit
-                    )
+                    DishEditScreen(list = list, isExpanded = isExpanded, onSubmit = onEdit)
                 }
             }
         }
@@ -317,38 +323,36 @@ fun DishEditScreen(
     var errorMessage by remember { mutableStateOf(false) }
 
     Column {
+
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = modifier
                 .fillMaxWidth()
                 .padding(4.dp)
         ){
+
             OutlinedTextField(
                 value = name,
                 onValueChange = {name = it},
-                placeholder = {Text(text = "ex List 1")},
-                modifier = Modifier
-                    .padding(4.dp)
-                    .weight(5f),
+                placeholder = {Text(text = stringResource(id = R.string.new_dish_list_name_hint))},
                 label = {
                     Text(
-                        text = "Enter new list name: ",
+                        text = stringResource(id = R.string.new_dish_list_name_title),
                         color = Color.Black,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                     )
                 },
+                modifier = Modifier
+                    .padding(4.dp)
+                    .weight(5f),
             )
             Spacer(modifier = Modifier.weight(2f))
 
             IconButton(
-                modifier = Modifier.weight(1.5f),
                 onClick = {
-
                     //Check if all fields are not null
-                    if (name.text.isBlank()){
-                        errorMessage = true
-                    }
+                    if (name.text.isBlank()){ errorMessage = true }
                     else{
                         val newList = DishList(
                             id = list.id,
@@ -361,15 +365,20 @@ fun DishEditScreen(
                         onSubmit(newList)
                         isExpanded.value = false
                     }
-                }
-            ) {
-                Icon(imageVector = Icons.Default.Check, contentDescription = "check")
-            }
-            IconButton(
+                },
                 modifier = Modifier.weight(1.5f),
-                onClick = { isExpanded.value = false }
             ) {
-                Icon(imageVector = Icons.Default.Cancel, contentDescription = "cancel")
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = stringResource(id = R.string.button_confirm)
+                )
+            }
+
+            IconButton(onClick = { isExpanded.value = false }, modifier = Modifier.weight(1.5f)) {
+                Icon(
+                    imageVector = Icons.Default.Cancel,
+                    contentDescription = stringResource(id = R.string.button_cancel)
+                )
             }
 
         }
@@ -377,7 +386,7 @@ fun DishEditScreen(
         Row {
             if (errorMessage){
                 Text(
-                    text = "*Sure that you fill all fields, if message still remains, check symbols",
+                    text = stringResource(id = R.string.error_message),
                     color = Color.Red,
                     modifier = Modifier.padding(start = 12.dp)
                 )
@@ -400,14 +409,14 @@ fun NewDishListDialog(
 
 
     Dialog(onDismissRequest = {setShowDialog(false)}) {
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = Color.White,
-        ) {
+
+        Surface(shape = RoundedCornerShape(16.dp), color = Color.White) {
+
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = modifier.padding(8.dp)
             ) {
+
                 OutlinedTextField(
                     value = fieldValue,
                     onValueChange = {fieldValue = it},
@@ -453,7 +462,6 @@ fun NewDishListDialog(
                             .weight(1f)
                             .padding(4.dp),
                         onClick = {
-
                             //Check if all fields are not null
                             if (fieldValue.text.isBlank()){
                                 errorFieldStatus = true
@@ -471,7 +479,9 @@ fun NewDishListDialog(
                                 setShowDialog(false)
                             }
                         }
-                    ) { Text(text = stringResource(id = R.string.button_confirm)) }
+                    ) {
+                        Text(text = stringResource(id = R.string.button_confirm))
+                    }
                 }
             }
         }

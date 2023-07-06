@@ -24,7 +24,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.smartlist.R
-import com.example.smartlist.data.VoiceToTextParserState
+import com.example.smartlist.model.ListOfMenuItem
 import com.example.smartlist.model.items
 import com.example.smartlist.navigation.Screen
 import com.example.smartlist.ui.menu.DrawerBody
@@ -44,6 +44,14 @@ fun HomeScreen(
 
     val state by homeViewModel.voiceToTextParser.state.collectAsState()
 
+    //Menu drawer items
+    val myItems = ListOfMenuItem(context).getItems()
+
+    //Navigation attributes
+    val navigationMessage = stringResource(id = R.string.navigation_message)
+    val navigationTransition = stringResource(id = R.string.navigation_transition)
+    val unknownVoiceCommandMessage = stringResource(id = R.string.unknown_command)
+
 
     val voiceCommand by homeViewModel.voiceCommand.collectAsState()
 
@@ -56,8 +64,8 @@ fun HomeScreen(
             "список покупок"->{ navController.navigate(Screen.PurchasesScreen.route)}
             "список блюд"->{navController.navigate(Screen.DishesScreen.route)}
             "графики"->{navController.navigate(Screen.GraphScreen.route)}
-            "домашняя страница"->{Toast.makeText(context,"Already here", Toast.LENGTH_SHORT).show()}
-            else->{Toast.makeText(context,"Unknown command", Toast.LENGTH_SHORT).show()}
+            "домашняя страница"->{Toast.makeText(context, navigationTransition, Toast.LENGTH_SHORT).show()}
+            else->{Toast.makeText(context,unknownVoiceCommandMessage, Toast.LENGTH_SHORT).show()}
         }
     }
 
@@ -68,25 +76,19 @@ fun HomeScreen(
         topBar = {
             HomeAppBar(
                 state = state,
-                onNavigationIconClick = {
-                    scope.launch { scaffoldState.drawerState.open()
-                    } },
+                onNavigationIconClick = { scope.launch { scaffoldState.drawerState.open() } },
                 retryAction = {},
                 onMicrophoneOn = {
-                    if(it){
-                        homeViewModel.startListening()
-                        //Log.d("HomeScreen","textFromSpeech inside startListen: ${homeViewModel.textFromSpeech}")
+                    if(it){ homeViewModel.startListening() }
 
-                    }else{
-                        homeViewModel.stopListening()
-                    }
+                    else { homeViewModel.stopListening() }
                 }
             )
         },
         drawerContent = {
             DrawerHeader()
             DrawerBody(
-                items = items,
+                items = myItems,
                 onItemClick = {
                     when(it.id){
                         "dishList" ->{
@@ -102,7 +104,7 @@ fun HomeScreen(
                             navController.navigate(Screen.GraphScreen.route)
                         }
                         "home" ->{
-                            Toast.makeText(context,"You are already on this screen", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context,navigationMessage, Toast.LENGTH_SHORT).show()
                         }
                         else -> {
                             val message = context.getString(R.string.menu_item_toast_default,it.title)
@@ -113,12 +115,9 @@ fun HomeScreen(
             )
         },
     ) {
-        Surface(
-            modifier = modifier
-                .padding(it)
-        ) {
+        Surface(modifier = modifier.padding(it)) {
+
             ScreensButtonsMenu(
-                state = state,
                 onPurchaseScreenButton = {navController.navigate(Screen.PurchasesScreen.route)},
                 onDishesScreenButton = {navController.navigate(Screen.DishesScreen.route)},
                 onGraphScreenButton = {navController.navigate(Screen.GraphScreen.route)}
@@ -129,7 +128,6 @@ fun HomeScreen(
 
 @Composable
 private fun ScreensButtonsMenu(
-    state: VoiceToTextParserState,
     onPurchaseScreenButton : ()->Unit,
     onDishesScreenButton: ()->Unit,
     onGraphScreenButton: ()->Unit,
@@ -138,40 +136,23 @@ private fun ScreensButtonsMenu(
     Row(
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(8.dp)
+        modifier = modifier.fillMaxWidth().padding(8.dp)
     ) {
-        Card(
-            elevation = 4.dp,
-            modifier = Modifier
-                .weight(1f)
-                .height(120.dp)
-                .padding(8.dp)
-        ) {
-            Button(onClick = {onPurchaseScreenButton() }) {
+
+        Card(elevation = 4.dp, modifier = Modifier.weight(1f).height(120.dp).padding(8.dp)) {
+            Button(onClick = onPurchaseScreenButton) {
                 Text(text = stringResource(id = R.string.purchases_screen_button))
             }
         }
-        Card(
-            elevation = 4.dp,
-            modifier = Modifier
-                .weight(1f)
-                .height(120.dp)
-                .padding(8.dp)
-        ) {
-            Button(onClick = { onDishesScreenButton() }) {
+
+        Card(elevation = 4.dp, modifier = Modifier.weight(1f).height(120.dp).padding(8.dp)) {
+            Button(onClick = onDishesScreenButton) {
                 Text(text = stringResource(id = R.string.dishes_screen_button))
             }
         }
-        Card(
-            elevation = 4.dp,
-            modifier = Modifier
-                .weight(1f)
-                .height(120.dp)
-                .padding(8.dp)
-        ) {
-            Button(onClick = { onGraphScreenButton() }) {
+
+        Card(elevation = 4.dp, modifier = Modifier.weight(1f).height(120.dp).padding(8.dp)) {
+            Button(onClick = onGraphScreenButton) {
                 Text(text = stringResource(id = R.string.graph_screen_button))
             }
         }

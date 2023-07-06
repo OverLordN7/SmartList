@@ -65,6 +65,7 @@ fun SmartListApp(
                 onSubmit = dishViewModel::insertDishList,
                 onEdit = dishViewModel::updateDishList,
                 onDelete = dishViewModel::deleteDishList,
+                onRefresh = dishViewModel::getDishLists,
             )
         }
 

@@ -17,6 +17,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import com.example.smartlist.R
+import com.example.smartlist.model.ListOfMenuItem
 import com.example.smartlist.model.items
 import com.example.smartlist.navigation.Screen
 import com.example.smartlist.ui.menu.DrawerBody
@@ -35,6 +36,14 @@ fun GraphScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
+    //Menu drawer items
+    val myItems = ListOfMenuItem(context).getItems()
+
+    //Navigation attributes
+    val navigationMessage = stringResource(id = R.string.navigation_message)
+    val navigationTransition = stringResource(id = R.string.navigation_transition)
+    val unknownVoiceCommandMessage = stringResource(id = R.string.unknown_command)
+
     //Voice attributes
     val voiceState by homeViewModel.voiceToTextParser.state.collectAsState()
     val voiceCommand by homeViewModel.voiceCommand.collectAsState()
@@ -49,9 +58,9 @@ fun GraphScreen(
         when(command.text){
             "список покупок"->{ navController.navigate(Screen.PurchasesScreen.route)}
             "список блюд"->{navController.navigate(Screen.DishesScreen.route)}
-            "графики"->{Toast.makeText(context,"Already here", Toast.LENGTH_SHORT).show()}
+            "графики"->{Toast.makeText(context,navigationTransition, Toast.LENGTH_SHORT).show()}
             "домашняя страница"->{navController.navigate(Screen.HomeScreen.route)}
-            else->{Toast.makeText(context,"Unknown command", Toast.LENGTH_SHORT).show()}
+            else->{Toast.makeText(context,unknownVoiceCommandMessage, Toast.LENGTH_SHORT).show()}
         }
     }
 
@@ -60,25 +69,19 @@ fun GraphScreen(
         topBar = {
             HomeAppBar(
                 state = voiceState,
-                onNavigationIconClick = {
-                    scope.launch { scaffoldState.drawerState.open()
-                    } },
+                onNavigationIconClick = { scope.launch { scaffoldState.drawerState.open() } },
                 retryAction = {},
                 onMicrophoneOn = {
-                    if(it){
-                        homeViewModel.startListening()
-                        //Log.d("HomeScreen","textFromSpeech inside startListen: ${homeViewModel.textFromSpeech}")
+                    if(it){ homeViewModel.startListening() }
 
-                    }else{
-                        homeViewModel.stopListening()
-                    }
+                    else{ homeViewModel.stopListening() }
                 }
             )
         },
         drawerContent = {
             DrawerHeader()
             DrawerBody(
-                items = items,
+                items = myItems,
                 onItemClick = {
                     when(it.id){
                         "dishList" ->{
@@ -90,7 +93,7 @@ fun GraphScreen(
                             navController.navigate(Screen.PurchasesScreen.route)
                         }
                         "graphs" ->{
-                            Toast.makeText(context,"You are already on this screen", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context,navigationMessage, Toast.LENGTH_SHORT).show()
                         }
                         "home" ->{
                             scope.launch { scaffoldState.drawerState.close() }
@@ -105,11 +108,7 @@ fun GraphScreen(
             )
         }
     ) {
-        Surface(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(it)
-        ) {
+        Surface(modifier = modifier.fillMaxSize().padding(it)) {
             Text(text = stringResource(id = R.string.graph_screen_button))
         }
     }

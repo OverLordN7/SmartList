@@ -50,6 +50,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -61,6 +62,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.example.smartlist.R
 import com.example.smartlist.model.Item
+import com.example.smartlist.model.ListOfMenuItem
 import com.example.smartlist.model.MenuItem
 import com.example.smartlist.model.items
 import com.example.smartlist.navigation.Screen
@@ -90,6 +92,9 @@ fun DetailedPurchaseListScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
+    //Menu drawer items
+    val myItems = ListOfMenuItem(context).getItems()
+
     if (showDialog.value){
         NewPurchaseListItemDialog(
             listId = purchaseViewModel.currentListId,
@@ -106,15 +111,14 @@ fun DetailedPurchaseListScreen(
         topBar = {
             AppBarItem(
                 purchaseViewModel.currentName,
-                onNavigationIconClick = {
-                    scope.launch { scaffoldState.drawerState.open()
-                    } },
+                onNavigationIconClick = { scope.launch { scaffoldState.drawerState.open() } },
                 retryAction = { onRefresh() }
-            )},
+            )
+            },
         drawerContent = {
             DrawerHeader()
             DrawerBody(
-                items = items,
+                items = myItems,
                 onItemClick = {
                     when(it.id){
                         "dishList" ->{
@@ -144,11 +148,15 @@ fun DetailedPurchaseListScreen(
         floatingActionButtonPosition = FabPosition.End,
         floatingActionButton = {
             FloatingActionButton(onClick = { showDialog.value = true}) {
-                Icon(imageVector = Icons.Filled.Add, contentDescription = "Add new Item")
+                Icon(
+                    imageVector = Icons.Filled.Add,
+                    contentDescription = stringResource(id = R.string.add_purchase_item)
+                )
             }
         }
     ) {
         Surface(modifier = modifier.padding(it)) {
+
             when(state){
                 is PurchaseItemUiState.Loading ->{}
                 is PurchaseItemUiState.Error ->{}
@@ -176,13 +184,15 @@ fun ResultItemScreen(
 
     //If no Item received but call ended with Success
     if (itemsOfList.isEmpty()) {
-        EmptyCard("items")
+        EmptyCard()
         return Unit
     }
     LazyColumn{
+
         item{
             ListInfoCard(itemsOfList)
         }
+
         items(itemsOfList.size){
             ItemCard(
                 item = itemsOfList[it],
@@ -196,11 +206,11 @@ fun ResultItemScreen(
 }
 
 @Composable
-fun EmptyCard(itemType: String, modifier: Modifier = Modifier){
+fun EmptyCard(modifier: Modifier = Modifier){
     Box(contentAlignment = Alignment.Center, modifier = modifier.fillMaxSize()) {
-        Column {
-            Text(text = "No $itemType to display", color = Color.Black)
-            Text(text = "Try to use + button", color = Color.Black)
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(text = stringResource(id = R.string.empty_card_message_1), color = Color.Black)
+            Text(text = stringResource(id = R.string.empty_card_message_2), color = Color.Black)
         }
     }
 }
@@ -214,11 +224,10 @@ fun ItemCard(
     onDelete: (UUID) -> Unit = {},
 ){
     val context = LocalContext.current
+    val currency = stringResource(id = R.string.currency_title)
     val isExpanded = remember { mutableStateOf(false) }
 
     var isBought by remember { mutableStateOf(item.isBought) }
-
-
 
     Card(
         elevation = 4.dp,
@@ -232,7 +241,8 @@ fun ItemCard(
             }
 
     ) {
-        Column() {
+        Column {
+
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Start,
@@ -241,25 +251,25 @@ fun ItemCard(
 
                 Image(
                     painter = painterResource(id = R.drawable.circle),
-                    contentDescription = "product picture",
+                    contentDescription = stringResource(id = R.string.purchase_image),
                     modifier = Modifier
                         .weight(2f)
                         .padding(start = 4.dp, end = 4.dp)
                 )
 
-                Column(
-                    modifier = Modifier
-                        .weight(8f)
-                        .padding(top = 4.dp)
-                ) {
+                Column(modifier = Modifier
+                    .weight(8f)
+                    .padding(top = 4.dp)) {
+
                     Text(
                         text = item.name,
                         fontSize = 20.sp,
                         color = Color.Black
                     )
+
                     Row(horizontalArrangement = Arrangement.SpaceAround){
                         Text(
-                            text = "${item.weight} ${item.weightType}",
+                            text = context.getString(R.string.purchase_weight,item.weight,item.weightType),
                             fontSize = 16.sp,
                             color = Color.Gray,
                             modifier = modifier
@@ -268,7 +278,7 @@ fun ItemCard(
                         )
 
                         Text(
-                            text = "${item.total.toInt()} UZS",
+                            text = context.getString(R.string.purchase_total,item.total.toInt(),currency),
                             fontSize = 16.sp,
                             color = Color.Gray,
                             modifier = modifier
@@ -283,15 +293,20 @@ fun ItemCard(
                 Column(modifier = Modifier
                     .weight(3f)
                     .padding(end = 4.dp)) {
+
                     Row {
                         IconButton(onClick = { isExpanded.value = !isExpanded.value }) {
-                            Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit current list")
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = stringResource(id = R.string.edit_current_list)
+                            )
                         }
-                        IconButton(onClick = {
-                            Toast.makeText(context,"Deleting item...", Toast.LENGTH_SHORT).show()
-                            onDelete(item.id)
-                        }) {
-                            Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete current list")
+
+                        IconButton(onClick = { onDelete(item.id) }) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = stringResource(id = R.string.delete_current_list)
+                            )
                         }
                     }
                 }
@@ -302,11 +317,7 @@ fun ItemCard(
                 modifier = Modifier.padding(4.dp)
             ) {
                 if (isExpanded.value){
-                    EditScreen(
-                        item = item,
-                        isExpanded = isExpanded,
-                        onSubmit = onEdit
-                    )
+                    EditScreen(item = item, isExpanded = isExpanded, onSubmit = onEdit)
                 }
             }
         }
@@ -328,37 +339,34 @@ fun NewPurchaseListItemDialog(
     var totalPrice : Float = 0.0f
 
     //values for DropDownMenu
-    val options = listOf("kgs","lbs","pcs","pkg")
+    val options = listOf(
+        stringResource(id = R.string.kgs),
+        stringResource(id = R.string.lbs),
+        stringResource(id = R.string.pcs),
+        stringResource(id = R.string.pkg)
+    )
     var expanded by remember { mutableStateOf(false) }
     var selectedOptionText by remember { mutableStateOf(options[0]) }
 
-    //keyboard focus
-    val focusManager = LocalFocusManager.current
-
-
     Dialog(onDismissRequest = {setShowDialog(false)}) {
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = Color.White,
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = modifier
-                    .padding(8.dp)
-            ) {
+
+        Surface(shape = RoundedCornerShape(16.dp), color = Color.White) {
+
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = modifier.padding(8.dp)) {
+
                 //Header of dialog
-                Text(text = "New Item", color = Color.Black, fontSize = 28.sp)
+                Text(text = stringResource(id = R.string.new_purchase), color = Color.Black, fontSize = 28.sp)
+
                 Spacer(modifier = Modifier.height(20.dp))
 
                 OutlinedTextField(
                     value = fieldValue,
                     onValueChange = {fieldValue = it},
-                    placeholder = {Text(text = "ex Potato")},
-                    modifier = Modifier.padding(top = 4.dp),
+                    placeholder = {Text(text = stringResource(id = R.string.new_purchase_hint))},
                     singleLine = true,
                     label = {
                         Text(
-                            text = "Enter new Item name: ",
+                            text = stringResource(id = R.string.new_purchase_title),
                             color = Color.Black,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
@@ -370,21 +378,21 @@ fun NewPurchaseListItemDialog(
                         keyboardType = KeyboardType.Text,
                         imeAction = ImeAction.Next
                     ),
+                    modifier = Modifier.padding(top = 4.dp),
                 )
+
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Start
                 ) {
+
                     OutlinedTextField(
                         value = weight,
                         onValueChange = {weight = it},
-                        placeholder = {Text(text = "ex 10.0")},
-                        modifier = Modifier
-                            .padding(top = 4.dp)
-                            .weight(0.8f),
+                        placeholder = {Text(text = stringResource(id = R.string.weight_hint))},
                         label = {
                             Text(
-                                text = "Weight: ",
+                                text = stringResource(id = R.string.weight_title),
                                 color = Color.Black,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
@@ -394,6 +402,9 @@ fun NewPurchaseListItemDialog(
                             keyboardType = KeyboardType.Decimal,
                             imeAction = ImeAction.Next
                         ),
+                        modifier = Modifier
+                            .padding(top = 4.dp)
+                            .weight(0.8f),
                     )
 
                     Spacer(modifier = Modifier.weight(0.2f))
@@ -407,17 +418,13 @@ fun NewPurchaseListItemDialog(
                             readOnly = true,
                             value = selectedOptionText,
                             onValueChange = { },
-                            label = { Text("Unit", color = Color.Black)},
+                            label = { Text(stringResource(id = R.string.unit), color = Color.Black)},
                             trailingIcon = {
                                 ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
                             },
-                            //colors =  ExposedDropdownMenuDefaults.textFieldColors()
                         )
 
-                        ExposedDropdownMenu(
-                            expanded = expanded,
-                            onDismissRequest = { expanded = false }
-                        ) {
+                        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                             options.forEach{ selectionOption ->
                                 DropdownMenuItem(
                                     onClick = {
@@ -431,14 +438,14 @@ fun NewPurchaseListItemDialog(
                         }
                     }
                 }
+
                 OutlinedTextField(
                     value = price,
                     onValueChange = {price = it},
-                    placeholder = {Text(text = "ex 10000")},
-                    modifier = Modifier.padding(top = 4.dp),
+                    placeholder = {Text(text = stringResource(id = R.string.price_hint))},
                     label = {
                         Text(
-                            text = "Price: ",
+                            text = stringResource(id = R.string.price_title),
                             color = Color.Black,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
@@ -448,11 +455,12 @@ fun NewPurchaseListItemDialog(
                         keyboardType = KeyboardType.Decimal,
                         imeAction = ImeAction.Done
                     ),
+                    modifier = Modifier.padding(top = 4.dp),
                 )
 
                 if (errorFieldStatus){
                     Text(
-                        text = "*Sure that you fill all fields, if message still remains, check symbols",
+                        text = stringResource(id = R.string.error_message),
                         color = Color.Red,
                         modifier = Modifier.padding(start = 12.dp)
                     )
@@ -468,21 +476,15 @@ fun NewPurchaseListItemDialog(
                     horizontalArrangement = Arrangement.SpaceAround
                 ){
 
-                    Button(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(4.dp),
-                        onClick = { setShowDialog(false)}
-                    ) {
-                        Text(text = "Cancel")
+                    Button(onClick = { setShowDialog(false)}, modifier = Modifier
+                        .weight(1f)
+                        .padding(4.dp)) {
+                        Text(text = stringResource(id = R.string.button_cancel))
                     }
 
                     //Spacer(modifier = Modifier.weight(1f))
 
                     Button(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(4.dp),
                         onClick = {
 
                             //Check if all fields are not null
@@ -503,8 +505,13 @@ fun NewPurchaseListItemDialog(
                                 onConfirm(tempItem)
                                 setShowDialog(false)
                             }
-                        }
-                    ) { Text(text = "Confirm") }
+                        },
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(4.dp),
+                    ) {
+                        Text(text = stringResource(id = R.string.button_confirm))
+                    }
                 }
             }
         }
@@ -514,13 +521,17 @@ fun NewPurchaseListItemDialog(
 
 @Composable
 fun ListInfoCard(items: List<Item>, modifier: Modifier = Modifier){
+
+    val context = LocalContext.current
+    val currency = stringResource(id = R.string.currency_title)
+
     var total = 0
-    var left = 0
+
     items.forEach {
         total += it.total.toInt()
     }
 
-    left = total
+    var left: Int = total
 
     items.forEach {
         if (it.isBought){
@@ -531,30 +542,28 @@ fun ListInfoCard(items: List<Item>, modifier: Modifier = Modifier){
     val convertedTotal = DecimalFormat("#,###", DecimalFormatSymbols(Locale.US)).format(total)
     val convertedLeft = DecimalFormat("#,###", DecimalFormatSymbols(Locale.US)).format(left)
 
-    Card(
-        elevation = 4.dp,
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(8.dp)
-            .height(80.dp)
-    ) {
+    Card(elevation = 4.dp, modifier = modifier
+        .fillMaxWidth()
+        .padding(8.dp)
+        .height(80.dp)) {
+
         Column(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+
             Text(
-                "Total: $convertedTotal UZS",
+                text = context.getString(R.string.total,convertedTotal,currency),
                 fontSize = 18.sp,
                 color = Color.Black,
-                modifier = Modifier
-                    .weight(1f)
+                modifier = Modifier.weight(1f)
             )
+
             Text(
-                "Left: $convertedLeft UZS",
+                text = context.getString(R.string.left,convertedLeft,currency),
                 fontSize = 18.sp,
                 color = Color.Gray,
-                modifier = Modifier
-                    .weight(1f)
+                modifier = Modifier.weight(1f)
             )
         }
     }
@@ -571,12 +580,15 @@ fun EditScreen(
     var fieldValue by remember{ mutableStateOf(TextFieldValue(item.name)) }
     var weight by remember { mutableStateOf(TextFieldValue(item.weight.toString())) }
     var price by remember { mutableStateOf(TextFieldValue(item.price.toString())) }
-    var totalPrice : Float = item.weight * item.price
     var errorMessage by remember { mutableStateOf(false) }
 
-
     //values for DropDownMenu
-    val options = listOf("kgs","lbs","pcs","pkg")
+    val options = listOf(
+        stringResource(id = R.string.kgs),
+        stringResource(id = R.string.lbs),
+        stringResource(id = R.string.pcs),
+        stringResource(id = R.string.pkg)
+    )
     var expanded by remember { mutableStateOf(false) }
     var selectedOptionText by remember { mutableStateOf(options[0]) }
 
@@ -594,13 +606,10 @@ fun EditScreen(
             OutlinedTextField(
                 value = fieldValue,
                 onValueChange = {fieldValue = it},
-                placeholder = {Text(text = "ex Potato")},
-                modifier = Modifier
-                    .padding(4.dp)
-                    .weight(0.6f),
+                placeholder = {Text(text = stringResource(id = R.string.new_purchase_list_name_hint))},
                 label = {
                     Text(
-                        text = "Enter new Item name: ",
+                        text = stringResource(id = R.string.new_purchase_list_name_title),
                         color = Color.Black,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
@@ -611,18 +620,18 @@ fun EditScreen(
                     keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Next
                 ),
+                modifier = Modifier
+                    .padding(4.dp)
+                    .weight(0.6f),
             )
 
             OutlinedTextField(
                 value = weight,
                 onValueChange = {weight = it},
-                placeholder = {Text(text = "ex 10.0")},
-                modifier = Modifier
-                    .padding(4.dp)
-                    .weight(0.5f),
+                placeholder = {Text(text = stringResource(id = R.string.weight_hint))},
                 label = {
                     Text(
-                        text = "Weight: ",
+                        text = stringResource(id = R.string.weight_title),
                         color = Color.Black,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
@@ -632,6 +641,9 @@ fun EditScreen(
                     keyboardType = KeyboardType.Decimal,
                     imeAction = ImeAction.Next
                 ),
+                modifier = Modifier
+                    .padding(4.dp)
+                    .weight(0.5f),
             )
 
             ExposedDropdownMenuBox(
@@ -643,17 +655,13 @@ fun EditScreen(
                     readOnly = true,
                     value = selectedOptionText,
                     onValueChange = { },
-                    label = { Text("Unit", color = Color.Black)},
+                    label = { Text(stringResource(id = R.string.unit), color = Color.Black)},
                     trailingIcon = {
                         ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
                     },
-                    //colors =  ExposedDropdownMenuDefaults.textFieldColors()
                 )
 
-                ExposedDropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
+                ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                     options.forEach{ selectionOption ->
                         DropdownMenuItem(
                             onClick = {
@@ -666,19 +674,16 @@ fun EditScreen(
                     }
                 }
             }
-
         }
+
         Row(horizontalArrangement = Arrangement.Center) {
             OutlinedTextField(
                 value = price,
                 onValueChange = {price = it},
-                placeholder = {Text(text = "ex 10000")},
-                modifier = Modifier
-                    .padding(4.dp)
-                    .weight(1f),
+                placeholder = {Text(text = stringResource(id = R.string.price_hint))},
                 label = {
                     Text(
-                        text = "Price: ",
+                        text = stringResource(id = R.string.price_title),
                         color = Color.Black,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
@@ -688,6 +693,9 @@ fun EditScreen(
                     keyboardType = KeyboardType.Decimal,
                     imeAction = ImeAction.Done
                 ),
+                modifier = Modifier
+                    .padding(4.dp)
+                    .weight(1f),
             )
 
             //Plug for good view
@@ -699,7 +707,6 @@ fun EditScreen(
             Spacer(modifier = Modifier.weight(5f))
 
             IconButton(
-                modifier = Modifier.weight(1f),
                 onClick = {
                     if(fieldValue.text.isBlank() || weight.text.isBlank() || price.text.isBlank()){
                         errorMessage = true
@@ -716,20 +723,24 @@ fun EditScreen(
                         isExpanded.value = false
                         onSubmit(temp)
                     }
-                }
-            ) {
-                Icon(imageVector = Icons.Default.Check, contentDescription = "check")
-            }
-            IconButton(
+                },
                 modifier = Modifier.weight(1f),
-                onClick = { isExpanded.value = false }
             ) {
-                Icon(imageVector = Icons.Default.Cancel, contentDescription = "cancel")
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = stringResource(id = R.string.button_confirm)
+                )
+            }
+            IconButton(onClick = { isExpanded.value = false }, modifier = Modifier.weight(1f)) {
+                Icon(
+                    imageVector = Icons.Default.Cancel,
+                    contentDescription = stringResource(id = R.string.button_cancel)
+                )
             }
         }
         if (errorMessage){
             Text(
-                text = "*Sure that you fill all fields, if message still remains, check symbols",
+                text = stringResource(id = R.string.error_message),
                 color = Color.Red,
                 modifier = Modifier.padding(start = 12.dp)
             )

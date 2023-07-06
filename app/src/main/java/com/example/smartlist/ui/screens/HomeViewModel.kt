@@ -1,18 +1,12 @@
 package com.example.smartlist.ui.screens
 
-import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.smartlist.SmartListApplication
 import com.example.smartlist.data.VoiceToTextParser
-import com.example.smartlist.data.VoiceToTextParserState
 import com.example.smartlist.model.VoiceCommand
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 

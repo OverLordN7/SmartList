@@ -59,7 +59,10 @@ import com.example.smartlist.ui.menu.DrawerBody
 import com.example.smartlist.ui.menu.DrawerHeader
 import com.example.smartlist.ui.menu.HomeAppBar
 import kotlinx.coroutines.launch
+import java.text.DateFormatSymbols
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import java.util.UUID
 
 @Composable
@@ -468,11 +471,22 @@ fun NewDishListDialog(
                             }
                             else{
                                 val date = LocalDate.now()
+                                val month = date.monthValue
+
+                                //val dfs = DateFormatSymbols.getInstance(Locale.getDefault())
+                                //val systemMonth = dfs.months[month - 1]
+
+                                //val dfs = DateFormatSymbols.getInstance()
+                                //val russianMonth = dfs.months[month - 1]
+
+                                val formatter = DateTimeFormatter.ofPattern("LLLL", Locale.getDefault())
+                                val systemMonth = date.format(formatter)
+
                                 val list = DishList(
                                     name = fieldValue.text,
                                     listSize = 0,
                                     year = date.year,
-                                    month = date.month.name,
+                                    month = systemMonth,
                                     day = date.dayOfMonth
                                 )
                                 onConfirm(list)

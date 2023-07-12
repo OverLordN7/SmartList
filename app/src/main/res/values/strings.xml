@@ -94,6 +94,12 @@
     <string name="fat_table">Fat: %1$d g</string>
     <string name="protein_table">Protein: %1$d g</string>
     <string name="cal_table">Cal: %1$d g</string>
+
+    <string name="carb_table_alternative">Carbs: %1$d kg</string>
+    <string name="fat_table_alternative">Fat: %1$d kg</string>
+    <string name="protein_table_alternative">Protein: %1$d kg</string>
+    <string name="cal_table_alternative">Cal: %1$d kg</string>
+
     <string name="plus">+</string>
     <string name="minus">-</string>
 
@@ -115,7 +121,7 @@
     <string name="new_purchase">New Item</string>
 
     <string name="purchase_total">%1$d %2$s</string>
-    <string name="purchase_weight">%1$.1f %2$s</string>
+    <string name="purchase_weight">%1$.2f %2$s</string>
     <string name="purchase_image">Image of item</string>
 
     <string name="add_purchase_item">Add new Item</string>

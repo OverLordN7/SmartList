@@ -89,6 +89,7 @@ fun SmartListApp(
         ){
             DetailedPurchaseListScreen(
                 purchaseViewModel = purchaseViewModel,
+                homeViewModel = homeViewModel,
                 navController = navController,
                 onSubmit = purchaseViewModel::insertItem,
                 onRefresh = purchaseViewModel::getItemsOfPurchaseList,

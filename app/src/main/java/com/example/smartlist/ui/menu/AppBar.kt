@@ -5,9 +5,11 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -119,6 +121,7 @@ fun HomeAppBar(
     onMicrophoneOn: (Boolean) -> Unit = {},
     ) {
 
+    val showDialog = remember{ mutableStateOf(false) }
     var canRecord by remember { mutableStateOf(false) }
 
     // Creates an permission request
@@ -128,6 +131,10 @@ fun HomeAppBar(
             canRecord = isGranted
         }
     )
+
+    if (showDialog.value){
+        HintDialog(setShowDialog = {showDialog.value = it})
+    }
 
     LaunchedEffect(key1 = recordAudioLauncher) {
         // Launches the permission request
@@ -182,35 +189,6 @@ fun HomeAppBar(
         }
     )
 }
-
-@Composable
-fun AppBarItem(
-    name: String,
-    onNavigationIconClick: () -> Unit,
-    retryAction: () -> Unit,
-) {
-    val title = stringResource(id = R.string.app_name)
-    TopAppBar(
-        title = { Text(text = "$title > $name") },
-        navigationIcon = {
-            IconButton(onClick = onNavigationIconClick) {
-                Icon(
-                    imageVector = Icons.Default.Menu,
-                    contentDescription = stringResource(id = R.string.toggle_drawer)
-                )
-            }
-        },
-        actions = {
-            IconButton(onClick = retryAction) {
-                Icon(
-                    Icons.Default.Refresh,
-                    stringResource(id = R.string.button_refresh)
-                )
-            }
-        }
-    )
-}
-
 
 @Composable
 fun ExportListDialog(
@@ -286,6 +264,23 @@ fun ExportListDialog(
                             .padding(4.dp),
                     ) { Text(text = stringResource(id = R.string.button_confirm)) }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun HintDialog(
+    setShowDialog: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+){
+    Dialog(onDismissRequest = {setShowDialog(false)}) {
+        Surface(shape = RoundedCornerShape(16.dp), color = Color.White) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = modifier.fillMaxWidth().height(50.dp)
+            ) {
+                Text(text = "Say: my name")
             }
         }
     }

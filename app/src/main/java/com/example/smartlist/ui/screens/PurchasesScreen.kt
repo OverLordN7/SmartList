@@ -441,7 +441,7 @@ fun NewPurchaseListDialog(
                         Text(
                             text = stringResource(id = R.string.new_purchase_list_name_title),
                             color = Color.Black,
-                            fontSize = 20.sp,
+                            fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                         )
                     },

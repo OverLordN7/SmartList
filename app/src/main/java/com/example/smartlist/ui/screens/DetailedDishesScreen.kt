@@ -179,7 +179,9 @@ fun DetailedDishesScreen(
             }
         }
     ) {
-        Surface(modifier = modifier.padding(it).fillMaxSize()) {
+        Surface(modifier = modifier
+            .padding(it)
+            .fillMaxSize()) {
             
             when(state){
                 is RecipeUiState.Loading ->{}
@@ -361,11 +363,54 @@ fun RecipeCard(
                     cal += it.cal
                 }
 
+                var isCarbsGreaterThan1k = false
+                var isFatsGreaterThan1k = false
+                var isProteinGreaterThan1k = false
+                var isCalGreaterThan1k = false
+
+
+                val normalizedCarbs = if ((carbs * recipe.portions)>1000f){
+                    isCarbsGreaterThan1k = true
+                    (carbs * recipe.portions)/1000f
+                } else{
+                    isCarbsGreaterThan1k = false
+                    carbs * recipe.portions
+                }
+
+                val normalizedFat = if ((fat * recipe.portions)>1000f){
+                    isFatsGreaterThan1k = true
+                    (fat * recipe.portions)/1000f
+                } else{
+                    isFatsGreaterThan1k = false
+                    fat * recipe.portions
+                }
+
+                val normalizedProtein = if ((protein * recipe.portions)>1000f){
+                    isProteinGreaterThan1k = true
+                    (protein * recipe.portions)/1000f
+                } else{
+                    isProteinGreaterThan1k = false
+                    protein * recipe.portions
+                }
+
+                val normalizedCal = if ((cal * recipe.portions)>1000f){
+                    isCalGreaterThan1k= true
+                    (cal * recipe.portions)/1000f
+                } else{
+                    isCalGreaterThan1k = false
+                    cal * recipe.portions
+                }
+
+
                 RecipeCardCalTable(
-                    carbs = carbs * recipe.portions,
-                    fat = fat * recipe.portions,
-                    protein = protein * recipe.portions,
-                    cal = cal * recipe.portions
+                    carbs = normalizedCarbs,
+                    fat = normalizedFat,
+                    protein = normalizedProtein,
+                    cal = normalizedCal,
+                    isCarbsGreaterThan1k = isCarbsGreaterThan1k,
+                    isFatsGreaterThan1k = isFatsGreaterThan1k,
+                    isProteinGreaterThan1k = isProteinGreaterThan1k,
+                    isCalGreaterThan1k = isCalGreaterThan1k,
                 )
             }
 
@@ -551,6 +596,10 @@ fun RecipeCardCalTable(
     fat: Float,
     protein: Float,
     cal: Float,
+    isCarbsGreaterThan1k:Boolean,
+    isFatsGreaterThan1k:Boolean,
+    isProteinGreaterThan1k:Boolean,
+    isCalGreaterThan1k:Boolean,
     modifier: Modifier = Modifier
 ){
     val context = LocalContext.current
@@ -566,13 +615,32 @@ fun RecipeCardCalTable(
         ) {
 
             //Carbohydrates
-            Text(text = context.getString(R.string.carb_table,carbs.toInt()), color = Carb200)
+            if(isCarbsGreaterThan1k){
+                Text(text = context.getString(R.string.carb_table_alternative,carbs.toInt()),color = Carb200)
+            } else{
+                Text(text = context.getString(R.string.carb_table,carbs.toInt()), color = Carb200)
+            }
+
             // Fat
-            Text(text = context.getString(R.string.fat_table,fat.toInt()), color = Fat200)
+            if (isFatsGreaterThan1k){
+                Text(text = context.getString(R.string.fat_table_alternative,fat.toInt()),color = Fat200)
+            } else{
+                Text(text = context.getString(R.string.fat_table,fat.toInt()), color = Fat200)
+            }
+
             // Protein
-            Text(text = context.getString(R.string.protein_table,protein.toInt()), color = Protein200)
+            if (isProteinGreaterThan1k){
+                Text(text = context.getString(R.string.protein_table_alternative,protein.toInt()),color = Protein200)
+            } else{
+                Text(text = context.getString(R.string.protein_table,protein.toInt()), color = Protein200)
+            }
+
             //Calories
-            Text(text = context.getString(R.string.cal_table,cal.toInt()), color = Cal200)
+            if(isCalGreaterThan1k){
+                Text(text = context.getString(R.string.cal_table_alternative,cal.toInt()),color = Cal200)
+            } else{
+                Text(text = context.getString(R.string.cal_table,cal.toInt()), color = Cal200)
+            }
 
         }
     }
@@ -644,8 +712,7 @@ fun DishComponentCard(
 
                 Spacer(modifier = modifier.weight(1f))
 
-                Column(modifier = Modifier.weight(4f)
-                ) {
+                Column(modifier = Modifier.weight(4f)) {
 
                     Row {
 

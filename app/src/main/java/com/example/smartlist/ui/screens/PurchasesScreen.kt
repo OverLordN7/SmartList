@@ -1,6 +1,5 @@
 package com.example.smartlist.ui.screens
 
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -24,14 +23,12 @@ import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -54,6 +51,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.example.smartlist.R
+import com.example.smartlist.model.ListOfMenuItem
 import com.example.smartlist.model.PurchaseList
 import com.example.smartlist.model.items
 import com.example.smartlist.navigation.Screen
@@ -65,7 +63,6 @@ import java.time.LocalDate
 import java.util.UUID
 
 
-private const val TAG = "PurchasesScreen"
 @Composable
 fun PurchasesScreen(
     navController: NavController,
@@ -83,6 +80,14 @@ fun PurchasesScreen(
 
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
+
+    //Menu drawer items
+    val myItems = ListOfMenuItem(context).getItems()
+
+    //Navigation attributes
+    val navigationMessage = stringResource(id = R.string.navigation_message)
+    val navigationTransition = stringResource(id = R.string.navigation_transition)
+    val unknownVoiceCommandMessage = stringResource(id = R.string.unknown_command)
 
     //Voice attributes
     val voiceState by homeViewModel.voiceToTextParser.state.collectAsState()
@@ -102,12 +107,30 @@ fun PurchasesScreen(
     }
 
     voiceCommand?.let { command->
-        when(command.text){
-            "список покупок"->{Toast.makeText(context,"Already here", Toast.LENGTH_SHORT).show()}
-            "список блюд"->{navController.navigate(Screen.DishesScreen.route)}
-            "графики"->{navController.navigate(Screen.GraphScreen.route)}
-            "домашняя страница"->{navController.navigate(Screen.HomeScreen.route)}
-            else->{Toast.makeText(context,"Unknown command", Toast.LENGTH_SHORT).show()}
+
+        val parts = command.text.split(" ")
+
+        if (parts.size>=3 && parts[0] == "создай" && parts[1] == "новый" && parts[2] == "список"){
+            val newPurchaseListName:String  = parts.subList(3,parts.size).joinToString("")
+            val currentDate = LocalDate.now()
+            val newPurchaseList = PurchaseList(
+                name = newPurchaseListName,
+                listSize = 0,
+                year = currentDate.year,
+                month = currentDate.month.name,
+                day = currentDate.dayOfMonth
+            )
+            onSubmit(newPurchaseList)
+            homeViewModel.clearVoiceCommand()
+        }
+        else{
+            when(command.text){
+                "список покупок"->{Toast.makeText(context,navigationTransition, Toast.LENGTH_SHORT).show()}
+                "список блюд"->{navController.navigate(Screen.DishesScreen.route)}
+                "графики"->{navController.navigate(Screen.GraphScreen.route)}
+                "домашняя страница"->{navController.navigate(Screen.HomeScreen.route)}
+                else->{Toast.makeText(context,unknownVoiceCommandMessage, Toast.LENGTH_SHORT).show()}
+            }
         }
     }
 
@@ -116,25 +139,19 @@ fun PurchasesScreen(
         topBar = {
             HomeAppBar(
                 state = voiceState,
-                onNavigationIconClick = {
-                    scope.launch { scaffoldState.drawerState.open()
-                    } },
-                retryAction = {},
+                onNavigationIconClick = { scope.launch { scaffoldState.drawerState.open() } },
+                retryAction = onRefresh,
                 onMicrophoneOn = {
-                    if(it){
-                        homeViewModel.startListening()
-                        //Log.d("HomeScreen","textFromSpeech inside startListen: ${homeViewModel.textFromSpeech}")
+                    if(it){ homeViewModel.startListening() }
 
-                    }else{
-                        homeViewModel.stopListening()
-                    }
+                    else{ homeViewModel.stopListening() }
                 }
             )
         },
         drawerContent = {
             DrawerHeader()
             DrawerBody(
-                items = items,
+                items = myItems,
                 onItemClick = {
                     when(it.id){
                         "dishList" ->{
@@ -142,7 +159,7 @@ fun PurchasesScreen(
                             navController.navigate(Screen.DishesScreen.route)
                         }
                         "purchaseList" ->{
-                            Toast.makeText(context,"You are already on this screen", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context,navigationMessage, Toast.LENGTH_SHORT).show()
                         }
                         "graphs" ->{
                             scope.launch { scaffoldState.drawerState.close() }
@@ -163,17 +180,14 @@ fun PurchasesScreen(
         floatingActionButtonPosition = FabPosition.End,
         floatingActionButton = {
             FloatingActionButton(onClick = { showDialog.value = true}) {
-                Icon(imageVector = Icons.Filled.Add, contentDescription = "Add new List")
+                Icon(
+                    imageVector = Icons.Filled.Add,
+                    contentDescription = stringResource(id = R.string.add_new_purchase_list)
+                )
             }
         }
     ) { it ->
-        Surface(
-            modifier = modifier
-                .padding(it)
-        ) {
-
-            Log.d(TAG,"state is: $state")
-
+        Surface(modifier = modifier.padding(it)) {
             when(state){
                 is PurchaseUiState.Loading ->{}
                 is PurchaseUiState.Error ->{}
@@ -181,17 +195,11 @@ fun PurchasesScreen(
                     ResultScreen(
                         lists = state.purchaseLists,
                         onClick = {
-                            Log.d(TAG,"Try to navigate")
                             purchaseViewModel.currentListId = it
                             purchaseViewModel.getItemsOfPurchaseList()
                             purchaseViewModel.getListSize(it)
                             purchaseViewModel.getListName(it)
-                            navController
-                                .navigate(
-                                    Screen.DetailedPurchaseListScreen.withArgs(
-                                        it.toString()
-                                    )
-                                )
+                            navController.navigate(Screen.DetailedPurchaseListScreen.withArgs(it.toString()))
                         },
                         onEdit = onEdit,
                         onDelete = onDelete,
@@ -209,15 +217,14 @@ fun ResultScreen(
     onEdit: (PurchaseList) -> Unit,
     onDelete: (UUID) -> Unit,
 ){
-
     //If no Item received but call ended with Success
     if (lists.isEmpty()) {
         EmptyListCard()
-        return Unit
+        return
     }
 
-    LazyColumn(){
-        items(lists.size){index ->
+    LazyColumn{
+        items(lists.size){ index ->
             ListCard(
                 list = lists[index],
                 onClick = { onClick(lists[index].id)},
@@ -237,8 +244,7 @@ fun ListCard(
     onDelete: (UUID) -> Unit,
     modifier: Modifier = Modifier
 ){
-    val context = LocalContext.current
-    var isExpanded = remember { mutableStateOf(false) }
+    val isExpanded = remember { mutableStateOf(false) }
 
     Card(
         elevation = 4.dp,
@@ -249,20 +255,21 @@ fun ListCard(
                 onClick(list.id)
             }
     ) {
-        Column() {
+        Column {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Start,
                 modifier = Modifier.padding(4.dp)
             ) {
-                Column(
-                    modifier = Modifier.weight(5f)
-                ) {
+
+                Column(modifier = Modifier.weight(5f)) {
+
                     Text(
                         text = list.name,
                         fontSize = 20.sp,
                         color = Color.Black
                     )
+
                     Text(
                         text = list.month +" "+ list.year,
                         fontSize = 16.sp,
@@ -273,28 +280,28 @@ fun ListCard(
                 Spacer(modifier = modifier.weight(3f))
 
                 Column(modifier = Modifier.weight(3f)) {
+
                     Row {
+
                         IconButton(onClick = { isExpanded.value = !isExpanded.value}) {
-                            Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit current list")
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = stringResource(id = R.string.edit_current_list)
+                            )
                         }
-                        IconButton(
-                            onClick = {
-                                Toast.makeText(context,"Deleting list..",Toast.LENGTH_SHORT).show()
-                                onDelete(list.id)
-                            }
-                        ) {
-                            Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete current list")
+
+                        IconButton(onClick = { onDelete(list.id) }) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = stringResource(id = R.string.delete_current_list)
+                            )
                         }
                     }
                 }
             }
             Row{
                 if(isExpanded.value){
-                    EditScreen(
-                        list = list,
-                        isExpanded = isExpanded,
-                        onSubmit = onEdit
-                    )
+                    EditScreen(list = list, isExpanded = isExpanded, onSubmit = onEdit)
                 }
             }
         }
@@ -305,7 +312,9 @@ fun ListCard(
 @Composable
 fun EmptyListCard(modifier: Modifier = Modifier){
     Box(contentAlignment = Alignment.Center, modifier = modifier.fillMaxSize()) {
+
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
             Text(
                 text = stringResource(id = R.string.empty_card_message_1),
                 color = Color.Black
@@ -329,34 +338,35 @@ fun EditScreen(
     var errorMessage by remember { mutableStateOf(false) }
 
     Column {
+
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxWidth()
                 .padding(4.dp)
         ){
+
             OutlinedTextField(
                 value = name,
                 onValueChange = {name = it},
-                placeholder = {Text(text = "ex List 1")},
-                modifier = Modifier
-                    .padding(4.dp)
-                    .weight(5f),
+                placeholder = {Text(text = stringResource(id = R.string.new_purchase_list_name_hint))},
                 label = {
                     Text(
-                        text = "Enter new list name: ",
+                        text = stringResource(id = R.string.new_purchase_list_name_title),
                         color = Color.Black,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                     )
                 },
+                modifier = Modifier
+                    .padding(4.dp)
+                    .weight(5f),
             )
+
             Spacer(modifier = Modifier.weight(2f))
 
             IconButton(
-                modifier = Modifier.weight(1.5f),
                 onClick = {
-
                     //Check if all fields are not null
                     if (name.text.isBlank()){
                         errorMessage = true
@@ -373,15 +383,20 @@ fun EditScreen(
                         onSubmit(newList)
                         isExpanded.value = false
                     }
-                }
-            ) {
-                Icon(imageVector = Icons.Default.Check, contentDescription = "check")
-            }
-            IconButton(
+                },
                 modifier = Modifier.weight(1.5f),
-                onClick = { isExpanded.value = false }
             ) {
-                Icon(imageVector = Icons.Default.Cancel, contentDescription = "cancel")
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = stringResource(id = R.string.button_confirm)
+                )
+            }
+
+            IconButton(onClick = { isExpanded.value = false }, modifier = Modifier.weight(1.5f)) {
+                Icon(
+                    imageVector = Icons.Default.Cancel,
+                    contentDescription = stringResource(id = R.string.button_cancel)
+                )
             }
 
         }
@@ -389,7 +404,7 @@ fun EditScreen(
         Row {
             if (errorMessage){
                 Text(
-                    text = "*Sure that you fill all fields, if message still remains, check symbols",
+                    text = stringResource(id = R.string.error_message),
                     color = Color.Red,
                     modifier = Modifier.padding(start = 12.dp)
                 )
@@ -410,24 +425,23 @@ fun NewPurchaseListDialog(
 
 
     Dialog(onDismissRequest = {setShowDialog(false)}) {
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = Color.White,
-        ) {
+
+        Surface(shape = RoundedCornerShape(16.dp), color = Color.White) {
+
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .padding(8.dp)
+                modifier = modifier.padding(8.dp)
             ) {
+
                 OutlinedTextField(
                     value = fieldValue,
                     onValueChange = {fieldValue = it},
-                    placeholder = {Text(text = "ex Market list 1")},
+                    placeholder = {Text(text = stringResource(id = R.string.new_purchase_list_name_hint))},
                     label = {
                         Text(
-                            text = "Enter new list name: ",
+                            text = stringResource(id = R.string.new_purchase_list_name_title),
                             color = Color.Black,
-                            fontSize = 20.sp,
+                            fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                         )
                     },
@@ -435,40 +449,30 @@ fun NewPurchaseListDialog(
 
                 if (errorFieldStatus){
                     Text(
-                        text = "*Sure that you fill all fields, if message still remains, check symbols",
+                        text = stringResource(id = R.string.error_message),
                         color = Color.Red,
                         modifier = Modifier
                             .padding(start = 12.dp)
                             .height(40.dp)
                     )
-                } else{
-                    Spacer(modifier = Modifier.height(40.dp))
                 }
+                else{ Spacer(modifier = Modifier.height(40.dp)) }
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceAround
                 ){
 
-                    Button(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(4.dp),
-                        onClick = { setShowDialog(false)}
-                    ) {
-                        Text(text = "Cancel")
+                    Button(onClick = { setShowDialog(false)}, modifier = Modifier
+                        .weight(1f)
+                        .padding(4.dp)) {
+                        Text(text = stringResource(id = R.string.button_cancel))
                     }
 
                     Button(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(4.dp),
                         onClick = {
-
                             //Check if all fields are not null
-                            if (fieldValue.text.isBlank()){
-                                errorFieldStatus = true
-                            }
+                            if (fieldValue.text.isBlank()){ errorFieldStatus = true }
                             else{
                                 val date = LocalDate.now()
                                 val list = PurchaseList(
@@ -481,22 +485,16 @@ fun NewPurchaseListDialog(
                                 onConfirm(list)
                                 setShowDialog(false)
                             }
-                        }
-                    ) { Text(text = "Confirm") }
+                        },
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(4.dp),
+                    ) {
+                        Text(text = stringResource(id = R.string.button_confirm))
+                    }
                 }
             }
         }
     }
 }
 
-@Composable
-fun AppBar(retryAction: () -> Unit) {
-    TopAppBar(
-        title = { Text(text = stringResource(id = R.string.app_name)) },
-        actions = {
-            IconButton(onClick = retryAction) {
-                Icon(Icons.Default.Refresh, "Refresh")
-            }
-        }
-    )
-}

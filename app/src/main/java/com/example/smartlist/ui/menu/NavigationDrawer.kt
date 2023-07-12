@@ -23,23 +23,15 @@ import androidx.compose.ui.unit.sp
 import com.example.smartlist.R
 import com.example.smartlist.model.MenuItem
 import com.example.smartlist.ui.theme.LightBlue500
-import com.example.smartlist.ui.theme.Orange200
 
 
 @Composable
 fun DrawerHeader(modifier: Modifier = Modifier){
     Box(
         contentAlignment = Alignment.Center,
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(LightBlue500)
-            .height(200.dp),
+        modifier = modifier.fillMaxWidth().background(LightBlue500).height(200.dp),
     ){
-        Text(
-            text = stringResource(id = R.string.app_name),
-            fontSize = 50.sp,
-            color = Color.White
-        )
+        Text(text = stringResource(id = R.string.app_name), fontSize = 50.sp, color = Color.White)
     }
 }
 
@@ -51,6 +43,7 @@ fun DrawerBody(
     itemTextStyle: TextStyle = TextStyle(fontSize = 18.sp)
 ){
     LazyColumn(modifier){
+
         items(items.size){item->
             Row(
                 modifier = Modifier
@@ -62,13 +55,12 @@ fun DrawerBody(
                     imageVector = items[item].icon,
                     contentDescription = items[item].contentDescription
                 )
+
                 Spacer(modifier = Modifier.width(16.dp))
-                Text(
-                    text = items[item].title,
-                    style = itemTextStyle,
-                    modifier = modifier.weight(1f)
-                )
+
+                Text(text = items[item].title, style = itemTextStyle, modifier = modifier.weight(1f))
             }
         }
+
     }
 }

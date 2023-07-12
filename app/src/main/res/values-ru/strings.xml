@@ -25,4 +25,116 @@
     <string name="dish_list_title">Список блюд</string>
     <string name="graphs_title">Графики</string>
 
+    <string name="edit_current_list">Изменить текущий лист</string>
+    <string name="delete_current_list">Удалить текущий лист</string>
+    <string name="add_new_dish">Добавить новое блюдо</string>
+
+    <string name="navigation_message">Вы уже на этом экране</string>
+    <string name="navigation_transition">Переключение…</string>
+    <string name="unknown_command">Неизвестная команда</string>
+
+    <string name="new_purchase_list_name_title">Введите имя нового списка: </string>
+    <string name="new_purchase_list_name_hint">напр. Покупки 1</string>
+    <string name="add_new_purchase_list">Добавить новый список покупок</string>
+    <string name="button_refresh">Обновить</string>
+    <string name="toggle_drawer">Переключить меню</string>
+
+    <string name="mic_on">Микрофон ВКЛ</string>
+    <string name="mic_off">Микрофон ВЫКЛ</string>
+
+    <string name="export_ingredients">Экспортировать продукты</string>
+    <string name="menu">Меню</string>
+    <string name="export_data_success">Данные экспортированы успешно</string>
+
+    <string name="cal_title">Кал: </string>
+    <string name="cal_hint">напр. 200</string>
+
+    <string name="protein_title">Белки: </string>
+    <string name="protein_hint">напр. 7.1</string>
+
+    <string name="fats_title">Жиры: </string>
+    <string name="fats_hint">напр. 10,5</string>
+
+    <string name="carbs_title">Угл: </string>
+    <string name="carbs_hint">напр. 5.3</string>
+
+    <string name="additional_info">Доп. информация: </string>
+    <string name="price_title">Цена: </string>
+    <string name="price_hint">напр. 10000</string>
+
+    <string name="unit">Юнит: </string>
+
+    <string name="weight_title">Вес: </string>
+    <string name="weight_hint">напр. 10.0</string>
+
+    <string name="name_title">Имя: </string>
+    <string name="name_hint">напр. Картошка</string>
+
+    <string name="new_dish_component">Новый ингредиент</string>
+
+    <string name="kgs">Кг</string>
+    <string name="lbs">Л</string>
+    <string name="pcs">Шт</string>
+    <string name="pkg">П</string>
+
+    <string name="portions_title">Порции: </string>
+    <string name="portions_hint">напр. 1 </string>
+
+    <string name="recipe_title">Имя рецепта: </string>
+    <string name="recipe_hint">напр. Пирог </string>
+
+    <string name="new_recipe">Новый рецепт</string>
+
+    <string name="new_dish_component_title">Введите новое имя ингредиента: </string>
+    <string name="new_dish_component_hint">напр. Картошка </string>
+
+    <string name="currency">%1$d Сум</string>
+    <string name="currency_title">Сум</string>
+    <string name="ingredient_image">Изображение</string>
+
+    <string name="carb_table">Уг: %1$d г</string>
+    <string name="fat_table">Жиры: %1$d г</string>
+    <string name="protein_table">Белки: %1$d г</string>
+    <string name="cal_table">Кал: %1$d г</string>
+
+    <string name="carb_table_alternative">Уг: %1$d кг</string>
+    <string name="fat_table_alternative">Жиры: %1$d кг</string>
+    <string name="protein_table_alternative">Белки: %1$d кг</string>
+    <string name="cal_table_alternative">Кал: %1$d кг</string>
+
+    <string name="plus">+</string>
+    <string name="minus">-</string>
+
+    <string name="add_new_ingredient">Добавить новый ингредиент</string>
+    <string name="delete_recipe">Удалить рецепт</string>
+    <string name="edit_recipe">Изменить рецепт</string>
+    <string name="portions_number"> Порции: %1$d </string>
+    <string name="recipe_image">Изображение рецепта</string>
+
+    <string name="add_new_recipe">Добавить новый рецепт</string>
+
+    <string name="left">Осталось: %1$s %2$s</string>
+    <string name="total">Всего: %1$s %2$s</string>
+
+    <string name="new_purchase_title">Введие новое имя предмета: </string>
+    <string name="new_purchase_hint">напр. Картошка </string>
+
+    <string name="new_purchase">Новый предмет</string>
+
+    <string name="purchase_total">%1$d %2$s</string>
+    <string name="purchase_weight">%1$.2f %2$s</string>
+    <string name="purchase_image">Изображение предмета</string>
+
+    <string name="add_purchase_item">Добавить новый предмет</string>
+
+
+    <string name="home_title_item">Домой</string>
+    <string name="purchase_list_title_item">Список покупок</string>
+    <string name="dishes_list_title_item">Список блюд</string>
+    <string name="graphs_title_item">Графики</string>
+
+    <string name="home_title_item_hint">Перейти на домашний экран</string>
+    <string name="purchase_list_title_item_hint">Перейти на список покупок</string>
+    <string name="dishes_list_title_item_hint">Перейти на список блюд</string>
+    <string name="graphs_title_item_hint">Перейти к графикам</string>
 </resources>

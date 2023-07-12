@@ -65,6 +65,7 @@ fun SmartListApp(
                 onSubmit = dishViewModel::insertDishList,
                 onEdit = dishViewModel::updateDishList,
                 onDelete = dishViewModel::deleteDishList,
+                onRefresh = dishViewModel::getDishLists,
             )
         }
 
@@ -88,6 +89,7 @@ fun SmartListApp(
         ){
             DetailedPurchaseListScreen(
                 purchaseViewModel = purchaseViewModel,
+                homeViewModel = homeViewModel,
                 navController = navController,
                 onSubmit = purchaseViewModel::insertItem,
                 onRefresh = purchaseViewModel::getItemsOfPurchaseList,

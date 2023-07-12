@@ -6,7 +6,7 @@
     <string name="menu_item_toast_default">You pressed on %1$s</string>
 
 
-    <string name="purchase_list">Purchase list</string>
+    <string name="purchase_list">purchase list</string>
     <string name="empty_card_message_1">No lists to display</string>
     <string name="empty_card_message_2">Try to use + button</string>
     <string name="button_cancel">Cancel</string>
@@ -20,4 +20,120 @@
     <string name="purchase_list_title">Purchase list</string>
     <string name="dish_list_title">Dish list</string>
     <string name="graphs_title">Graphs</string>
+
+    <string name="edit_current_list">Edit current list</string>
+    <string name="delete_current_list">Delete current list</string>
+    <string name="add_new_dish">Add new Dish</string>
+
+    <string name="navigation_message">You are already on this screen</string>
+    <string name="navigation_transition">Switching…</string>
+    <string name="unknown_command">Unknown command</string>
+
+    <string name="new_purchase_list_name_title">Enter new list name: </string>
+    <string name="new_purchase_list_name_hint">ex Market list 1</string>
+    <string name="add_new_purchase_list">Add new List</string>
+
+    <string name="button_refresh">Refresh</string>
+    <string name="toggle_drawer">Toggle drawer</string>
+
+    <string name="mic_on">Microphone is ON</string>
+    <string name="mic_off">Microphone is OFF</string>
+
+    <string name="export_ingredients">Export ingredients</string>
+    <string name="menu">Menu</string>
+    <string name="export_data_success">Data exported successfully</string>
+
+    <string name="cal_title">Cal: </string>
+    <string name="cal_hint">ex 200</string>
+
+    <string name="protein_title">Protein: </string>
+    <string name="protein_hint">ex 7.1</string>
+
+    <string name="fats_title">Fats: </string>
+    <string name="fats_hint">ex 10.5</string>
+
+    <string name="carbs_title">Carbs: </string>
+    <string name="carbs_hint">ex 10.5</string>
+
+    <string name="additional_info">Additional info: </string>
+
+    <string name="price_title">Price: </string>
+    <string name="price_hint">ex 10000</string>
+
+    <string name="unit">Unit: </string>
+
+    <string name="weight_title">Weight: </string>
+    <string name="weight_hint">ex 10.0</string>
+
+    <string name="name_title">Name: </string>
+    <string name="name_hint">ex Potato</string>
+
+    <string name="new_dish_component">New ingredient</string>
+
+    <string name="kgs">Kgs</string>
+    <string name="lbs">Lbs</string>
+    <string name="pcs">Pcs</string>
+    <string name="pkg">Pkg</string>
+
+    <string name="portions_title">Portions: </string>
+    <string name="portions_hint">ex 1 </string>
+
+    <string name="recipe_title">Recipe name: </string>
+    <string name="recipe_hint">ex Cake </string>
+
+    <string name="new_recipe">New Recipe</string>
+
+    <string name="new_dish_component_title">Enter new Item name: </string>
+    <string name="new_dish_component_hint">ex Potato </string>
+
+    <string name="currency">%1$d UZS</string>
+    <string name="currency_title">UZS</string>
+    <string name="ingredient_image">image</string>
+
+    <string name="carb_table">Carbs: %1$d g</string>
+    <string name="fat_table">Fat: %1$d g</string>
+    <string name="protein_table">Protein: %1$d g</string>
+    <string name="cal_table">Cal: %1$d g</string>
+
+    <string name="carb_table_alternative">Carbs: %1$d kg</string>
+    <string name="fat_table_alternative">Fat: %1$d kg</string>
+    <string name="protein_table_alternative">Protein: %1$d kg</string>
+    <string name="cal_table_alternative">Cal: %1$d kg</string>
+
+    <string name="plus">+</string>
+    <string name="minus">-</string>
+
+    <string name="add_new_ingredient">Add a new ingredient</string>
+
+    <string name="delete_recipe">Delete recipe</string>
+    <string name="edit_recipe">Edit recipe</string>
+    <string name="portions_number"> Portions: %1$d </string>
+    <string name="recipe_image">Image of recipe</string>
+
+    <string name="add_new_recipe">Add new recipe</string>
+
+    <string name="left">Left: %1$s %2$s</string>
+    <string name="total">Total: %1$s %2$s</string>
+
+    <string name="new_purchase_title">Enter new Item name: </string>
+    <string name="new_purchase_hint">ex Potato </string>
+
+    <string name="new_purchase">New Item</string>
+
+    <string name="purchase_total">%1$d %2$s</string>
+    <string name="purchase_weight">%1$.2f %2$s</string>
+    <string name="purchase_image">Image of item</string>
+
+    <string name="add_purchase_item">Add new Item</string>
+
+    <string name="home_title_item">Home</string>
+    <string name="purchase_list_title_item">Purchase list</string>
+    <string name="dishes_list_title_item">Dishes list</string>
+    <string name="graphs_title_item">Graphs</string>
+
+    <string name="home_title_item_hint">Go to home screen</string>
+    <string name="purchase_list_title_item_hint">Go to Purchase list screen</string>
+    <string name="dishes_list_title_item_hint">Go to Dishes list screen</string>
+    <string name="graphs_title_item_hint">Go to graphs screen</string>
+
 </resources>

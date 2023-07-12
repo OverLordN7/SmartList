@@ -1,9 +1,5 @@
 package com.example.smartlist.ui.screens
 
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
-import android.provider.Settings
 import android.widget.Toast
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
@@ -65,6 +61,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -75,28 +72,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
-import com.example.smartlist.BuildConfig
 import com.example.smartlist.R
 import com.example.smartlist.model.DishComponent
+import com.example.smartlist.model.ListOfMenuItem
 import com.example.smartlist.model.Recipe
 import com.example.smartlist.model.items
 import com.example.smartlist.navigation.Screen
 import com.example.smartlist.ui.menu.DrawerBody
 import com.example.smartlist.ui.menu.DrawerHeader
 import com.example.smartlist.ui.menu.MainAppBar
-import com.example.smartlist.ui.theme.Cal100
 import com.example.smartlist.ui.theme.Cal200
-import com.example.smartlist.ui.theme.Carb100
 import com.example.smartlist.ui.theme.Carb200
 import com.example.smartlist.ui.theme.Fat200
-import com.example.smartlist.ui.theme.Fats100
 import com.example.smartlist.ui.theme.LightBlue200
-import com.example.smartlist.ui.theme.LightBlue300
-import com.example.smartlist.ui.theme.Orange100
-import com.example.smartlist.ui.theme.Protein100
 import com.example.smartlist.ui.theme.Protein200
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.launch
 import java.util.UUID
 
@@ -120,14 +109,16 @@ fun DetailedDishesScreen(
 ){
     val state: RecipeUiState = dishViewModel.recipeUiState
     val showDialog = remember { mutableStateOf(false) }
-
     val menuState = remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     val dishComponentList = dishViewModel.dishComponents.collectAsState(emptyList())
 
+    //Menu drawer items
+    val myItems = ListOfMenuItem(context).getItems()
+
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
-    val context = LocalContext.current
 
     if (showDialog.value){
         NewRecipeDialog(
@@ -145,15 +136,13 @@ fun DetailedDishesScreen(
                 menuState = menuState,
                 retryAction = onRefresh,
                 onExport = onExport,
-                onNavigationIconClick = {
-                    scope.launch { scaffoldState.drawerState.open()
-                    } },
+                onNavigationIconClick = { scope.launch { scaffoldState.drawerState.open() } },
             )
         },
         drawerContent = {
             DrawerHeader()
             DrawerBody(
-                items = items,
+                items = myItems,
                 onItemClick = {
                     when(it.id){
                         "dishList" ->{
@@ -183,13 +172,17 @@ fun DetailedDishesScreen(
         floatingActionButtonPosition = FabPosition.End,
         floatingActionButton = {
             FloatingActionButton(onClick = {showDialog.value = true} ) {
-                Icon(imageVector = Icons.Filled.Add, contentDescription = "add new recipe")
+                Icon(
+                    imageVector = Icons.Filled.Add,
+                    contentDescription = stringResource(id = R.string.add_new_recipe)
+                )
             }
         }
     ) {
         Surface(modifier = modifier
             .padding(it)
             .fillMaxSize()) {
+            
             when(state){
                 is RecipeUiState.Loading ->{}
                 is RecipeUiState.Error ->{}
@@ -223,9 +216,11 @@ fun ResultScreen(
     onEdit: (DishComponent) -> Unit,
 ){
     if (list.isEmpty()){
-        EmptyCard()
+        EmptyDishCard()
         return
-    } else{
+    }
+
+    else{
         LazyColumn {
             items(list.size){id->
                 RecipeCard(
@@ -248,12 +243,15 @@ fun ResultScreen(
 }
 
 @Composable
-fun EmptyCard(modifier: Modifier = Modifier){
+fun EmptyDishCard(modifier: Modifier = Modifier){
     Box(
         contentAlignment = Alignment.Center,
-        modifier = Modifier.fillMaxSize()
+        modifier = modifier.fillMaxSize()
     ){
-        Text(text = "No items to display :( \n Try to use + button")
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(text =  stringResource(id = R.string.empty_card_message_1))
+            Text(text =  stringResource(id = R.string.empty_card_message_2))
+        }
     }
 }
 
@@ -273,6 +271,7 @@ fun RecipeCard(
     val isExpanded = remember { mutableStateOf(false) }
     val showDishComponents = remember { mutableStateOf(false) }
     val showCalTable = remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     Card(
         elevation = 4.dp,
@@ -287,23 +286,23 @@ fun RecipeCard(
             }
     ) {
         Column(
-            modifier = Modifier
-                .animateContentSize(
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioNoBouncy,
-                        stiffness = Spring.StiffnessMedium
-                    )
-                ),
+            modifier = Modifier.animateContentSize(
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioNoBouncy,
+                    stiffness = Spring.StiffnessMedium
+                )
+            ),
+        ) {
 
-            ) {
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row {
+
                     Image(
                         painter = painterResource(id = R.drawable.pasta1),
-                        contentDescription = "Image of recipe",
+                        contentDescription = stringResource(id = R.string.recipe_image),
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .size(64.dp)
@@ -321,7 +320,8 @@ fun RecipeCard(
                             fontSize = 17.sp,
                             color = Color.Black
                         )
-                        Text(text = "Portions: ${recipe.portions}")
+
+                        Text(text = context.getString(R.string.portions_number,recipe.portions))
                     }
                 }
 
@@ -330,11 +330,19 @@ fun RecipeCard(
                     horizontalArrangement = Arrangement.End,
                     modifier = Modifier.weight(1f)
                 ) {
+
                     IconButton(onClick = { isExpanded.value = !isExpanded.value }) {
-                        Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit recipe")
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = stringResource(id = R.string.edit_recipe)
+                        )
                     }
-                    IconButton(onClick = {onDelete(recipe)} ) {
-                        Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete recipe")
+
+                    IconButton(onClick = { onDelete(recipe) }) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = stringResource(id = R.string.delete_recipe)
+                        )
                     }
                 }
             }
@@ -355,11 +363,54 @@ fun RecipeCard(
                     cal += it.cal
                 }
 
+                var isCarbsGreaterThan1k = false
+                var isFatsGreaterThan1k = false
+                var isProteinGreaterThan1k = false
+                var isCalGreaterThan1k = false
+
+
+                val normalizedCarbs = if ((carbs * recipe.portions)>1000f){
+                    isCarbsGreaterThan1k = true
+                    (carbs * recipe.portions)/1000f
+                } else{
+                    isCarbsGreaterThan1k = false
+                    carbs * recipe.portions
+                }
+
+                val normalizedFat = if ((fat * recipe.portions)>1000f){
+                    isFatsGreaterThan1k = true
+                    (fat * recipe.portions)/1000f
+                } else{
+                    isFatsGreaterThan1k = false
+                    fat * recipe.portions
+                }
+
+                val normalizedProtein = if ((protein * recipe.portions)>1000f){
+                    isProteinGreaterThan1k = true
+                    (protein * recipe.portions)/1000f
+                } else{
+                    isProteinGreaterThan1k = false
+                    protein * recipe.portions
+                }
+
+                val normalizedCal = if ((cal * recipe.portions)>1000f){
+                    isCalGreaterThan1k= true
+                    (cal * recipe.portions)/1000f
+                } else{
+                    isCalGreaterThan1k = false
+                    cal * recipe.portions
+                }
+
+
                 RecipeCardCalTable(
-                    carbs = carbs * recipe.portions,
-                    fat = fat * recipe.portions,
-                    protein = protein * recipe.portions,
-                    cal = cal * recipe.portions
+                    carbs = normalizedCarbs,
+                    fat = normalizedFat,
+                    protein = normalizedProtein,
+                    cal = normalizedCal,
+                    isCarbsGreaterThan1k = isCarbsGreaterThan1k,
+                    isFatsGreaterThan1k = isFatsGreaterThan1k,
+                    isProteinGreaterThan1k = isProteinGreaterThan1k,
+                    isCalGreaterThan1k = isCalGreaterThan1k,
                 )
             }
 
@@ -402,40 +453,33 @@ fun RecipeCardList(
     }
 
 
-    Card(
-        backgroundColor = LightBlue200,
-        modifier = modifier
-            .fillMaxWidth()
-            .height(height.dp)
-    ) {
-        LazyColumn{
+    Card(backgroundColor = LightBlue200, modifier = modifier
+        .fillMaxWidth()
+        .height(height.dp)) {
 
+        LazyColumn{
             item {
                 val stroke = Stroke(
                     width = 2f,
-                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f,10f),0f))
+                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f,10f),0f)
+                )
 
                 Box(
+                    contentAlignment = Alignment.Center,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(60.dp)
                         .padding(start = 8.dp, end = 8.dp, bottom = 4.dp, top = 16.dp)
                         .drawBehind { drawRoundRect(color = Color.DarkGray, style = stroke) }
                         .clickable { showDialog.value = !showDialog.value },
-                    contentAlignment = Alignment.Center
                 ) {
-                    Text(text = "Add a new ingredient", textAlign = TextAlign.Center)
+                    Text(text = stringResource(id = R.string.add_new_ingredient), textAlign = TextAlign.Center)
                 }
 
             }
 
             items(dishComponentList.size){
-
-                DishComponentCard(
-                    component = dishComponentList[it],
-                    onEdit = onEdit,
-                    onDelete = deleteDishComponent,
-                )
+                DishComponentCard(component = dishComponentList[it], onEdit = onEdit, onDelete = deleteDishComponent,)
             }
         }
 
@@ -464,16 +508,16 @@ fun RecipeCardEditScreen(
             OutlinedTextField(
                 value = nameField,
                 onValueChange = {nameField = it},
-                placeholder = {Text(text = "ex Peperoni")},
-                modifier = Modifier.padding(4.dp),
+                placeholder = {Text(text = stringResource(id = R.string.recipe_hint))},
                 label = {
                     Text(
-                        text = "Enter new name: ",
+                        text = stringResource(id = R.string.recipe_title),
                         color = Color.Black,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                     )
                 },
+                modifier = Modifier.padding(4.dp),
             )
         }
 
@@ -485,46 +529,49 @@ fun RecipeCardEditScreen(
         ) {
             Row(modifier = Modifier.weight(1f)) {
 
-                OutlinedButton(
-                    onClick = { if (portionsField != 0) portionsField-- },
-                    modifier = Modifier.size(40.dp)
-                ) {
-                    Text(text = "-")
+                OutlinedButton(onClick = { if (portionsField != 0) portionsField-- },modifier = Modifier.size(40.dp)) {
+                    Text(text = stringResource(id = R.string.minus))
                 }
 
                 Text(text = "$portionsField", modifier = Modifier.padding(8.dp) )
 
-                OutlinedButton(
-                    onClick = { portionsField++ },
-                    modifier = Modifier.size(40.dp)
-                ) {
-                    Text(text = "+")
+                OutlinedButton(onClick = { portionsField++ }, modifier = Modifier.size(40.dp)) {
+                    Text(text = stringResource(id = R.string.plus))
                 }
             }
 
             Spacer(modifier = Modifier.weight(1f))
 
             Row(modifier = Modifier.weight(1f)) {
-                IconButton(onClick = {
-                    if(nameField.text.isBlank() || portionsField <=0){
-                        errorMessage = true
-                    }
-                    else{
-                        val newRecipe = Recipe(
-                            id = recipe.id,
-                            name = nameField.text,
-                            listId = recipe.listId,
-                            portions = portionsField
-                        )
+                IconButton(
+                    onClick = {
+                        if(nameField.text.isBlank() || portionsField <=0){
+                            errorMessage = true
+                        }
+                        else{
+                            val newRecipe = Recipe(
+                                id = recipe.id,
+                                name = nameField.text,
+                                listId = recipe.listId,
+                                portions = portionsField
+                            )
 
-                        isExpanded.value = false
-                        onSubmit(newRecipe)
+                            isExpanded.value = false
+                            onSubmit(newRecipe)
+                        }
                     }
-                }) {
-                    Icon(imageVector = Icons.Default.Check, contentDescription = "Submit changes")
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = stringResource(id = R.string.button_confirm)
+                    )
                 }
+
                 IconButton(onClick = { isExpanded.value = false }) {
-                    Icon(imageVector = Icons.Default.Cancel, contentDescription = "Cancel")
+                    Icon(
+                        imageVector = Icons.Default.Cancel,
+                        contentDescription = stringResource(id = R.string.button_cancel)
+                    )
                 }
             }
         }
@@ -532,7 +579,7 @@ fun RecipeCardEditScreen(
         Row {
             if (errorMessage){
                 Text(
-                    text = "*Sure that you fill all fields, if message still remains, check symbols",
+                    text = stringResource(id = R.string.error_message),
                     color = Color.Red,
                     modifier = Modifier.padding(start = 12.dp)
                 )
@@ -549,27 +596,51 @@ fun RecipeCardCalTable(
     fat: Float,
     protein: Float,
     cal: Float,
+    isCarbsGreaterThan1k:Boolean,
+    isFatsGreaterThan1k:Boolean,
+    isProteinGreaterThan1k:Boolean,
+    isCalGreaterThan1k:Boolean,
     modifier: Modifier = Modifier
 ){
-    Card(
-        elevation = 4.dp,
-        modifier = modifier
-            .fillMaxWidth()
-            .height(50.dp)
-            .padding(8.dp)
-    ) {
+    val context = LocalContext.current
+
+    Card(elevation = 4.dp, modifier = modifier
+        .fillMaxWidth()
+        .height(50.dp)
+        .padding(8.dp)) {
+
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceAround
         ) {
-            //Carbohydrates - Углеводы
-            Text(text = "Carb: ${carbs.toInt()} g", color = Carb200)
-            // Fat - Жиры
-            Text(text = "Fat: ${fat.toInt()} g", color = Fat200)
-            // Protein - Белки
-            Text(text = " Protein: ${protein.toInt()} g", color = Protein200)
-            //Calories - Калории
-            Text(text = " Ccal: ${cal.toInt()} ", color = Cal200)
+
+            //Carbohydrates
+            if(isCarbsGreaterThan1k){
+                Text(text = context.getString(R.string.carb_table_alternative,carbs.toInt()),color = Carb200)
+            } else{
+                Text(text = context.getString(R.string.carb_table,carbs.toInt()), color = Carb200)
+            }
+
+            // Fat
+            if (isFatsGreaterThan1k){
+                Text(text = context.getString(R.string.fat_table_alternative,fat.toInt()),color = Fat200)
+            } else{
+                Text(text = context.getString(R.string.fat_table,fat.toInt()), color = Fat200)
+            }
+
+            // Protein
+            if (isProteinGreaterThan1k){
+                Text(text = context.getString(R.string.protein_table_alternative,protein.toInt()),color = Protein200)
+            } else{
+                Text(text = context.getString(R.string.protein_table,protein.toInt()), color = Protein200)
+            }
+
+            //Calories
+            if(isCalGreaterThan1k){
+                Text(text = context.getString(R.string.cal_table_alternative,cal.toInt()),color = Cal200)
+            } else{
+                Text(text = context.getString(R.string.cal_table,cal.toInt()), color = Cal200)
+            }
 
         }
     }
@@ -585,14 +656,11 @@ fun DishComponentCard(
     val context = LocalContext.current
     val isExpanded = remember { mutableStateOf(false) }
 
-    Card(
-        elevation = 4.dp,
-        modifier = modifier
-            .padding(8.dp)
-            .fillMaxWidth()
-
-    ) {
+    Card(elevation = 4.dp, modifier = modifier
+        .padding(8.dp)
+        .fillMaxWidth()) {
         Column {
+
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Start,
@@ -601,7 +669,7 @@ fun DishComponentCard(
 
                 Image(
                     painter = painterResource(id = R.drawable.circle),
-                    contentDescription = "product picture",
+                    contentDescription = stringResource(id = R.string.ingredient_image),
                     modifier = Modifier
                         .weight(2f)
                         .padding(start = 4.dp, end = 4.dp)
@@ -614,11 +682,13 @@ fun DishComponentCard(
                         .weight(8f)
                         .padding(top = 4.dp)
                 ) {
+
                     Text(
                         text = component.name,
                         fontSize = 20.sp,
                         color = Color.Black
                     )
+
                     Row(horizontalArrangement = Arrangement.SpaceAround){
                         Text(
                             text = "${component.weight} ${component.weightType}",
@@ -630,7 +700,7 @@ fun DishComponentCard(
                         )
 
                         Text(
-                            text = "${component.total.toInt()} UZS",
+                            text = context.getString(R.string.currency,component.total.toInt()),
                             fontSize = 16.sp,
                             color = Color.Gray,
                             modifier = modifier
@@ -642,18 +712,20 @@ fun DishComponentCard(
 
                 Spacer(modifier = modifier.weight(1f))
 
-                Column(modifier = Modifier
-                    .weight(4f)
-                ) {
+                Column(modifier = Modifier.weight(4f)) {
+
                     Row {
+
                         IconButton(onClick = { isExpanded.value = !isExpanded.value }) {
-                            Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit current list")
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = stringResource(id = R.string.edit_current_list))
                         }
-                        IconButton(onClick = {
-                            Toast.makeText(context,"Deleting item...", Toast.LENGTH_SHORT).show()
-                            onDelete(component.id)
-                        }) {
-                            Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete current list")
+
+                        IconButton(onClick = { onDelete(component.id) }) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = stringResource(id = R.string.delete_current_list))
                         }
                     }
                 }
@@ -665,11 +737,7 @@ fun DishComponentCard(
             ) {
 
                 if (isExpanded.value){
-                    DishComponentEditScreen(
-                        dishComponent = component,
-                        isExpanded = isExpanded,
-                        onSubmit = onEdit
-                    )
+                    DishComponentEditScreen(dishComponent = component, isExpanded = isExpanded, onSubmit = onEdit)
                 }
             }
 
@@ -689,12 +757,15 @@ fun DishComponentEditScreen(
     var fieldValue by remember{ mutableStateOf(TextFieldValue(dishComponent.name)) }
     var weight by remember { mutableStateOf(TextFieldValue(dishComponent.weight.toString())) }
     var price by remember { mutableStateOf(TextFieldValue(dishComponent.price.toString())) }
-    var totalPrice : Float = dishComponent.weight * dishComponent.price
     var errorMessage by remember { mutableStateOf(false) }
 
-
     //values for DropDownMenu
-    val options = listOf("kgs","lbs","pcs","pkg")
+    val options = listOf(
+        stringResource(id = R.string.kgs),
+        stringResource(id = R.string.lbs),
+        stringResource(id = R.string.pcs),
+        stringResource(id = R.string.pkg)
+    )
     var expanded by remember { mutableStateOf(false) }
     var selectedOptionText by remember { mutableStateOf(options[0]) }
 
@@ -712,13 +783,10 @@ fun DishComponentEditScreen(
             OutlinedTextField(
                 value = fieldValue,
                 onValueChange = {fieldValue = it},
-                placeholder = {Text(text = "ex Potato")},
-                modifier = Modifier
-                    .padding(4.dp)
-                    .weight(0.6f),
+                placeholder = {Text(text = stringResource(id = R.string.new_dish_component_hint))},
                 label = {
                     Text(
-                        text = "Enter new Item name: ",
+                        text = stringResource(id = R.string.new_dish_component_title),
                         color = Color.Black,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
@@ -729,18 +797,18 @@ fun DishComponentEditScreen(
                     keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Next
                 ),
+                modifier = Modifier
+                    .padding(4.dp)
+                    .weight(0.6f),
             )
 
             OutlinedTextField(
                 value = weight,
                 onValueChange = {weight = it},
-                placeholder = {Text(text = "ex 10.0")},
-                modifier = Modifier
-                    .padding(4.dp)
-                    .weight(0.5f),
+                placeholder = {Text(text = stringResource(id = R.string.weight_hint))},
                 label = {
                     Text(
-                        text = "Weight: ",
+                        text = stringResource(id = R.string.weight_title),
                         color = Color.Black,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
@@ -750,6 +818,9 @@ fun DishComponentEditScreen(
                     keyboardType = KeyboardType.Decimal,
                     imeAction = ImeAction.Next
                 ),
+                modifier = Modifier
+                    .padding(4.dp)
+                    .weight(0.5f),
             )
 
             ExposedDropdownMenuBox(
@@ -757,15 +828,13 @@ fun DishComponentEditScreen(
                 onExpandedChange = { expanded = !expanded},
                 modifier = Modifier.weight(0.5f)
             ) {
+
                 OutlinedTextField(
                     readOnly = true,
                     value = selectedOptionText,
                     onValueChange = { },
-                    label = { Text("Unit", color = Color.Black)},
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-                    },
-                    //colors =  ExposedDropdownMenuDefaults.textFieldColors()
+                    label = { Text(stringResource(id = R.string.unit), color = Color.Black)},
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                 )
 
                 ExposedDropdownMenu(
@@ -784,19 +853,17 @@ fun DishComponentEditScreen(
                     }
                 }
             }
-
         }
+
         Row(horizontalArrangement = Arrangement.Center) {
+
             OutlinedTextField(
                 value = price,
                 onValueChange = {price = it},
-                placeholder = {Text(text = "ex 10000")},
-                modifier = Modifier
-                    .padding(4.dp)
-                    .weight(1f),
+                placeholder = {Text(text = stringResource(id = R.string.price_hint))},
                 label = {
                     Text(
-                        text = "Price: ",
+                        text = stringResource(id = R.string.price_title),
                         color = Color.Black,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
@@ -806,6 +873,9 @@ fun DishComponentEditScreen(
                     keyboardType = KeyboardType.Decimal,
                     imeAction = ImeAction.Done
                 ),
+                modifier = Modifier
+                    .padding(4.dp)
+                    .weight(1f),
             )
 
             //Plug for good view
@@ -817,7 +887,6 @@ fun DishComponentEditScreen(
             Spacer(modifier = Modifier.weight(5f))
 
             IconButton(
-                modifier = Modifier.weight(1f),
                 onClick = {
                     if(fieldValue.text.isBlank() || weight.text.isBlank() || price.text.isBlank()){
                         errorMessage = true
@@ -834,20 +903,25 @@ fun DishComponentEditScreen(
                         isExpanded.value = false
                         onSubmit(temp)
                     }
-                }
-            ) {
-                Icon(imageVector = Icons.Default.Check, contentDescription = "check")
-            }
-            IconButton(
+                },
                 modifier = Modifier.weight(1f),
-                onClick = { isExpanded.value = false }
             ) {
-                Icon(imageVector = Icons.Default.Cancel, contentDescription = "cancel")
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = stringResource(id = R.string.button_confirm)
+                )
+            }
+
+            IconButton(onClick = { isExpanded.value = false }, modifier = Modifier.weight(1f)) {
+                Icon(
+                    imageVector = Icons.Default.Cancel,
+                    contentDescription = stringResource(id = R.string.button_cancel)
+                )
             }
         }
         if (errorMessage){
             Text(
-                text = "*Sure that you fill all fields, if message still remains, check symbols",
+                text = stringResource(id = R.string.error_message),
                 color = Color.Red,
                 modifier = Modifier.padding(start = 12.dp)
             )
@@ -872,10 +946,9 @@ fun NewRecipeDialog(
 
 
     Dialog(onDismissRequest = {setShowDialog(false)}) {
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = Color.White,
-        ) {
+
+        Surface(shape = RoundedCornerShape(16.dp), color = Color.White) {
+
             LazyColumn(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.Start,
@@ -883,7 +956,6 @@ fun NewRecipeDialog(
                     .fillMaxWidth()
                     .padding(8.dp)
             ){
-
                 //Header
                 item{
                     Box(
@@ -893,7 +965,7 @@ fun NewRecipeDialog(
                             .padding(bottom = 4.dp)
                     ) {
                         Text(
-                            text = "New Recipe",
+                            text = stringResource(id = R.string.new_recipe),
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.Black
@@ -908,7 +980,7 @@ fun NewRecipeDialog(
                         horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
                         Text(
-                            text = "Recipe name: ",
+                            text = stringResource(id = R.string.recipe_title),
                             fontSize = 16.sp,
                             color = Color.Black,
                             modifier = Modifier.weight(1f)
@@ -917,7 +989,7 @@ fun NewRecipeDialog(
                         OutlinedTextField(
                             value = nameField,
                             onValueChange = { nameField = it},
-                            placeholder = { Text(text = "ex Cake") },
+                            placeholder = { Text(text = stringResource(id = R.string.recipe_hint)) },
                             keyboardOptions = KeyboardOptions(
                                 keyboardType = KeyboardType.Text,
                                 autoCorrect = true,
@@ -930,11 +1002,9 @@ fun NewRecipeDialog(
                 }
 
                 //Plug for space
-                item {
-                    Spacer(modifier = Modifier
-                        .fillMaxWidth()
-                        .height(20.dp))
-                }
+                item { Spacer(modifier = Modifier
+                    .fillMaxWidth()
+                    .height(20.dp)) }
 
                 //Portions
                 item {
@@ -943,15 +1013,16 @@ fun NewRecipeDialog(
                         horizontalArrangement = Arrangement.SpaceBetween,
                     ){
                         Text(
-                            text = "Portions: ",
+                            text = stringResource(id = R.string.portions_title),
                             fontSize = 16.sp,
                             color = Color.Black,
                             modifier = Modifier.weight(1f)
                         )
+
                         OutlinedTextField(
                             value = portionsField,
                             onValueChange = { portionsField = it},
-                            placeholder = { Text(text = "ex 1") },
+                            placeholder = { Text(text = stringResource(id = R.string.portions_hint)) },
                             keyboardOptions = KeyboardOptions(
                                 keyboardType = KeyboardType.Number,
                                 imeAction = ImeAction.Done,
@@ -964,11 +1035,9 @@ fun NewRecipeDialog(
                 //Error message
                 item{
                     if (errorFieldStatus){
-                        Text(
-                            text = "*Sure that you fill all fields, if message still remains, check symbols",
-                            color = Color.Red,
-                        )
-                    }else{
+                        Text(text = stringResource(id = R.string.error_message), color = Color.Red)
+                    }
+                    else{
                         Spacer(modifier = Modifier.height(35.dp))
                     }
                 }
@@ -979,17 +1048,14 @@ fun NewRecipeDialog(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceAround,
                     ) {
-                        Button(
-                            modifier = Modifier.weight(1f),
-                            onClick = { setShowDialog(false) }
-                        ) {
-                            Text(text = "Cancel")
+
+                        Button(onClick = { setShowDialog(false) }, modifier = Modifier.weight(1f)) {
+                            Text(text = stringResource(id = R.string.button_cancel))
                         }
                         
                         Spacer(modifier = Modifier.weight(0.5f))
 
                         Button(
-                            modifier = Modifier.weight(1f),
                             onClick = {
                                 //Check if all fields are not null
                                 if (nameField.text.isBlank() || portionsField.text.isBlank()){
@@ -1005,9 +1071,10 @@ fun NewRecipeDialog(
                                     onConfirm(newRecipe)
                                     setShowDialog(false)
                                 }
-                            }
+                            },
+                            modifier = Modifier.weight(1f),
                         ) {
-                            Text(text = "Confirm")
+                            Text(text = stringResource(id = R.string.button_confirm))
                         }
                     }
                 }
@@ -1030,7 +1097,12 @@ fun NewDishComponentDialog(
     var price by remember { mutableStateOf(TextFieldValue("")) }
 
     //values for DropDownMenu
-    val options = listOf("kgs","lbs","pcs","pkg")
+    val options = listOf(
+        stringResource(id = R.string.kgs),
+        stringResource(id = R.string.lbs),
+        stringResource(id = R.string.pcs),
+        stringResource(id = R.string.pkg)
+    )
     var expanded by remember { mutableStateOf(false) }
     var selectedOptionText by remember { mutableStateOf(options[0]) }
 
@@ -1051,13 +1123,11 @@ fun NewDishComponentDialog(
                 horizontalAlignment = Alignment.Start,
                 modifier = modifier.padding(8.dp)
             ) {
+
                 //Header of dialog
                 item{
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(text = "New DishComponent", color = Color.Black, fontSize = 28.sp)
+                    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
+                        Text(text = stringResource(id = R.string.new_dish_component), color = Color.Black, fontSize = 28.sp)
                     }
                 }
 
@@ -1069,14 +1139,15 @@ fun NewDishComponentDialog(
                         modifier = Modifier.padding(4.dp)
                     ){
                         Text(
-                            text = "Name: ",
+                            text = stringResource(id = R.string.name_title),
                             fontSize = 16.sp,
                             modifier = Modifier.weight(1f)
                         )
+
                         OutlinedTextField(
                             value = name,
                             onValueChange = {name = it},
-                            placeholder = {Text(text = "ex Potato")},
+                            placeholder = {Text(text = stringResource(id = R.string.name_hint))},
                             singleLine = true,
                             keyboardOptions = KeyboardOptions.Default.copy(
                                 capitalization = KeyboardCapitalization.Sentences,
@@ -1095,14 +1166,15 @@ fun NewDishComponentDialog(
                         modifier = Modifier.padding(4.dp)
                     ) {
                         Text(
-                            text = "Weight: ",
+                            text = stringResource(id = R.string.weight_title),
                             fontSize = 16.sp,
                             modifier = Modifier.weight(1f)
                         )
+
                         OutlinedTextField(
                             value = weight,
                             onValueChange = {weight = it},
-                            placeholder = {Text(text = "ex 10.0")},
+                            placeholder = {Text(text = stringResource(id = R.string.weight_hint))},
                             keyboardOptions = KeyboardOptions.Default.copy(
                                 keyboardType = KeyboardType.Decimal,
                                 imeAction = ImeAction.Next
@@ -1117,24 +1189,23 @@ fun NewDishComponentDialog(
                         modifier = Modifier.padding(4.dp)
                     ){
                         Text(
-                            text = "Unit: ",
+                            text = stringResource(id = R.string.unit),
                             fontSize = 16.sp,
                             modifier = Modifier.weight(1f)
                         )
+
                         ExposedDropdownMenuBox(
                             expanded = expanded,
                             onExpandedChange = { expanded = !expanded},
                             modifier = Modifier.weight(2f)
                         ) {
+
                             OutlinedTextField(
                                 readOnly = true,
                                 value = selectedOptionText,
                                 onValueChange = { },
-                                label = { Text("Unit", color = Color.Black)},
-                                trailingIcon = {
-                                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-                                },
-                                //colors =  ExposedDropdownMenuDefaults.textFieldColors()
+                                label = { Text(stringResource(id = R.string.unit), color = Color.Black)},
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                             )
 
                             ExposedDropdownMenu(
@@ -1161,7 +1232,7 @@ fun NewDishComponentDialog(
                         modifier = Modifier.padding(4.dp)
                     ){
                         Text(
-                            text = "Price: ",
+                            text = stringResource(id = R.string.price_title),
                             fontSize = 16.sp,
                             modifier = Modifier.weight(1f)
                         )
@@ -1169,7 +1240,7 @@ fun NewDishComponentDialog(
                         OutlinedTextField(
                             value = price,
                             onValueChange = {price = it},
-                            placeholder = {Text(text = "ex 10000")},
+                            placeholder = {Text(text = stringResource(id = R.string.price_hint))},
                             keyboardOptions = KeyboardOptions.Default.copy(
                                 keyboardType = KeyboardType.Decimal,
                                 imeAction = ImeAction.Done
@@ -1187,7 +1258,7 @@ fun NewDishComponentDialog(
                         modifier = Modifier.padding(4.dp)
                     ) {
                         Text(
-                            text = "Additional info: ",
+                            text = stringResource(id = R.string.additional_info),
                             fontSize = 16.sp,
                             modifier = Modifier.weight(1f)
                         )
@@ -1208,23 +1279,23 @@ fun NewDishComponentDialog(
                             modifier = Modifier.padding(4.dp)
                         ){
                             Text(
-                                text = "Carbs: ",
+                                text = stringResource(id = R.string.carbs_title),
                                 fontSize = 16.sp,
                                 color = if(switchState) Color.Black else Color.Gray,
                                 modifier = Modifier.weight(1f)
                             )
+
                             OutlinedTextField(
                                 value = carbs,
                                 onValueChange = {carbs = it},
-                                placeholder = {Text(text = "ex 5.3")},
+                                placeholder = {Text(text = stringResource(id = R.string.carbs_hint))},
                                 keyboardOptions = KeyboardOptions.Default.copy(
                                     keyboardType = KeyboardType.Decimal,
                                     imeAction = ImeAction.Next
                                 ),
                                 enabled = switchState,
                                 modifier = Modifier.weight(2f),
-
-                                )
+                            )
                         }
 
                         Row(
@@ -1233,23 +1304,23 @@ fun NewDishComponentDialog(
                             modifier = Modifier.padding(4.dp)
                         ){
                             Text(
-                                text = "Fats: ",
+                                text = stringResource(id = R.string.fats_title),
                                 fontSize = 16.sp,
                                 color = if(switchState) Color.Black else Color.Gray,
                                 modifier = Modifier.weight(1f)
                             )
+
                             OutlinedTextField(
                                 value = fats,
                                 onValueChange = {fats = it},
-                                placeholder = {Text(text = "ex 10.5")},
+                                placeholder = {Text(text = stringResource(id = R.string.fats_hint))},
                                 keyboardOptions = KeyboardOptions.Default.copy(
                                     keyboardType = KeyboardType.Decimal,
                                     imeAction = ImeAction.Next
                                 ),
                                 enabled = switchState,
                                 modifier = Modifier.weight(2f),
-
-                                )
+                            )
                         }
 
                         Row(
@@ -1258,23 +1329,23 @@ fun NewDishComponentDialog(
                             modifier = Modifier.padding(4.dp)
                         ){
                             Text(
-                                text = "Protein: ",
+                                text = stringResource(id = R.string.protein_title),
                                 fontSize = 16.sp,
                                 color = if(switchState) Color.Black else Color.Gray,
                                 modifier = Modifier.weight(1f)
                             )
+
                             OutlinedTextField(
                                 value = protein,
                                 onValueChange = {protein = it},
-                                placeholder = {Text(text = "ex 7.1")},
+                                placeholder = {Text(text = stringResource(id = R.string.protein_hint))},
                                 keyboardOptions = KeyboardOptions.Default.copy(
                                     keyboardType = KeyboardType.Decimal,
                                     imeAction = ImeAction.Next
                                 ),
                                 enabled = switchState,
                                 modifier = Modifier.weight(2f),
-
-                                )
+                            )
                         }
 
                         Row(
@@ -1282,24 +1353,25 @@ fun NewDishComponentDialog(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             modifier = Modifier.padding(4.dp)
                         ){
+
                             Text(
-                                text = "Cals: ",
+                                text = stringResource(id = R.string.cal_title),
                                 fontSize = 16.sp,
                                 color = if(switchState) Color.Black else Color.Gray,
                                 modifier = Modifier.weight(1f)
                             )
+
                             OutlinedTextField(
                                 value = cal,
                                 onValueChange = {cal = it},
-                                placeholder = {Text(text = "ex 200")},
+                                placeholder = {Text(text = stringResource(id = R.string.cal_hint))},
                                 keyboardOptions = KeyboardOptions.Default.copy(
                                     keyboardType = KeyboardType.Decimal,
                                     imeAction = ImeAction.Done
                                 ),
                                 enabled = switchState,
                                 modifier = Modifier.weight(2f),
-
-                                )
+                            )
                         }
                     }
                 }
@@ -1313,10 +1385,11 @@ fun NewDishComponentDialog(
                     ){
                         if (error){
                             Text(
-                                text = "*Sure that you fill all fields, if message still remains, check symbols",
+                                text = stringResource(id = R.string.error_message),
                                 color = Color.Red,
                                 modifier = Modifier.padding(start = 12.dp)
                             )
+
                         } else{
                             Spacer(modifier = Modifier.height(30.dp))
                         }
@@ -1330,13 +1403,10 @@ fun NewDishComponentDialog(
                         horizontalArrangement = Arrangement.SpaceAround
                     ){
 
-                        Button(
-                            onClick = { setShowDialog(false)},
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(4.dp),
-                        ) {
-                            Text(text = "Cancel")
+                        Button(onClick = { setShowDialog(false)}, modifier = Modifier
+                            .weight(1f)
+                            .padding(4.dp),) {
+                            Text(text = stringResource(id = R.string.button_cancel))
                         }
 
                         Button(
@@ -1393,8 +1463,7 @@ fun NewDishComponentDialog(
                             modifier = Modifier
                                 .weight(1f)
                                 .padding(4.dp),
-
-                            ) { Text(text = "Confirm") }
+                            ) { Text(text = stringResource(id = R.string.button_confirm)) }
                     }
                 }
             }

@@ -137,4 +137,7 @@
     <string name="purchase_list_title_item_hint">Перейти на список покупок</string>
     <string name="dishes_list_title_item_hint">Перейти на список блюд</string>
     <string name="graphs_title_item_hint">Перейти к графикам</string>
+
+    <string name="settings">Настройки</string>
+    <string name="go_to_settings_screen">Перейти к настройкам</string>
 </resources>

@@ -1,5 +1,6 @@
 package com.example.smartlist.ui.screens
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
@@ -45,6 +46,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -74,6 +76,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.example.smartlist.R
 import com.example.smartlist.model.DishComponent
+import com.example.smartlist.model.DishList
 import com.example.smartlist.model.ListOfMenuItem
 import com.example.smartlist.model.Recipe
 import com.example.smartlist.model.items
@@ -87,6 +90,8 @@ import com.example.smartlist.ui.theme.Fat200
 import com.example.smartlist.ui.theme.LightBlue200
 import com.example.smartlist.ui.theme.Protein200
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.util.Locale
 import java.util.UUID
 
 
@@ -95,6 +100,7 @@ private const val TAG = "DetailedDishesScreen"
 @Composable
 fun DetailedDishesScreen(
     dishViewModel: DishViewModel,
+    homeViewModel: HomeViewModel,
     navController: NavController,
     onDelete: (Recipe) -> Unit,
     onSubmit: (Recipe) -> Unit,
@@ -120,6 +126,20 @@ fun DetailedDishesScreen(
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
 
+    //Voice attributes
+    val voiceState by homeViewModel.voiceToTextParser.state.collectAsState()
+    val voiceCommand by homeViewModel.voiceCommand.collectAsState()
+
+    //Navigation attributes
+    val navigationMessage = stringResource(id = R.string.navigation_message)
+    val navigationTransition = stringResource(id = R.string.navigation_transition)
+    val unknownVoiceCommandMessage = stringResource(id = R.string.unknown_command)
+
+    //When switch to different screen, refresh command
+    LaunchedEffect(navController.currentBackStackEntry){
+        homeViewModel.clearVoiceCommand()
+    }
+
     if (showDialog.value){
         NewRecipeDialog(
             setShowDialog = {showDialog.value = it},
@@ -128,15 +148,58 @@ fun DetailedDishesScreen(
         )
     }
 
+    //Process voice command
+    voiceCommand?.let { command->
+        val parts = command.text.split(" ")
+
+        if (parts.size>=3 && parts[0] == "создай" && parts[1] == "новый" && parts[2] == "рецепт"){
+
+            try {
+                Log.d(TAG, "id: ${dishViewModel.currentListId}")
+                val newRecipeName: String = parts[3]
+                Log.d(TAG, "name: $newRecipeName")
+                val newRecipePortions: Int = convertStringToNumber(parts.subList(5,parts.size).joinToString(""))
+                Log.d(TAG, "portions: $newRecipePortions")
+                val newRecipe = Recipe(
+                    listId = dishViewModel.currentListId,
+                    name = newRecipeName,
+                    portions = newRecipePortions
+                )
+                addNewRecipe(newRecipe)
+                homeViewModel.clearVoiceCommand()
+
+            } catch (e: Exception){
+                Toast.makeText(context,unknownVoiceCommandMessage, Toast.LENGTH_SHORT).show()
+                Log.d(TAG, "error: $e")
+
+            }
+        }
+
+        else{
+            when(command.text){
+                "список блюд"->{ Toast.makeText(context,navigationTransition, Toast.LENGTH_SHORT).show()}
+                "список покупок"->{ navController.navigate(Screen.PurchasesScreen.route)}
+                "графики"->{navController.navigate(Screen.GraphScreen.route)}
+                "домашняя страница"->{navController.navigate(Screen.HomeScreen.route)}
+                else->{Toast.makeText(context,unknownVoiceCommandMessage, Toast.LENGTH_SHORT).show()}
+            }
+        }
+    }
+
     Scaffold(
         scaffoldState = scaffoldState,
         topBar = {
             MainAppBar(
                 name = dishViewModel.currentName,
                 menuState = menuState,
+                state = voiceState,
                 retryAction = onRefresh,
                 onExport = onExport,
                 onNavigationIconClick = { scope.launch { scaffoldState.drawerState.open() } },
+                onMicrophoneOn = {
+                    if(it){ homeViewModel.startListening() }
+                    else{ homeViewModel.stopListening() }
+                }
             )
         },
         drawerContent = {
@@ -160,6 +223,10 @@ fun DetailedDishesScreen(
                         "home" ->{
                             scope.launch { scaffoldState.drawerState.close() }
                             navController.navigate(Screen.HomeScreen.route)
+                        }
+                        "settings"->{
+                            scope.launch { scaffoldState.drawerState.close() }
+                            navController.navigate(Screen.SettingScreen.route)
                         }
                         else -> {
                             val message = context.getString(R.string.menu_item_toast_default,it.title)
@@ -1482,4 +1549,77 @@ fun checkSwitchForError(carbs: TextFieldValue, fats: TextFieldValue, protein: Te
             (protein.text.isBlank() || protein.text.toFloat() < 0.0f) ||
             (cal.text.isBlank() || cal.text.toFloat() < 0.0f)
             )
+}
+
+fun convertStringToNumber(input: String): Int {
+    val numberMap = mapOf(
+        "ноль" to 0,
+        "один" to 1,
+        "два" to 2,
+        "три" to 3,
+        "четыре" to 4,
+        "пять" to 5,
+        "шесть" to 6,
+        "семь" to 7,
+        "восемь" to 8,
+        "девять" to 9,
+        "десять" to 10,
+        "одиннадцать" to 11,
+        "двенадцать" to 12,
+        "тринадцать" to 13,
+        "четырнадцать" to 14,
+        "пятнадцать" to 15,
+        "шестнадцать" to 16,
+        "семнадцать" to 17,
+        "восемнадцать" to 18,
+        "девятнадцать" to 19,
+        "двадцать" to 20,
+        "тридцать" to 30,
+        "сорок" to 40,
+        "пятьдесят" to 50,
+        "шестьдесят" to 60,
+        "семьдесят" to 70,
+        "восемьдесят" to 80,
+        "девяносто" to 90,
+        "сто" to 100,
+        "двести" to 200,
+        "триста" to 300,
+        "четыреста" to 400,
+        "пятьсот" to 500,
+        "шестьсот" to 600,
+        "семьсот" to 700,
+        "восемьсот" to 800,
+        "девятьсот" to 900,
+        "тысяча" to 1000,
+        "тысячи" to 1000,
+        "тысяч" to 1000,
+        "миллион" to 1000000,
+        "миллиона" to 1000000,
+        "миллионов" to 1000000,
+        "миллиард" to 1000000000,
+        "миллиарда" to 1000000000,
+        "миллиардов" to 1000000000
+    )
+
+    val numberString = input.replace(",", ".").lowercase(Locale.getDefault())
+    var total = 0
+    var currentNumber = 0
+
+    val parts = numberString.split(" ")
+
+    for (part in parts) {
+        val numberValue = numberMap[part]
+        if (numberValue != null) {
+            currentNumber += numberValue
+        } else if (part == "и" || part == "ноль") {
+            continue
+        } else if (part == "тысяч" || part == "миллионов" || part == "миллиардов") {
+            total += currentNumber * numberMap[part]!!
+            currentNumber = 0
+        } else if (part == "десять" || part == "сто" || part == "тысяча" || part == "миллион" || part == "миллиард") {
+            currentNumber *= numberMap[part]!!
+        }
+    }
+
+    return total + currentNumber
 }

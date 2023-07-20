@@ -1,13 +1,7 @@
 package com.example.smartlist.ui.screens
 
 import android.widget.Toast
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Button
-import androidx.compose.material.Card
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
@@ -17,15 +11,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.smartlist.R
 import com.example.smartlist.model.ListOfMenuItem
-import com.example.smartlist.model.items
 import com.example.smartlist.navigation.Screen
 import com.example.smartlist.ui.menu.DrawerBody
 import com.example.smartlist.ui.menu.DrawerHeader
@@ -33,10 +24,10 @@ import com.example.smartlist.ui.menu.HomeAppBar
 import kotlinx.coroutines.launch
 
 @Composable
-fun HomeScreen(
+fun SettingsScreen(
     navController: NavController,
     homeViewModel: HomeViewModel,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ){
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
@@ -64,12 +55,15 @@ fun HomeScreen(
             "список покупок"->{ navController.navigate(Screen.PurchasesScreen.route)}
             "список блюд"->{navController.navigate(Screen.DishesScreen.route)}
             "графики"->{navController.navigate(Screen.GraphScreen.route)}
-            "домашняя страница"->{Toast.makeText(context, navigationTransition, Toast.LENGTH_SHORT).show()}
-            else->{Toast.makeText(context,unknownVoiceCommandMessage, Toast.LENGTH_SHORT).show()}
+            "домашняя страница"->{
+                navController.navigate(Screen.HomeScreen.route)}
+            "настройки"->{
+                Toast.makeText(context, navigationTransition, Toast.LENGTH_SHORT).show()
+            }
+            else->{
+                Toast.makeText(context,unknownVoiceCommandMessage, Toast.LENGTH_SHORT).show()}
         }
     }
-
-
 
     Scaffold(
         scaffoldState = scaffoldState,
@@ -121,44 +115,7 @@ fun HomeScreen(
     ) {
         Surface(modifier = modifier.padding(it)) {
 
-            ScreensButtonsMenu(
-                onPurchaseScreenButton = {navController.navigate(Screen.PurchasesScreen.route)},
-                onDishesScreenButton = {navController.navigate(Screen.DishesScreen.route)},
-                onGraphScreenButton = {navController.navigate(Screen.GraphScreen.route)}
-            )
-        }
-    }
-}
-
-@Composable
-private fun ScreensButtonsMenu(
-    onPurchaseScreenButton : ()->Unit,
-    onDishesScreenButton: ()->Unit,
-    onGraphScreenButton: ()->Unit,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier.fillMaxWidth().padding(8.dp)
-    ) {
-
-        Card(elevation = 4.dp, modifier = Modifier.weight(1f).height(120.dp).padding(8.dp)) {
-            Button(onClick = onPurchaseScreenButton) {
-                Text(text = stringResource(id = R.string.purchases_screen_button))
-            }
-        }
-
-        Card(elevation = 4.dp, modifier = Modifier.weight(1f).height(120.dp).padding(8.dp)) {
-            Button(onClick = onDishesScreenButton) {
-                Text(text = stringResource(id = R.string.dishes_screen_button))
-            }
-        }
-
-        Card(elevation = 4.dp, modifier = Modifier.weight(1f).height(120.dp).padding(8.dp)) {
-            Button(onClick = onGraphScreenButton) {
-                Text(text = stringResource(id = R.string.graph_screen_button))
-            }
+            Text(text = "Settings")
         }
     }
 }

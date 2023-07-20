@@ -169,6 +169,10 @@ fun DishesScreen(
                             scope.launch { scaffoldState.drawerState.close() }
                             navController.navigate(Screen.HomeScreen.route)
                         }
+                        "settings"->{
+                            scope.launch { scaffoldState.drawerState.close() }
+                            navController.navigate(Screen.SettingScreen.route)
+                        }
                         else -> {
                             val message = context.getString(R.string.menu_item_toast_default,it.title)
                             Toast.makeText(context,message,Toast.LENGTH_SHORT).show()

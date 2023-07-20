@@ -17,6 +17,7 @@ import com.example.smartlist.ui.screens.HomeScreen
 import com.example.smartlist.ui.screens.HomeViewModel
 import com.example.smartlist.ui.screens.PurchaseViewModel
 import com.example.smartlist.ui.screens.PurchasesScreen
+import com.example.smartlist.ui.screens.SettingsScreen
 
 
 private const val TAG = "SmartListApp"
@@ -105,6 +106,7 @@ fun SmartListApp(
         ){
             DetailedDishesScreen(
                 dishViewModel = dishViewModel,
+                homeViewModel = homeViewModel,
                 navController = navController,
                 onDelete = dishViewModel::deleteRecipe,
                 onSubmit = dishViewModel::updateRecipe,
@@ -118,6 +120,15 @@ fun SmartListApp(
             )
         }
 
+        //Navigate to Settings Screen
+        composable(
+            route = Screen.SettingScreen.route
+        ){
+            SettingsScreen(
+                navController = navController,
+                homeViewModel = homeViewModel,
+            )
+        }
 
 
     }

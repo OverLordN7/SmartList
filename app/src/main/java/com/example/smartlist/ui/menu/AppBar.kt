@@ -52,15 +52,33 @@ import com.example.smartlist.data.VoiceToTextParserState
 fun MainAppBar(
     name: String,
     menuState:MutableState<Boolean>,
+    state:VoiceToTextParserState,
     onNavigationIconClick:()->Unit,
     retryAction: () -> Unit,
     onExport: (String) -> Unit,
+    onMicrophoneOn: (Boolean) -> Unit = {},
 ){
     val context = LocalContext.current
     val title = stringResource(id = R.string.app_name)
     val exportMessage = stringResource(id = R.string.export_data_success)
 
     val showDialog = remember { mutableStateOf(false) }
+
+    //Voice command attributes
+    var canRecord by remember { mutableStateOf(false) }
+
+    // Creates an permission request
+    val recordAudioLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted ->
+            canRecord = isGranted
+        }
+    )
+
+    LaunchedEffect(key1 = recordAudioLauncher) {
+        // Launches the permission request
+        recordAudioLauncher.launch(Manifest.permission.RECORD_AUDIO)
+    }
 
     if (showDialog.value){
         ExportListDialog(
@@ -91,6 +109,35 @@ fun MainAppBar(
                 )
             }
 
+            IconButton(
+                onClick = {
+
+                    if(canRecord){
+                        if(!state.isSpeaking){
+                            onMicrophoneOn(true)
+                        }
+
+                        else{
+                            onMicrophoneOn(false)
+                        }
+                    }
+
+                }
+            ) {
+                if (!state.isSpeaking){
+                    Icon(
+                        imageVector = Icons.Default.Mic,
+                        contentDescription = stringResource(id = R.string.mic_on)
+                    )
+                }
+                else{
+                    Icon(
+                        imageVector = Icons.Default.MicOff,
+                        contentDescription = stringResource(id = R.string.mic_off)
+                    )
+                }
+            }
+
             IconButton( onClick = { menuState.value = !menuState.value } ) {
                 Icon(
                     Icons.Default.MoreVert,
@@ -119,8 +166,10 @@ fun HomeAppBar(
     onNavigationIconClick:()->Unit,
     retryAction: () -> Unit,
     onMicrophoneOn: (Boolean) -> Unit = {},
+    name: String = "",
     ) {
 
+    val title = stringResource(id = R.string.app_name)
     val showDialog = remember{ mutableStateOf(false) }
     var canRecord by remember { mutableStateOf(false) }
 
@@ -142,7 +191,7 @@ fun HomeAppBar(
     }
 
     TopAppBar(
-        title = { Text(text = stringResource(id = R.string.app_name)) },
+        title = { Text(text = if(name.isNotBlank()) "$title > $name" else title) },
         navigationIcon = {
             IconButton(onClick = onNavigationIconClick) {
                 Icon(

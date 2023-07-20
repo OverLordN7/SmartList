@@ -26,6 +26,7 @@ import androidx.compose.material.FabPosition
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
@@ -36,7 +37,9 @@ import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.rememberScaffoldState
+import androidx.compose.material.rememberSwipeableState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -49,6 +52,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -68,6 +72,8 @@ import com.example.smartlist.navigation.Screen
 import com.example.smartlist.ui.menu.DrawerBody
 import com.example.smartlist.ui.menu.DrawerHeader
 import com.example.smartlist.ui.menu.HomeAppBar
+import com.example.smartlist.ui.swipe.SwipeAction
+import com.example.smartlist.ui.swipe.SwipeableActionsBox
 import kotlinx.coroutines.launch
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
@@ -169,6 +175,7 @@ fun DetailedPurchaseListScreen(
         scaffoldState = scaffoldState,
         topBar = {
             HomeAppBar(
+                name = purchaseViewModel.currentName,
                 state = voiceState,
                 onNavigationIconClick = { scope.launch { scaffoldState.drawerState.open() } },
                 retryAction = onRefresh,
@@ -201,6 +208,10 @@ fun DetailedPurchaseListScreen(
                             scope.launch { scaffoldState.drawerState.close() }
                             navController.navigate(Screen.HomeScreen.route)
                         }
+                        "settings"->{
+                            scope.launch { scaffoldState.drawerState.close() }
+                            navController.navigate(Screen.SettingScreen.route)
+                        }
                         else -> {
                             val message = context.getString(R.string.menu_item_toast_default,it.title)
                             Toast.makeText(context,message,Toast.LENGTH_SHORT).show()
@@ -232,12 +243,15 @@ fun DetailedPurchaseListScreen(
                         onEdit = onEdit
                     )
                 }
+
+                else -> {}
             }
         }
     }
 }
 
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ResultItemScreen(
     itemsOfList: List<Item>,
@@ -258,14 +272,13 @@ fun ResultItemScreen(
         }
 
         items(itemsOfList.size){
-            ItemCard(
+            SwipeWrapperItemCard(
                 item = itemsOfList[it],
                 onClick = onItemBoughtChanged,
                 onDelete = {id-> onDelete(id) },
                 onEdit = onEdit
             )
         }
-
     }
 }
 
@@ -276,6 +289,36 @@ fun EmptyCard(modifier: Modifier = Modifier){
             Text(text = stringResource(id = R.string.empty_card_message_1), color = Color.Black)
             Text(text = stringResource(id = R.string.empty_card_message_2), color = Color.Black)
         }
+    }
+}
+
+@Composable
+private fun SwipeWrapperItemCard(
+    item: Item,
+    onClick: (Item, Boolean) -> Unit,
+    onEdit: (Item) -> Unit,
+    onDelete: (UUID) -> Unit,
+    modifier: Modifier = Modifier
+){
+    val deleteAction = SwipeAction(
+        icon = {rememberVectorPainter(image = Icons.TwoTone.Delete)},
+        background = Color.Red,
+        onSwipe = {onDelete(item.id)},
+    )
+
+    SwipeableActionsBox(
+        modifier = modifier,
+        startActions = emptyList(),
+        endActions = listOf(deleteAction),
+        swipeThreshold = 40.dp,
+        backgroundUntilSwipeThreshold = MaterialTheme.colors.surface
+    ) {
+        ItemCard(
+            item = item,
+            onClick = onClick,
+            onDelete = onDelete,
+            onEdit = onEdit
+        )
     }
 }
 

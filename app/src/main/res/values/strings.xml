@@ -136,4 +136,7 @@
     <string name="dishes_list_title_item_hint">Go to Dishes list screen</string>
     <string name="graphs_title_item_hint">Go to graphs screen</string>
 
+    <string name="settings">Settings</string>
+    <string name="go_to_settings_screen">Go to settings screen</string>
+
 </resources>

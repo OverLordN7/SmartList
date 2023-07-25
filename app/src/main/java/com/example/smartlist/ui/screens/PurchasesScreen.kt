@@ -86,8 +86,7 @@ fun PurchasesScreen(
 
     //Navigation attributes
     val navigationMessage = stringResource(id = R.string.navigation_message)
-    val navigationTransition = stringResource(id = R.string.navigation_transition)
-    val unknownVoiceCommandMessage = stringResource(id = R.string.unknown_command)
+
 
     //Voice attributes
     val voiceState by homeViewModel.voiceToTextParser.state.collectAsState()
@@ -124,13 +123,12 @@ fun PurchasesScreen(
             homeViewModel.clearVoiceCommand()
         }
         else{
-            when(command.text){
-                "список покупок"->{Toast.makeText(context,navigationTransition, Toast.LENGTH_SHORT).show()}
-                "список блюд"->{navController.navigate(Screen.DishesScreen.route)}
-                "графики"->{navController.navigate(Screen.GraphScreen.route)}
-                "домашняя страница"->{navController.navigate(Screen.HomeScreen.route)}
-                else->{Toast.makeText(context,unknownVoiceCommandMessage, Toast.LENGTH_SHORT).show()}
-            }
+            homeViewModel.processCommand(
+                command = command,
+                currentScreen = context.getString(R.string.purchase_screen),
+                navController = navController,
+                context = context,
+            )
         }
     }
 

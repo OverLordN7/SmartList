@@ -49,8 +49,6 @@ fun HomeScreen(
 
     //Navigation attributes
     val navigationMessage = stringResource(id = R.string.navigation_message)
-    val navigationTransition = stringResource(id = R.string.navigation_transition)
-    val unknownVoiceCommandMessage = stringResource(id = R.string.unknown_command)
 
 
     val voiceCommand by homeViewModel.voiceCommand.collectAsState()
@@ -60,13 +58,12 @@ fun HomeScreen(
     }
 
     voiceCommand?.let { command->
-        when(command.text){
-            "список покупок"->{ navController.navigate(Screen.PurchasesScreen.route)}
-            "список блюд"->{navController.navigate(Screen.DishesScreen.route)}
-            "графики"->{navController.navigate(Screen.GraphScreen.route)}
-            "домашняя страница"->{Toast.makeText(context, navigationTransition, Toast.LENGTH_SHORT).show()}
-            else->{Toast.makeText(context,unknownVoiceCommandMessage, Toast.LENGTH_SHORT).show()}
-        }
+        homeViewModel.processCommand(
+            command = command,
+            currentScreen = context.getString(R.string.home_screen),
+            navController = navController,
+            context = context
+        )
     }
 
 

@@ -1,12 +1,17 @@
 package com.example.smartlist.ui.screens
 
+import android.content.Context
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.navigation.NavController
+import com.example.smartlist.R
 import com.example.smartlist.SmartListApplication
 import com.example.smartlist.data.VoiceToTextParser
 import com.example.smartlist.model.VoiceCommand
+import com.example.smartlist.navigation.Screen
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -35,6 +40,46 @@ class HomeViewModel( val voiceToTextParser: VoiceToTextParser):ViewModel() {
 
     fun stopListening() {
         voiceToTextParser.stopListening()
+    }
+
+    fun processCommand(
+        command: VoiceCommand,
+        currentScreen: String,
+        navController: NavController,
+        context: Context,
+    ){
+        val navigationTransition = context.getString(R.string.navigation_transition)
+        val sameScreenMessage = context.getString(R.string.notification_message)
+        val unknownVoiceCommandMessage = context.getString(R.string.unknown_command)
+
+        var isCommandMatchSuccessful = false
+
+        val mapOfScreen = mapOf(
+            context.getString(R.string.home_screen) to Screen.HomeScreen.route,
+            context.getString(R.string.purchase_screen) to Screen.PurchasesScreen.route,
+            context.getString(R.string.dish_screen) to Screen.DishesScreen.route,
+            context.getString(R.string.graph_screen) to Screen.GraphScreen.route,
+            context.getString(R.string.settings_screen) to Screen.SettingScreen.route
+        )
+
+        // Show message if user already on currentScreen or switch otherwise
+        if (command.text == currentScreen){
+            Toast.makeText(context, sameScreenMessage, Toast.LENGTH_SHORT).show()
+        }
+        else{
+            for (screen in mapOfScreen){
+                if (command.text == screen.key){
+                    isCommandMatchSuccessful = true
+                    Toast.makeText(context, navigationTransition, Toast.LENGTH_SHORT).show()
+                    clearVoiceCommand()
+                    navController.navigate(screen.value)
+                }
+            }
+
+            if (!isCommandMatchSuccessful){
+                Toast.makeText(context, unknownVoiceCommandMessage, Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     companion object{

@@ -41,8 +41,6 @@ fun GraphScreen(
 
     //Navigation attributes
     val navigationMessage = stringResource(id = R.string.navigation_message)
-    val navigationTransition = stringResource(id = R.string.navigation_transition)
-    val unknownVoiceCommandMessage = stringResource(id = R.string.unknown_command)
 
     //Voice attributes
     val voiceState by homeViewModel.voiceToTextParser.state.collectAsState()
@@ -55,13 +53,12 @@ fun GraphScreen(
 
     //Process command
     voiceCommand?.let { command->
-        when(command.text){
-            "список покупок"->{ navController.navigate(Screen.PurchasesScreen.route)}
-            "список блюд"->{navController.navigate(Screen.DishesScreen.route)}
-            "графики"->{Toast.makeText(context,navigationTransition, Toast.LENGTH_SHORT).show()}
-            "домашняя страница"->{navController.navigate(Screen.HomeScreen.route)}
-            else->{Toast.makeText(context,unknownVoiceCommandMessage, Toast.LENGTH_SHORT).show()}
-        }
+        homeViewModel.processCommand(
+            command = command,
+            currentScreen = context.getString(R.string.graph_screen),
+            navController = navController,
+            context = context
+        )
     }
 
     Scaffold(

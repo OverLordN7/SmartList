@@ -51,18 +51,12 @@ fun SettingsScreen(
     }
 
     voiceCommand?.let { command->
-        when(command.text){
-            "список покупок"->{ navController.navigate(Screen.PurchasesScreen.route)}
-            "список блюд"->{navController.navigate(Screen.DishesScreen.route)}
-            "графики"->{navController.navigate(Screen.GraphScreen.route)}
-            "домашняя страница"->{
-                navController.navigate(Screen.HomeScreen.route)}
-            "настройки"->{
-                Toast.makeText(context, navigationTransition, Toast.LENGTH_SHORT).show()
-            }
-            else->{
-                Toast.makeText(context,unknownVoiceCommandMessage, Toast.LENGTH_SHORT).show()}
-        }
+        homeViewModel.processCommand(
+            command = command,
+            currentScreen = context.getString(R.string.settings_screen),
+            navController = navController,
+            context = context
+        )
     }
 
     Scaffold(
@@ -98,11 +92,11 @@ fun SettingsScreen(
                             navController.navigate(Screen.GraphScreen.route)
                         }
                         "home" ->{
-                            Toast.makeText(context,navigationMessage, Toast.LENGTH_SHORT).show()
+                            scope.launch { scaffoldState.drawerState.close() }
+                            navController.navigate(Screen.HomeScreen.route)
                         }
                         "settings"->{
-                            scope.launch { scaffoldState.drawerState.close() }
-                            navController.navigate(Screen.SettingScreen.route)
+                            Toast.makeText(context,navigationMessage, Toast.LENGTH_SHORT).show()
                         }
                         else -> {
                             val message = context.getString(R.string.menu_item_toast_default,it.title)

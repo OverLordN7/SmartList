@@ -140,4 +140,12 @@
 
     <string name="settings">Настройки</string>
     <string name="go_to_settings_screen">Перейти к настройкам</string>
+
+    <string name="home_screen">домой</string>
+    <string name="purchase_screen">список покупок</string>
+    <string name="dish_screen">список блюд</string>
+    <string name="graph_screen">графики</string>
+    <string name="settings_screen">настройки</string>
+
+    <string name="notification_message">Вы уже на этом экране</string>
 </resources>

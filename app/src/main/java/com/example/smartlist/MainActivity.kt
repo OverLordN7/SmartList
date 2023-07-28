@@ -4,6 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -19,16 +21,16 @@ class MainActivity : ComponentActivity() {
 
             val homeViewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory)
 
-            val isDarkTheme by remember { mutableStateOf(homeViewModel.isDarkThemeEnabled()) }
-
-            val toggleTheme: (Boolean) -> Unit = {homeViewModel.setDarkThemeEnabled(it)}
-
-
-
-            SmartListTheme(darkTheme = isDarkTheme) {
-                SmartListApp(homeViewModel)
-                
-            }
+            WrapperSmartListApp(homeViewModel = homeViewModel)
         }
+    }
+}
+
+@Composable
+fun WrapperSmartListApp(homeViewModel: HomeViewModel){
+    val isDarkTheme by homeViewModel.isDarkThemeEnabled.collectAsState()
+    SmartListTheme(darkTheme = isDarkTheme) {
+        SmartListApp(homeViewModel)
+
     }
 }

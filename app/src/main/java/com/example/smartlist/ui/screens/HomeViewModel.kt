@@ -48,12 +48,16 @@ class HomeViewModel(
 
     var themeTest = false
 
+    private val _isDarkThemeEnabled = MutableStateFlow(isDarkThemeEnabled())
+    val isDarkThemeEnabled: StateFlow<Boolean> = _isDarkThemeEnabled
+
 
     fun isDarkThemeEnabled(): Boolean{
         return sharedPreferences.getBoolean(themeKey,false)
     }
 
     fun setDarkThemeEnabled(isEnabled: Boolean){
+        _isDarkThemeEnabled.value = isEnabled
         sharedPreferences.edit().putBoolean(themeKey,isEnabled).apply()
     }
 

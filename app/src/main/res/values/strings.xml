@@ -147,4 +147,8 @@
 
     <string name="notification_message">You are already on this screen</string>
 
+    <string name="create_command">create</string>
+    <string name="create_command_parameter_new">new</string>
+    <string name="create_command_object">list</string>
+
 </resources>

@@ -18,7 +18,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import com.example.smartlist.R
 import com.example.smartlist.model.ListOfMenuItem
-import com.example.smartlist.model.items
 import com.example.smartlist.navigation.Screen
 import com.example.smartlist.ui.menu.DrawerBody
 import com.example.smartlist.ui.menu.DrawerHeader
@@ -53,7 +52,7 @@ fun GraphScreen(
 
     //Process command
     voiceCommand?.let { command->
-        homeViewModel.processCommand(
+        homeViewModel.processNavigationCommand(
             command = command,
             currentScreen = context.getString(R.string.graph_screen),
             navController = navController,

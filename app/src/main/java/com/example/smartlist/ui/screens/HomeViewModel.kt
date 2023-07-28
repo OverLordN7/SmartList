@@ -1,27 +1,65 @@
 package com.example.smartlist.ui.screens
 
 import android.content.Context
+import android.preference.PreferenceManager
 import android.widget.Toast
+import androidx.compose.runtime.mutableStateOf
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavController
 import com.example.smartlist.R
 import com.example.smartlist.SmartListApplication
+import com.example.smartlist.data.DefaultPurchaseRepository
+import com.example.smartlist.data.DishRepository
+import com.example.smartlist.data.PurchaseRepository
 import com.example.smartlist.data.VoiceToTextParser
+import com.example.smartlist.model.PurchaseList
 import com.example.smartlist.model.VoiceCommand
 import com.example.smartlist.navigation.Screen
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.time.LocalDate
+import java.util.prefs.Preferences
 
 private const val TAG = "HomeViewModel"
 
-class HomeViewModel( val voiceToTextParser: VoiceToTextParser):ViewModel() {
+class HomeViewModel(
+    val voiceToTextParser: VoiceToTextParser,
+    val purchaseRepository: PurchaseRepository,
+    val dishRepository: DishRepository,
+    application: SmartListApplication,
+):ViewModel() {
 
     private val _voiceCommand  = MutableStateFlow<VoiceCommand?>(null)
     val voiceCommand: StateFlow<VoiceCommand?>
         get() = _voiceCommand
+
+
+    //Create a sharedPreferences
+    private val themeKey = "theme_pref"
+    private val sharedPreferences = application.getSharedPreferences("my_pref_file_name",Context.MODE_PRIVATE)
+
+    var themeTest = false
+
+    private val _isDarkThemeEnabled = MutableStateFlow(isDarkThemeEnabled())
+    val isDarkThemeEnabled: StateFlow<Boolean> = _isDarkThemeEnabled
+
+
+    fun isDarkThemeEnabled(): Boolean{
+        return sharedPreferences.getBoolean(themeKey,false)
+    }
+
+    fun setDarkThemeEnabled(isEnabled: Boolean){
+        _isDarkThemeEnabled.value = isEnabled
+        sharedPreferences.edit().putBoolean(themeKey,isEnabled).apply()
+    }
 
 
     init {
@@ -42,7 +80,7 @@ class HomeViewModel( val voiceToTextParser: VoiceToTextParser):ViewModel() {
         voiceToTextParser.stopListening()
     }
 
-    fun processCommand(
+    fun processNavigationCommand(
         command: VoiceCommand,
         currentScreen: String,
         navController: NavController,
@@ -87,7 +125,14 @@ class HomeViewModel( val voiceToTextParser: VoiceToTextParser):ViewModel() {
             initializer {
                 val application = (this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as SmartListApplication)
                 val voiceToTextParser = VoiceToTextParser(application)
-                HomeViewModel(voiceToTextParser)
+                val purchaseRepository = application.container.purchaseRepository
+                val dishRepository = application.container.dishRepository
+                HomeViewModel(
+                    voiceToTextParser = voiceToTextParser,
+                    purchaseRepository = purchaseRepository,
+                    dishRepository = dishRepository,
+                    application = application,
+                )
             }
         }
     }

@@ -23,6 +23,7 @@ import com.example.smartlist.ui.screens.SettingsScreen
 private const val TAG = "SmartListApp"
 @Composable
 fun SmartListApp(
+    homeViewModel: HomeViewModel
 ){
     val navController = rememberNavController()
 
@@ -30,7 +31,7 @@ fun SmartListApp(
 
     val dishViewModel: DishViewModel = viewModel(factory = DishViewModel.Factory)
 
-    val homeViewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory)
+    //val homeViewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory)
 
 
 

@@ -1,19 +1,26 @@
 package com.example.smartlist.ui.screens
 
+import android.content.Intent
 import android.widget.Toast
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
+import androidx.compose.material.Switch
 import androidx.compose.material.Text
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.smartlist.R
 import com.example.smartlist.model.ListOfMenuItem
@@ -46,12 +53,18 @@ fun SettingsScreen(
 
     val voiceCommand by homeViewModel.voiceCommand.collectAsState()
 
+    val isDarkTheme by remember { mutableStateOf(homeViewModel.isDarkThemeEnabled()) }
+
+    val toggleTheme: (Boolean) -> Unit = {homeViewModel.setDarkThemeEnabled(it)}
+
+    val theme = remember { mutableStateOf(false) }
+
     LaunchedEffect(navController.currentBackStackEntry){
         homeViewModel.clearVoiceCommand()
     }
 
     voiceCommand?.let { command->
-        homeViewModel.processCommand(
+        homeViewModel.processNavigationCommand(
             command = command,
             currentScreen = context.getString(R.string.settings_screen),
             navController = navController,
@@ -109,7 +122,22 @@ fun SettingsScreen(
     ) {
         Surface(modifier = modifier.padding(it)) {
 
-            Text(text = "Settings")
+
+
+            Column(modifier = Modifier.padding(8.dp)) {
+                Text(text = "Settings")
+
+                Switch(
+                    checked = isDarkTheme,
+                    onCheckedChange = {
+                        toggleTheme(!isDarkTheme)
+                        homeViewModel.themeTest = !homeViewModel.themeTest
+                    }
+                )
+
+            }
+
+
         }
     }
 }

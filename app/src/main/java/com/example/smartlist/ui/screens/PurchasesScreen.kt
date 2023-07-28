@@ -53,13 +53,14 @@ import androidx.navigation.NavController
 import com.example.smartlist.R
 import com.example.smartlist.model.ListOfMenuItem
 import com.example.smartlist.model.PurchaseList
-import com.example.smartlist.model.items
 import com.example.smartlist.navigation.Screen
 import com.example.smartlist.ui.menu.DrawerBody
 import com.example.smartlist.ui.menu.DrawerHeader
 import com.example.smartlist.ui.menu.HomeAppBar
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import java.util.UUID
 
 
@@ -123,7 +124,7 @@ fun PurchasesScreen(
             homeViewModel.clearVoiceCommand()
         }
         else{
-            homeViewModel.processCommand(
+            homeViewModel.processNavigationCommand(
                 command = command,
                 currentScreen = context.getString(R.string.purchase_screen),
                 navController = navController,
@@ -477,11 +478,16 @@ fun NewPurchaseListDialog(
                             if (fieldValue.text.isBlank()){ errorFieldStatus = true }
                             else{
                                 val date = LocalDate.now()
+
+                                val formatter = DateTimeFormatter.ofPattern("LLLL", Locale.getDefault())
+                                val systemMonth = date.format(formatter)
+
+
                                 val list = PurchaseList(
                                     name = fieldValue.text,
                                     listSize = 0,
                                     year = date.year,
-                                    month = date.month.name,
+                                    month = systemMonth,
                                     day = date.dayOfMonth
                                 )
                                 onConfirm(list)

@@ -148,4 +148,9 @@
     <string name="settings_screen">настройки</string>
 
     <string name="notification_message">Вы уже на этом экране</string>
+
+
+    <string name="create_command">создай</string>
+    <string name="create_command_parameter_new">новый</string>
+    <string name="create_command_object">список</string>
 </resources>

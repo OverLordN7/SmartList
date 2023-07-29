@@ -150,5 +150,15 @@
     <string name="create_command">create</string>
     <string name="create_command_parameter_new">new</string>
     <string name="create_command_object">list</string>
+    <string name="dark_theme_mode">Dark theme mode: </string>
+
+    <string name="appearance">Appearance</string>
+
+    <string name="voice_commands">Voice commands</string>
+    <string name="command_hint">Just say any command from sections below:</string>
+    <string name="navigation">Navigation</string>
+    <string name="creation">Creation</string>
+    <string name="break_line">--------------------------</string>
+    <string name="command_in">"in: "</string>
 
 </resources>

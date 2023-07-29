@@ -153,4 +153,14 @@
     <string name="create_command">создай</string>
     <string name="create_command_parameter_new">новый</string>
     <string name="create_command_object">список</string>
+    <string name="dark_theme_mode">Ночной режим: </string>
+
+    <string name="appearance">Внешний вид</string>
+
+    <string name="voice_commands">Голосовые команды</string>
+    <string name="command_hint">Скажите любую команду из секций ниже:</string>
+    <string name="navigation">Навигация</string>
+    <string name="creation">Создание</string>
+    <string name="break_line">--------------------------</string>
+    <string name="command_in">"в: "</string>
 </resources>

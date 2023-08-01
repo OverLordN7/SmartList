@@ -1,12 +1,16 @@
 package com.example.smartlist.ui
 
+import android.content.res.Configuration
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.sqlite.db.SupportSQLiteOpenHelper
 import com.example.smartlist.navigation.Screen
 import com.example.smartlist.ui.screens.DetailedDishesScreen
 import com.example.smartlist.ui.screens.DetailedPurchaseListScreen
@@ -18,6 +22,7 @@ import com.example.smartlist.ui.screens.HomeViewModel
 import com.example.smartlist.ui.screens.PurchaseViewModel
 import com.example.smartlist.ui.screens.PurchasesScreen
 import com.example.smartlist.ui.screens.SettingsScreen
+import java.util.Locale
 
 
 private const val TAG = "SmartListApp"
@@ -26,6 +31,15 @@ fun SmartListApp(
     homeViewModel: HomeViewModel
 ){
     val navController = rememberNavController()
+
+    //Change language configuration of the app
+    val context = LocalContext.current
+
+    val currentLanguage = homeViewModel.getCurrentLanguage()
+
+    val configuration = Configuration(context.resources.configuration)
+    configuration.setLocale(Locale(currentLanguage))
+    context.createConfigurationContext(configuration)
 
     val purchaseViewModel: PurchaseViewModel = viewModel(factory = PurchaseViewModel.Factory)
 

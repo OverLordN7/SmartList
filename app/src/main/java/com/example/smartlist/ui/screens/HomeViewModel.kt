@@ -46,7 +46,23 @@ class HomeViewModel(
     private val themeKey = "theme_pref"
     private val sharedPreferences = application.getSharedPreferences("my_pref_file_name",Context.MODE_PRIVATE)
 
-    var themeTest = false
+    //Attributes for changing language of app
+    private val langKey = "lang_pref"
+    private val sharedLanguagePreferences = application.getSharedPreferences("my_pref_file_name",Context.MODE_PRIVATE)
+
+
+    private val _currentLanguage = MutableStateFlow("en")
+    val currentLanguage: StateFlow<String> = _currentLanguage
+
+    fun setCurrentLanguage(language: String){
+        _currentLanguage.value = language
+        sharedLanguagePreferences.edit().putString(langKey,language).apply()
+    }
+
+    fun getCurrentLanguage(): String {
+        return sharedLanguagePreferences.getString(langKey,"en")!!
+    }
+
 
     private val _isDarkThemeEnabled = MutableStateFlow(isDarkThemeEnabled())
     val isDarkThemeEnabled: StateFlow<Boolean> = _isDarkThemeEnabled

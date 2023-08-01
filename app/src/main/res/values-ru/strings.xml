@@ -144,6 +144,7 @@
     <string name="home_screen">домой</string>
     <string name="purchase_screen">список покупок</string>
     <string name="dish_screen">список блюд</string>
+    <string name="dish_screen_alt">списка блюд</string>
     <string name="graph_screen">графики</string>
     <string name="settings_screen">настройки</string>
 
@@ -152,7 +153,7 @@
 
     <string name="create_command">создай</string>
     <string name="create_command_parameter_new">новый</string>
-    <string name="create_command_object">список</string>
+    <string name="create_command_list">список</string>
     <string name="dark_theme_mode">Ночной режим: </string>
 
     <string name="appearance">Внешний вид</string>
@@ -162,5 +163,22 @@
     <string name="navigation">Навигация</string>
     <string name="creation">Создание</string>
     <string name="break_line">--------------------------</string>
-    <string name="command_in">"в: "</string>
+    <string name="command_in">"Доступно в: "</string>
+    <string name="create_command_recipe">рецепт</string>
+    <string name="create_command_value">*название*</string>
+    <string name="create_command_portions_tag">порций</string>
+    <string name="create_command_portions_value">*значение*</string>
+    <string name="inside">внутри</string>
+
+    <string name="create_command_object">предмет</string>
+    <string name="create_command_object_name">*название*</string>
+    <string name="create_command_object_weight">вес</string>
+    <string name="create_command_object_unit">юнит</string>
+    <string name="create_command_object_price">цена</string>
+
+    <string name="purchase_screen_alt">списка покупок</string>
+    <string name="voice_command_hint">Голосовые команды работают только при включенном Интернете</string>
+
+    <string name="languages">Язык</string>
+    <string name="current_language">Текущий язык:</string>
 </resources>

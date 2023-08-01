@@ -149,7 +149,7 @@
 
     <string name="create_command">create</string>
     <string name="create_command_parameter_new">new</string>
-    <string name="create_command_object">list</string>
+    <string name="create_command_list">list</string>
     <string name="dark_theme_mode">Dark theme mode: </string>
 
     <string name="appearance">Appearance</string>
@@ -159,6 +159,25 @@
     <string name="navigation">Navigation</string>
     <string name="creation">Creation</string>
     <string name="break_line">--------------------------</string>
-    <string name="command_in">"in: "</string>
+    <string name="command_in">"available in: "</string>
+    <string name="create_command_recipe">recipe</string>
+    <string name="create_command_value">*name*</string>
+    <string name="create_command_portions_tag">portions</string>
+    <string name="create_command_portions_value">*value*</string>
+    <string name="inside">inside</string>
+
+    <string name="dish_screen_alt">purchase list</string>
+
+    <string name="create_command_object">item</string>
+    <string name="create_command_object_name">name</string>
+    <string name="create_command_object_weight">weight</string>
+    <string name="create_command_object_unit">unit</string>
+    <string name="create_command_object_price">price</string>
+
+    <string name="purchase_screen_alt"> purchase screen</string>
+    <string name="voice_command_hint">Voice recognition works only with Internet</string>
+
+    <string name="languages">Language</string>
+    <string name="current_language">Current language:</string>
 
 </resources>

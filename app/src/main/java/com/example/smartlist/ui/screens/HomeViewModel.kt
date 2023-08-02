@@ -1,32 +1,21 @@
 package com.example.smartlist.ui.screens
 
 import android.content.Context
-import android.preference.PreferenceManager
 import android.widget.Toast
-import androidx.compose.runtime.mutableStateOf
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavController
 import com.example.smartlist.R
 import com.example.smartlist.SmartListApplication
-import com.example.smartlist.data.DefaultPurchaseRepository
 import com.example.smartlist.data.DishRepository
 import com.example.smartlist.data.PurchaseRepository
 import com.example.smartlist.data.VoiceToTextParser
-import com.example.smartlist.model.PurchaseList
 import com.example.smartlist.model.VoiceCommand
 import com.example.smartlist.navigation.Screen
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.time.LocalDate
-import java.util.prefs.Preferences
 
 private const val TAG = "HomeViewModel"
 
@@ -51,7 +40,7 @@ class HomeViewModel(
     private val sharedLanguagePreferences = application.getSharedPreferences("my_pref_file_name",Context.MODE_PRIVATE)
 
 
-    private val _currentLanguage = MutableStateFlow("en")
+    private val _currentLanguage = MutableStateFlow(getCurrentLanguage())
     val currentLanguage: StateFlow<String> = _currentLanguage
 
     fun setCurrentLanguage(language: String){
@@ -60,7 +49,7 @@ class HomeViewModel(
     }
 
     fun getCurrentLanguage(): String {
-        return sharedLanguagePreferences.getString(langKey,"en")!!
+        return sharedLanguagePreferences.getString(langKey,"en").toString()
     }
 
 

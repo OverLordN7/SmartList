@@ -1,6 +1,5 @@
 package com.example.smartlist.ui.screens
 
-import android.content.Context
 import android.widget.Toast
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
@@ -9,14 +8,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.material.Card
-import androidx.compose.material.DropdownMenu
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ExposedDropdownMenuBox
@@ -76,6 +73,9 @@ fun SettingsScreen(
 
     //Menu drawer items
     val myItems = ListOfMenuItem(context).getItems()
+
+    //Language attributes
+    val currentLanguage by homeViewModel.currentLanguage.collectAsState()
 
     //Navigation attributes
     val navigationMessage = stringResource(id = R.string.navigation_message)
@@ -152,8 +152,11 @@ fun SettingsScreen(
 
             Column {
                 DarkModeCard(isDarkTheme = isDarkTheme, toggleTheme = toggleTheme)
-                VoiceCommandListCard()
-                LanguageSelectionCard(homeViewModel = homeViewModel)
+                VoiceCommandListCard(currentLanguage)
+                LanguageSelectionCard(
+                    homeViewModel = homeViewModel,
+                    currentLanguage = currentLanguage
+                )
             }
         }
     }
@@ -204,17 +207,26 @@ fun DarkModeCard(isDarkTheme: Boolean, toggleTheme: (Boolean)->Unit, modifier: M
 }
 
 @Composable
-fun VoiceCommandListCard(modifier: Modifier = Modifier){
+fun VoiceCommandListCard(currentLanguage: String,modifier: Modifier = Modifier){
 
     val isExpanded = remember { mutableStateOf(false) }
     val context = LocalContext.current
 
     val textId = "inlineContent"
-    val text = buildAnnotatedString {
+    var text = buildAnnotatedString {
         append(stringResource(id = R.string.voice_commands))
         //Append a placeholder string "[icon]" and attach an annotation "inlineContent" on it.
         appendInlineContent(textId,"[icon]")
     }
+
+    LaunchedEffect(currentLanguage){
+        val updateText = buildAnnotatedString {
+            append(context.getString(R.string.voice_commands))
+            appendInlineContent(textId,"[icon]")
+        }
+        text = updateText
+    }
+
 
     val inlineContent = mapOf(
         Pair(
@@ -416,18 +428,15 @@ fun VoiceCommandListCard(modifier: Modifier = Modifier){
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun LanguageSelectionCard(homeViewModel: HomeViewModel,modifier: Modifier = Modifier){
-
-    val context = LocalContext.current
+fun LanguageSelectionCard(
+    homeViewModel: HomeViewModel,
+    currentLanguage: String,
+    modifier: Modifier = Modifier
+){
     var dropdownMenuExpanded by remember { mutableStateOf(false) }
-
-    //Language attributes
-    val currentLanguage by homeViewModel.currentLanguage.collectAsState()
 
     //Available languages
     val languages = listOf("en","ru")
-
-    var selectedLanguage by remember { mutableStateOf(languages[0]) }
 
     Card(
         elevation = 4.dp,
@@ -479,14 +488,9 @@ fun LanguageSelectionCard(homeViewModel: HomeViewModel,modifier: Modifier = Modi
                                 Text(text = language)
                             }
                         }
-
                     }
                 }
-
-
             }
-
         }
-
     }
 }

@@ -1,16 +1,19 @@
 package com.example.smartlist.ui
 
-import android.content.res.Configuration
+import android.os.LocaleList
+import android.view.ContextThemeWrapper
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.os.ConfigurationCompat
+import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import androidx.sqlite.db.SupportSQLiteOpenHelper
+import com.example.smartlist.R
 import com.example.smartlist.navigation.Screen
 import com.example.smartlist.ui.screens.DetailedDishesScreen
 import com.example.smartlist.ui.screens.DetailedPurchaseListScreen
@@ -34,20 +37,26 @@ fun SmartListApp(
 
     //Change language configuration of the app
     val context = LocalContext.current
+    val resources = context.resources
 
-    val currentLanguage = homeViewModel.getCurrentLanguage()
+    val currentLanguage = homeViewModel.currentLanguage.collectAsState()
 
-    val configuration = Configuration(context.resources.configuration)
-    configuration.setLocale(Locale(currentLanguage))
-    context.createConfigurationContext(configuration)
+    val configuration = resources.configuration
+    configuration.setLocale(Locale(currentLanguage.value))
+
+    val localeList = LocaleList(Locale(currentLanguage.value))
+    configuration.setLocales(localeList)
+
+    val localeListCompat = LocaleListCompat.create(Locale(currentLanguage.value))
+
+    ConfigurationCompat.setLocales(configuration,localeListCompat)
+
+    val contextWithUpdatedConfig = ContextThemeWrapper(context, R.style.Theme_SmartList)
+    contextWithUpdatedConfig.resources.updateConfiguration(configuration, resources.displayMetrics)
 
     val purchaseViewModel: PurchaseViewModel = viewModel(factory = PurchaseViewModel.Factory)
 
     val dishViewModel: DishViewModel = viewModel(factory = DishViewModel.Factory)
-
-    //val homeViewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory)
-
-
 
     NavHost(navController = navController, startDestination = Screen.HomeScreen.route){
 

@@ -180,4 +180,7 @@
     <string name="languages">Language</string>
     <string name="current_language">Current language:</string>
 
+    <string name="detailed_dishes_screen">Detailed dishes screen</string>
+    <string name="detailed_purchase_screen">Detailed purchcase screen</string>
+
 </resources>

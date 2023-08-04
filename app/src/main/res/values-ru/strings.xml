@@ -181,4 +181,7 @@
 
     <string name="languages">Язык</string>
     <string name="current_language">Текущий язык:</string>
+
+    <string name="detailed_dishes_screen">Детальный список блюд</string>
+    <string name="detailed_purchase_screen">Детальный список покупок</string>
 </resources>

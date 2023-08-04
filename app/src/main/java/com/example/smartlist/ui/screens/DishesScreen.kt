@@ -108,11 +108,13 @@ fun DishesScreen(
         if (parts.size>=3 && parts[0] == "создай" && parts[1] == "новый" && parts[2] == "список"){
             val newDishListName:String  = parts.subList(3,parts.size).joinToString("")
             val currentDate = LocalDate.now()
+            val formatter = DateTimeFormatter.ofPattern("LLLL", Locale.getDefault())
+            val systemMonth = currentDate.format(formatter)
             val newDishList = DishList(
                 name = newDishListName,
                 listSize = 0,
                 year = currentDate.year,
-                month = currentDate.month.name,
+                month = systemMonth,
                 day = currentDate.dayOfMonth
             )
             onSubmit(newDishList)
@@ -120,13 +122,12 @@ fun DishesScreen(
         }
 
         else{
-            when(command.text){
-                "список блюд"->{ Toast.makeText(context,navigationTransition, Toast.LENGTH_SHORT).show()}
-                "список покупок"->{ navController.navigate(Screen.PurchasesScreen.route)}
-                "графики"->{navController.navigate(Screen.GraphScreen.route)}
-                "домашняя страница"->{navController.navigate(Screen.HomeScreen.route)}
-                else->{Toast.makeText(context,unknownVoiceCommandMessage, Toast.LENGTH_SHORT).show()}
-            }
+            homeViewModel.processNavigationCommand(
+                command = command,
+                currentScreen = context.getString(R.string.dish_screen),
+                navController = navController,
+                context = context,
+            )
         }
     }
 

@@ -113,11 +113,13 @@ fun PurchasesScreen(
         if (parts.size>=3 && parts[0] == "создай" && parts[1] == "новый" && parts[2] == "список"){
             val newPurchaseListName:String  = parts.subList(3,parts.size).joinToString("")
             val currentDate = LocalDate.now()
+            val formatter = DateTimeFormatter.ofPattern("LLLL", Locale.getDefault())
+            val systemMonth = currentDate.format(formatter)
             val newPurchaseList = PurchaseList(
                 name = newPurchaseListName,
                 listSize = 0,
                 year = currentDate.year,
-                month = currentDate.month.name,
+                month = systemMonth,
                 day = currentDate.dayOfMonth
             )
             onSubmit(newPurchaseList)

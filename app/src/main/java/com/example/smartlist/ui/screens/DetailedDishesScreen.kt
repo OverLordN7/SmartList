@@ -155,11 +155,8 @@ fun DetailedDishesScreen(
         if (parts.size>=3 && parts[0] == "создай" && parts[1] == "новый" && parts[2] == "рецепт"){
 
             try {
-                Log.d(TAG, "id: ${dishViewModel.currentListId}")
                 val newRecipeName: String = parts[3]
-                Log.d(TAG, "name: $newRecipeName")
                 val newRecipePortions: Int = convertStringToNumber(parts.subList(5,parts.size).joinToString(""))
-                Log.d(TAG, "portions: $newRecipePortions")
                 val newRecipe = Recipe(
                     listId = dishViewModel.currentListId,
                     name = newRecipeName,
@@ -176,13 +173,12 @@ fun DetailedDishesScreen(
         }
 
         else{
-            when(command.text){
-                "список блюд"->{ Toast.makeText(context,navigationTransition, Toast.LENGTH_SHORT).show()}
-                "список покупок"->{ navController.navigate(Screen.PurchasesScreen.route)}
-                "графики"->{navController.navigate(Screen.GraphScreen.route)}
-                "домашняя страница"->{navController.navigate(Screen.HomeScreen.route)}
-                else->{Toast.makeText(context,unknownVoiceCommandMessage, Toast.LENGTH_SHORT).show()}
-            }
+            homeViewModel.processNavigationCommand(
+                command = command,
+                currentScreen = context.getString(R.string.detailed_dishes_screen),
+                navController = navController,
+                context = context,
+            )
         }
     }
 

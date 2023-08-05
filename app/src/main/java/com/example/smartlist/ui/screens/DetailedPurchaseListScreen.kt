@@ -39,7 +39,6 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.rememberScaffoldState
-import androidx.compose.material.rememberSwipeableState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -68,7 +67,6 @@ import androidx.navigation.NavController
 import com.example.smartlist.R
 import com.example.smartlist.model.Item
 import com.example.smartlist.model.ListOfMenuItem
-import com.example.smartlist.navigation.Screen
 import com.example.smartlist.ui.menu.DrawerBody
 import com.example.smartlist.ui.menu.DrawerHeader
 import com.example.smartlist.ui.menu.HomeAppBar
@@ -107,8 +105,6 @@ fun DetailedPurchaseListScreen(
     val voiceCommand by homeViewModel.voiceCommand.collectAsState()
 
     //Navigation attributes
-    val navigationMessage = stringResource(id = R.string.navigation_message)
-    val navigationTransition = stringResource(id = R.string.navigation_transition)
     val unknownVoiceCommandMessage = stringResource(id = R.string.unknown_command)
 
     if (showDialog.value){
@@ -159,13 +155,12 @@ fun DetailedPurchaseListScreen(
             homeViewModel.clearVoiceCommand()
         }
         else{
-            when(command.text){
-                "список покупок"->{Toast.makeText(context,navigationTransition, Toast.LENGTH_SHORT).show()}
-                "список блюд"->{navController.navigate(Screen.DishesScreen.route)}
-                "графики"->{navController.navigate(Screen.GraphScreen.route)}
-                "домашняя страница"->{navController.navigate(Screen.HomeScreen.route)}
-                else->{Toast.makeText(context,unknownVoiceCommandMessage, Toast.LENGTH_SHORT).show()}
-            }
+            homeViewModel.processNavigationCommand(
+                command = command,
+                currentScreen = context.getString(R.string.detailed_purchase_screen),
+                navController = navController,
+                context = context,
+            )
         }
     }
 
@@ -181,7 +176,6 @@ fun DetailedPurchaseListScreen(
                 retryAction = onRefresh,
                 onMicrophoneOn = {
                     if(it){ homeViewModel.startListening() }
-
                     else{ homeViewModel.stopListening() }
                 }
             )
@@ -191,32 +185,13 @@ fun DetailedPurchaseListScreen(
             DrawerBody(
                 items = myItems,
                 onItemClick = {
-                    when(it.id){
-                        "dishList" ->{
-                            scope.launch { scaffoldState.drawerState.close() }
-                            navController.navigate(Screen.DishesScreen.route)
-                        }
-                        "purchaseList" ->{
-                            scope.launch { scaffoldState.drawerState.close() }
-                            navController.navigate(Screen.PurchasesScreen.route)
-                        }
-                        "graphs" ->{
-                            scope.launch { scaffoldState.drawerState.close() }
-                            navController.navigate(Screen.GraphScreen.route)
-                        }
-                        "home" ->{
-                            scope.launch { scaffoldState.drawerState.close() }
-                            navController.navigate(Screen.HomeScreen.route)
-                        }
-                        "settings"->{
-                            scope.launch { scaffoldState.drawerState.close() }
-                            navController.navigate(Screen.SettingScreen.route)
-                        }
-                        else -> {
-                            val message = context.getString(R.string.menu_item_toast_default,it.title)
-                            Toast.makeText(context,message,Toast.LENGTH_SHORT).show()
-                        }
-                    }
+                    scope.launch { scaffoldState.drawerState.close() }
+                    homeViewModel.processDrawerBodyCommand(
+                        item = it,
+                        currentScreen = "detailedPurchaseScreen",
+                        context = context,
+                        navController = navController,
+                    )
                 }
             )
         },

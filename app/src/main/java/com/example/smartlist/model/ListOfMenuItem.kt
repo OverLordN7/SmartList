@@ -47,32 +47,3 @@ class ListOfMenuItem(val context: Context) {
         return items
     }
 }
-
-
-
-val items = listOf(
-    MenuItem(
-        id = "home",
-        title ="Home",
-        contentDescription = "Go to home screen",
-        icon = Icons.Default.Home
-    ),
-    MenuItem(
-        id = "purchaseList",
-        title = "Purchase list",
-        contentDescription = "Go to Purchase list screen",
-        icon = Icons.Default.ShoppingBasket
-    ),
-    MenuItem(
-        id = "dishList",
-        title = "Dishes list",
-        contentDescription = "Go to Dishes list screen",
-        icon = Icons.Default.Fastfood
-    ),
-    MenuItem(
-        id = "graphs",
-        title = "Graphs",
-        contentDescription = "Go to graphs screen",
-        icon = Icons.Default.BarChart
-    ),
-)

@@ -12,6 +12,7 @@ import com.example.smartlist.SmartListApplication
 import com.example.smartlist.data.DishRepository
 import com.example.smartlist.data.PurchaseRepository
 import com.example.smartlist.data.VoiceToTextParser
+import com.example.smartlist.model.MenuItem
 import com.example.smartlist.model.VoiceCommand
 import com.example.smartlist.navigation.Screen
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,33 +32,38 @@ class HomeViewModel(
         get() = _voiceCommand
 
 
-    //Create a sharedPreferences
+    //Attributes of sharedPreferences
+    private val sharedPrefFileName = "my_pref_file_name"
+
     private val themeKey = "theme_pref"
-    private val sharedPreferences = application.getSharedPreferences("my_pref_file_name",Context.MODE_PRIVATE)
+    private val sharedPreferences = application.getSharedPreferences(sharedPrefFileName,Context.MODE_PRIVATE)
 
-    //Attributes for changing language of app
     private val langKey = "lang_pref"
-    private val sharedLanguagePreferences = application.getSharedPreferences("my_pref_file_name",Context.MODE_PRIVATE)
+    private val sharedLanguagePreferences = application.getSharedPreferences(sharedPrefFileName,Context.MODE_PRIVATE)
 
+
+    private val _isDarkThemeEnabled = MutableStateFlow(isDarkThemeEnabled())
+    val isDarkThemeEnabled: StateFlow<Boolean> = _isDarkThemeEnabled
 
     private val _currentLanguage = MutableStateFlow(getCurrentLanguage())
     val currentLanguage: StateFlow<String> = _currentLanguage
+
+    init {
+        voiceToTextParser.commandCallBack = { command ->
+            _voiceCommand.value = command
+        }
+    }
 
     fun setCurrentLanguage(language: String){
         _currentLanguage.value = language
         sharedLanguagePreferences.edit().putString(langKey,language).apply()
     }
 
-    fun getCurrentLanguage(): String {
+    private fun getCurrentLanguage(): String {
         return sharedLanguagePreferences.getString(langKey,"en").toString()
     }
 
-
-    private val _isDarkThemeEnabled = MutableStateFlow(isDarkThemeEnabled())
-    val isDarkThemeEnabled: StateFlow<Boolean> = _isDarkThemeEnabled
-
-
-    fun isDarkThemeEnabled(): Boolean{
+    private fun isDarkThemeEnabled(): Boolean{
         return sharedPreferences.getBoolean(themeKey,false)
     }
 
@@ -66,24 +72,12 @@ class HomeViewModel(
         sharedPreferences.edit().putBoolean(themeKey,isEnabled).apply()
     }
 
-
-    init {
-        voiceToTextParser.commandCallBack = { command ->
-            _voiceCommand.value = command
-        }
-    }
-
     fun clearVoiceCommand(){
         _voiceCommand.value = null
     }
 
-    fun startListening(languageCode: String = "ru") {
-        voiceToTextParser.startListening(languageCode)
-    }
-
-    fun stopListening() {
-        voiceToTextParser.stopListening()
-    }
+    fun startListening(languageCode: String = "ru") = voiceToTextParser.startListening(languageCode)
+    fun stopListening() = voiceToTextParser.stopListening()
 
     fun processNavigationCommand(
         command: VoiceCommand,
@@ -115,6 +109,42 @@ class HomeViewModel(
                     isCommandMatchSuccessful = true
                     Toast.makeText(context, navigationTransition, Toast.LENGTH_SHORT).show()
                     clearVoiceCommand()
+                    navController.navigate(screen.value)
+                }
+            }
+
+            if (!isCommandMatchSuccessful){
+                Toast.makeText(context, unknownVoiceCommandMessage, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    fun processDrawerBodyCommand(
+        item: MenuItem,
+        currentScreen: String,
+        context: Context,
+        navController: NavController,
+    ){
+        var isCommandMatchSuccessful = false
+
+        val sameScreenMessage = context.getString(R.string.notification_message)
+        val unknownVoiceCommandMessage = context.getString(R.string.unknown_command)
+
+        val mapOfScreen = mapOf(
+            "home" to Screen.HomeScreen.route,
+            "purchaseList" to Screen.PurchasesScreen.route,
+            "dishList" to Screen.DishesScreen.route,
+            "graphs" to Screen.GraphScreen.route,
+            "settings" to Screen.SettingScreen.route
+        )
+
+        if (item.id == currentScreen){
+            Toast.makeText(context, sameScreenMessage, Toast.LENGTH_SHORT).show()
+        }
+        else{
+            for(screen in mapOfScreen){
+                if (item.id == screen.key){
+                    isCommandMatchSuccessful = true
                     navController.navigate(screen.value)
                 }
             }

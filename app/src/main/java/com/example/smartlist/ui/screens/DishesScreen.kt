@@ -1,6 +1,5 @@
 package com.example.smartlist.ui.screens
 
-import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.Card
@@ -49,18 +47,15 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import androidx.core.content.ContextCompat.getString
 import androidx.navigation.NavController
 import com.example.smartlist.R
 import com.example.smartlist.model.DishList
 import com.example.smartlist.model.ListOfMenuItem
-import com.example.smartlist.model.items
 import com.example.smartlist.navigation.Screen
 import com.example.smartlist.ui.menu.DrawerBody
 import com.example.smartlist.ui.menu.DrawerHeader
 import com.example.smartlist.ui.menu.HomeAppBar
 import kotlinx.coroutines.launch
-import java.text.DateFormatSymbols
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -86,11 +81,6 @@ fun DishesScreen(
 
     //Menu drawer items
     val myItems = ListOfMenuItem(context).getItems()
-
-    //Navigation attributes
-    val navigationMessage = stringResource(id = R.string.navigation_message)
-    val navigationTransition = stringResource(id = R.string.navigation_transition)
-    val unknownVoiceCommandMessage = stringResource(id = R.string.unknown_command)
 
     //Voice attributes
     val voiceState by homeViewModel.voiceToTextParser.state.collectAsState()
@@ -155,31 +145,13 @@ fun DishesScreen(
             DrawerBody(
                 items = myItems,
                 onItemClick = {
-                    when(it.id){
-                        "dishList" ->{
-                            Toast.makeText(context,navigationMessage, Toast.LENGTH_SHORT).show()
-                        }
-                        "purchaseList" ->{
-                            scope.launch { scaffoldState.drawerState.close() }
-                            navController.navigate(Screen.PurchasesScreen.route)
-                        }
-                        "graphs" ->{
-                            scope.launch { scaffoldState.drawerState.close() }
-                            navController.navigate(Screen.GraphScreen.route)
-                        }
-                        "home" ->{
-                            scope.launch { scaffoldState.drawerState.close() }
-                            navController.navigate(Screen.HomeScreen.route)
-                        }
-                        "settings"->{
-                            scope.launch { scaffoldState.drawerState.close() }
-                            navController.navigate(Screen.SettingScreen.route)
-                        }
-                        else -> {
-                            val message = context.getString(R.string.menu_item_toast_default,it.title)
-                            Toast.makeText(context,message,Toast.LENGTH_SHORT).show()
-                        }
-                    }
+                    scope.launch { scaffoldState.drawerState.close() }
+                    homeViewModel.processDrawerBodyCommand(
+                        item = it,
+                        currentScreen = "dishList",
+                        context = context,
+                        navController = navController,
+                    )
                 }
             )
         },
@@ -216,8 +188,6 @@ fun DishesScreen(
                         onDelete = onDelete,
                     )
                 }
-
-                else -> {}
             }
         }
     }
@@ -479,14 +449,6 @@ fun NewDishListDialog(
                             }
                             else{
                                 val date = LocalDate.now()
-                                val month = date.monthValue
-
-                                //val dfs = DateFormatSymbols.getInstance(Locale.getDefault())
-                                //val systemMonth = dfs.months[month - 1]
-
-                                //val dfs = DateFormatSymbols.getInstance()
-                                //val russianMonth = dfs.months[month - 1]
-
                                 val formatter = DateTimeFormatter.ofPattern("LLLL", Locale.getDefault())
                                 val systemMonth = date.format(formatter)
 

@@ -50,6 +50,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -76,11 +77,8 @@ import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.example.smartlist.R
 import com.example.smartlist.model.DishComponent
-import com.example.smartlist.model.DishList
 import com.example.smartlist.model.ListOfMenuItem
 import com.example.smartlist.model.Recipe
-import com.example.smartlist.model.items
-import com.example.smartlist.navigation.Screen
 import com.example.smartlist.ui.menu.DrawerBody
 import com.example.smartlist.ui.menu.DrawerHeader
 import com.example.smartlist.ui.menu.MainAppBar
@@ -90,7 +88,6 @@ import com.example.smartlist.ui.theme.Fat200
 import com.example.smartlist.ui.theme.LightBlue200
 import com.example.smartlist.ui.theme.Protein200
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 import java.util.Locale
 import java.util.UUID
 
@@ -131,8 +128,6 @@ fun DetailedDishesScreen(
     val voiceCommand by homeViewModel.voiceCommand.collectAsState()
 
     //Navigation attributes
-    val navigationMessage = stringResource(id = R.string.navigation_message)
-    val navigationTransition = stringResource(id = R.string.navigation_transition)
     val unknownVoiceCommandMessage = stringResource(id = R.string.unknown_command)
 
     //When switch to different screen, refresh command
@@ -203,32 +198,13 @@ fun DetailedDishesScreen(
             DrawerBody(
                 items = myItems,
                 onItemClick = {
-                    when(it.id){
-                        "dishList" ->{
-                            scope.launch { scaffoldState.drawerState.close() }
-                            navController.navigate(Screen.DishesScreen.route)
-                        }
-                        "purchaseList" ->{
-                            scope.launch { scaffoldState.drawerState.close() }
-                            navController.navigate(Screen.PurchasesScreen.route)
-                        }
-                        "graphs" ->{
-                            scope.launch { scaffoldState.drawerState.close() }
-                            navController.navigate(Screen.GraphScreen.route)
-                        }
-                        "home" ->{
-                            scope.launch { scaffoldState.drawerState.close() }
-                            navController.navigate(Screen.HomeScreen.route)
-                        }
-                        "settings"->{
-                            scope.launch { scaffoldState.drawerState.close() }
-                            navController.navigate(Screen.SettingScreen.route)
-                        }
-                        else -> {
-                            val message = context.getString(R.string.menu_item_toast_default,it.title)
-                            Toast.makeText(context,message,Toast.LENGTH_SHORT).show()
-                        }
-                    }
+                    scope.launch { scaffoldState.drawerState.close() }
+                    homeViewModel.processDrawerBodyCommand(
+                        item = it,
+                        currentScreen = "detailedDishesScreen",
+                        context = context,
+                        navController = navController,
+                    )
                 }
             )
         },
@@ -426,10 +402,10 @@ fun RecipeCard(
                     cal += it.cal
                 }
 
-                var isCarbsGreaterThan1k = false
-                var isFatsGreaterThan1k = false
-                var isProteinGreaterThan1k = false
-                var isCalGreaterThan1k = false
+                val isCarbsGreaterThan1k: Boolean
+                val isFatsGreaterThan1k: Boolean
+                val isProteinGreaterThan1k: Boolean
+                val isCalGreaterThan1k: Boolean
 
 
                 val normalizedCarbs = if ((carbs * recipe.portions)>1000f){
@@ -501,7 +477,7 @@ fun RecipeCardList(
     modifier: Modifier = Modifier
 ){
 
-    val height by remember { mutableStateOf(300) }
+    val height by remember { mutableIntStateOf(300) }
 
     val showDialog = remember { mutableStateOf(false) }
 
@@ -542,7 +518,7 @@ fun RecipeCardList(
             }
 
             items(dishComponentList.size){
-                DishComponentCard(component = dishComponentList[it], onEdit = onEdit, onDelete = deleteDishComponent,)
+                DishComponentCard(component = dishComponentList[it], onEdit = onEdit, onDelete = deleteDishComponent)
             }
         }
 
@@ -557,7 +533,7 @@ fun RecipeCardEditScreen(
     modifier: Modifier = Modifier
 ){
     var nameField by remember { mutableStateOf(TextFieldValue(recipe.name)) }
-    var portionsField by remember { mutableStateOf(recipe.portions) }
+    var portionsField by remember { mutableIntStateOf(recipe.portions) }
     var errorMessage by remember { mutableStateOf(false) }
 
     Column(
@@ -1534,7 +1510,7 @@ fun NewDishComponentDialog(
     }
 }
 
-fun checkForError(name: TextFieldValue, weight: TextFieldValue, price: TextFieldValue, ): Boolean {
+fun checkForError(name: TextFieldValue, weight: TextFieldValue, price: TextFieldValue): Boolean {
     return name.text.isBlank() || weight.text.isBlank() || (price.text.isBlank() || price.text.toFloat() <= 0.0f)
 }
 

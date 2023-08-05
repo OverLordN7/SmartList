@@ -1,6 +1,5 @@
 package com.example.smartlist.ui.screens
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -46,10 +45,6 @@ fun HomeScreen(
     //Menu drawer items
     val myItems = ListOfMenuItem(context).getItems()
 
-    //Navigation attributes
-    val navigationMessage = stringResource(id = R.string.navigation_message)
-
-
     val voiceCommand by homeViewModel.voiceCommand.collectAsState()
 
     LaunchedEffect(navController.currentBackStackEntry){
@@ -86,31 +81,13 @@ fun HomeScreen(
             DrawerBody(
                 items = myItems,
                 onItemClick = {
-                    when(it.id){
-                        "dishList" ->{
-                            scope.launch { scaffoldState.drawerState.close() }
-                            navController.navigate(Screen.DishesScreen.route)
-                        }
-                        "purchaseList" ->{
-                            scope.launch { scaffoldState.drawerState.close() }
-                            navController.navigate(Screen.PurchasesScreen.route)
-                        }
-                        "graphs" ->{
-                            scope.launch { scaffoldState.drawerState.close() }
-                            navController.navigate(Screen.GraphScreen.route)
-                        }
-                        "home" ->{
-                            Toast.makeText(context,navigationMessage, Toast.LENGTH_SHORT).show()
-                        }
-                        "settings"->{
-                            scope.launch { scaffoldState.drawerState.close() }
-                            navController.navigate(Screen.SettingScreen.route)
-                        }
-                        else -> {
-                            val message = context.getString(R.string.menu_item_toast_default,it.title)
-                            Toast.makeText(context,message, Toast.LENGTH_SHORT).show()
-                        }
-                    }
+                    scope.launch { scaffoldState.drawerState.close() }
+                    homeViewModel.processDrawerBodyCommand(
+                        item = it,
+                        currentScreen = "home",
+                        context = context,
+                        navController = navController,
+                    )
                 }
             )
         },

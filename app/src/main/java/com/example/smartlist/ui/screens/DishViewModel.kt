@@ -1,10 +1,9 @@
 package com.example.smartlist.ui.screens
 
-import android.util.Log
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -17,7 +16,6 @@ import com.example.smartlist.data.PurchaseRepository
 import com.example.smartlist.model.DishComponent
 import com.example.smartlist.model.DishList
 import com.example.smartlist.model.Item
-import com.example.smartlist.model.Product
 import com.example.smartlist.model.PurchaseList
 import com.example.smartlist.model.Recipe
 import kotlinx.coroutines.Dispatchers
@@ -27,6 +25,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import java.util.UUID
 
 
@@ -59,13 +59,11 @@ class DishViewModel (
 
     var currentName: String by mutableStateOf("List unknown")
 
-    var currentListSize: Int by mutableStateOf(0)
+    private var currentListSize: Int by mutableIntStateOf(0)
 
 
     private val _dishComponents = MutableStateFlow<List<DishComponent>>(emptyList())
     val dishComponents: StateFlow<List<DishComponent>> get() = _dishComponents.asStateFlow()
-
-
 
     //DishList Functions
 
@@ -129,28 +127,28 @@ class DishViewModel (
     fun convertDishListToPurchaseList(exportName: String){
         viewModelScope.launch {
             val date = LocalDate.now()
+            val formatter = DateTimeFormatter.ofPattern("LLLL", Locale.getDefault())
+            val systemMonth = date.format(formatter)
+
             val exportPurchaseList = PurchaseList(
                 id = UUID.randomUUID(),
                 name = exportName,
                 listSize = 0,
                 year = date.year,
-                month = date.month.name,
+                month = systemMonth,
                 day = date.dayOfMonth
             )
             var listSize = 0
             val exportItemList: ArrayList<Item> = arrayListOf()
 
 
-            var tempRecipeList: List<Recipe> = emptyList()
-            withContext(Dispatchers.IO){
-                tempRecipeList = getRecipeListFromDb()
+            val tempRecipeList = withContext(Dispatchers.IO){
+                getRecipeListFromDb()
             }
 
             tempRecipeList.forEach {
-                var tempDCList: List<DishComponent> = emptyList()
-
-                withContext(Dispatchers.IO){
-                    tempDCList = dishRepository.getDishComponents(it.id)
+                val tempDCList = withContext(Dispatchers.IO){
+                    dishRepository.getDishComponents(it.id)
                 }
 
                 tempDCList.forEach { dc->
@@ -273,11 +271,9 @@ class DishViewModel (
     }
 
     private suspend fun getRecipeListFromDb(): List<Recipe>{
-        var recipeList: List<Recipe> = emptyList()
-        withContext(Dispatchers.IO){
-            recipeList = dishRepository.getRecipes(listId = currentListId)
+        return withContext(Dispatchers.IO){
+            dishRepository.getRecipes(listId = currentListId)
         }
-        return recipeList
     }
 
     fun getRecipesList(){
@@ -291,25 +287,20 @@ class DishViewModel (
         }
     }
 
-
     //Dish Component functions
 
     fun insertDishComponent(component: DishComponent){
         viewModelScope.launch {
             //get a list of product
-            var tempProductList: List<Product> = emptyList()
-            withContext(Dispatchers.IO){
-                tempProductList = productRepository.getAllProducts()
+            val tempProductList = withContext(Dispatchers.IO){
+                productRepository.getAllProducts()
             }
 
             //received an empty list
             if (tempProductList.isEmpty()){
-                Log.d(TAG,"list is empty")
-
                 withContext(Dispatchers.IO){
                     dishRepository.insertDishComponent(component)
                 }
-
             }
             //received a list with product
             else{
@@ -322,7 +313,6 @@ class DishViewModel (
                         (component.weight / 0.1).toFloat()
                     }
                 }
-
 
                 for (product in tempProductList){
                     if (component.name == product.name){
@@ -364,19 +354,15 @@ class DishViewModel (
     fun updateDishComponent(dishComponent: DishComponent){
         viewModelScope.launch {
             //get a list of product
-            var tempProductList: List<Product> = emptyList()
-            withContext(Dispatchers.IO){
-                tempProductList = productRepository.getAllProducts()
+            val tempProductList = withContext(Dispatchers.IO){
+                productRepository.getAllProducts()
             }
 
             //received an empty list
             if (tempProductList.isEmpty()){
-                Log.d(TAG,"list is empty")
-
                 withContext(Dispatchers.IO){
                     dishRepository.updateDishComponent(dishComponent)
                 }
-
             }
 
             else{
@@ -389,7 +375,6 @@ class DishViewModel (
                         (dishComponent.weight / 0.1).toFloat()
                     }
                 }
-
 
                 for (product in tempProductList){
                     if (dishComponent.name == product.name){
@@ -407,10 +392,6 @@ class DishViewModel (
             }
         }
     }
-
-
-
-
 
     companion object{
         val Factory: ViewModelProvider.Factory = viewModelFactory {

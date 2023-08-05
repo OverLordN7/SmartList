@@ -2,6 +2,7 @@ package com.example.smartlist.ui.screens
 
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
@@ -43,7 +44,7 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
 
     var currentListId: UUID by mutableStateOf(UUID.randomUUID())
 
-    var currentListSize: Int by mutableStateOf(0)
+    private var currentListSize: Int by mutableIntStateOf(0)
 
     var currentName: String by mutableStateOf("List unknown")
 
@@ -54,11 +55,9 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
     //Purchase List functions
 
     private suspend fun getAllLists():List<PurchaseList>{
-        var purchaseList: List<PurchaseList>
-        withContext(Dispatchers.IO){
-            purchaseList =  purchaseRepository.getAllLists()
+        return withContext(Dispatchers.IO){
+            purchaseRepository.getAllLists()
         }
-        return  purchaseList
     }
 
     fun getPurchaseLists(){
@@ -73,13 +72,9 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
     }
 
     private suspend fun getItemsForPurchaseList(): List<Item>{
-        var itemList: List<Item> = emptyList()
-
-        withContext(Dispatchers.IO){
-            itemList = purchaseRepository.getItems(listId = currentListId)
+        return withContext(Dispatchers.IO){
+            purchaseRepository.getItems(listId = currentListId).sortedBy { it.name }
         }
-
-        return itemList.sortedBy { it.name }
     }
 
     fun getItemsOfPurchaseList(){
@@ -157,8 +152,6 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
             }
         }
     }
-
-    //End of Purchase List functions
 
     //Item functions
 

@@ -1,6 +1,5 @@
 package com.example.smartlist.ui.screens
 
-import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -85,10 +84,6 @@ fun PurchasesScreen(
     //Menu drawer items
     val myItems = ListOfMenuItem(context).getItems()
 
-    //Navigation attributes
-    val navigationMessage = stringResource(id = R.string.navigation_message)
-
-
     //Voice attributes
     val voiceState by homeViewModel.voiceToTextParser.state.collectAsState()
     val voiceCommand by homeViewModel.voiceCommand.collectAsState()
@@ -113,11 +108,13 @@ fun PurchasesScreen(
         if (parts.size>=3 && parts[0] == "создай" && parts[1] == "новый" && parts[2] == "список"){
             val newPurchaseListName:String  = parts.subList(3,parts.size).joinToString("")
             val currentDate = LocalDate.now()
+            val formatter = DateTimeFormatter.ofPattern("LLLL", Locale.getDefault())
+            val systemMonth = currentDate.format(formatter)
             val newPurchaseList = PurchaseList(
                 name = newPurchaseListName,
                 listSize = 0,
                 year = currentDate.year,
-                month = currentDate.month.name,
+                month = systemMonth,
                 day = currentDate.dayOfMonth
             )
             onSubmit(newPurchaseList)
@@ -152,31 +149,13 @@ fun PurchasesScreen(
             DrawerBody(
                 items = myItems,
                 onItemClick = {
-                    when(it.id){
-                        "dishList" ->{
-                            scope.launch { scaffoldState.drawerState.close() }
-                            navController.navigate(Screen.DishesScreen.route)
-                        }
-                        "purchaseList" ->{
-                            Toast.makeText(context,navigationMessage, Toast.LENGTH_SHORT).show()
-                        }
-                        "graphs" ->{
-                            scope.launch { scaffoldState.drawerState.close() }
-                            navController.navigate(Screen.GraphScreen.route)
-                        }
-                        "home" ->{
-                            scope.launch { scaffoldState.drawerState.close() }
-                            navController.navigate(Screen.HomeScreen.route)
-                        }
-                        "settings"->{
-                            scope.launch { scaffoldState.drawerState.close() }
-                            navController.navigate(Screen.SettingScreen.route)
-                        }
-                        else -> {
-                            val message = context.getString(R.string.menu_item_toast_default,it.title)
-                            Toast.makeText(context,message,Toast.LENGTH_SHORT).show()
-                        }
-                    }
+                    scope.launch { scaffoldState.drawerState.close() }
+                    homeViewModel.processDrawerBodyCommand(
+                        item = it,
+                        currentScreen = "purchaseList",
+                        context = context,
+                        navController = navController,
+                    )
                 }
             )
         },

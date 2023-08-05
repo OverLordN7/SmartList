@@ -53,7 +53,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.smartlist.R
 import com.example.smartlist.model.ListOfMenuItem
-import com.example.smartlist.navigation.Screen
 import com.example.smartlist.ui.menu.DrawerBody
 import com.example.smartlist.ui.menu.DrawerHeader
 import com.example.smartlist.ui.menu.HomeAppBar
@@ -77,8 +76,6 @@ fun SettingsScreen(
     //Language attributes
     val currentLanguage by homeViewModel.currentLanguage.collectAsState()
 
-    //Navigation attributes
-    val navigationMessage = stringResource(id = R.string.navigation_message)
     val voiceCommand by homeViewModel.voiceCommand.collectAsState()
 
     val isDarkTheme by homeViewModel.isDarkThemeEnabled.collectAsState()
@@ -119,31 +116,13 @@ fun SettingsScreen(
             DrawerBody(
                 items = myItems,
                 onItemClick = {
-                    when(it.id){
-                        "dishList" ->{
-                            scope.launch { scaffoldState.drawerState.close() }
-                            navController.navigate(Screen.DishesScreen.route)
-                        }
-                        "purchaseList" ->{
-                            scope.launch { scaffoldState.drawerState.close() }
-                            navController.navigate(Screen.PurchasesScreen.route)
-                        }
-                        "graphs" ->{
-                            scope.launch { scaffoldState.drawerState.close() }
-                            navController.navigate(Screen.GraphScreen.route)
-                        }
-                        "home" ->{
-                            scope.launch { scaffoldState.drawerState.close() }
-                            navController.navigate(Screen.HomeScreen.route)
-                        }
-                        "settings"->{
-                            Toast.makeText(context,navigationMessage, Toast.LENGTH_SHORT).show()
-                        }
-                        else -> {
-                            val message = context.getString(R.string.menu_item_toast_default,it.title)
-                            Toast.makeText(context,message, Toast.LENGTH_SHORT).show()
-                        }
-                    }
+                    scope.launch { scaffoldState.drawerState.close() }
+                    homeViewModel.processDrawerBodyCommand(
+                        item = it,
+                        currentScreen = "settings",
+                        context = context,
+                        navController = navController,
+                    )
                 }
             )
         },

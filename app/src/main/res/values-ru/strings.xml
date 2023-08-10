@@ -184,4 +184,5 @@
 
     <string name="detailed_dishes_screen">Детальный список блюд</string>
     <string name="detailed_purchase_screen">Детальный список покупок</string>
+    <string name="cal_table_button">Калории</string>
 </resources>

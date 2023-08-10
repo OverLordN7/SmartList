@@ -1,7 +1,10 @@
 package com.example.smartlist.ui.screens
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
@@ -12,11 +15,15 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.smartlist.R
 import com.example.smartlist.model.ListOfMenuItem
+import com.example.smartlist.ui.charts.DonutChart
+import com.example.smartlist.ui.charts.PieChart
 import com.example.smartlist.ui.menu.DrawerBody
 import com.example.smartlist.ui.menu.DrawerHeader
 import com.example.smartlist.ui.menu.HomeAppBar
@@ -85,8 +92,42 @@ fun GraphScreen(
             )
         }
     ) {
-        Surface(modifier = modifier.fillMaxSize().padding(it)) {
-            Text(text = stringResource(id = R.string.graph_screen_button))
+        Surface(modifier = modifier
+            .fillMaxSize()
+            .padding(it)) {
+            Column {
+                Text(text = stringResource(id = R.string.graph_screen_button))
+
+                val colors = listOf(
+                    Color.Blue,
+                    Color.Cyan,
+                    Color.Magenta
+                )
+
+                val dummy = listOf(
+                    60f,
+                    110f,
+                    20f
+                )
+
+                DonutChart(
+                    colors = colors,
+                    inputValues = dummy,
+                    textColor = Color.Black,
+                    modifier = Modifier.size(200.dp)
+                )
+
+                PieChart(
+                    data = mapOf(
+                        Pair("A",30),
+                        Pair("B",10),
+                        Pair("C",75),
+                        Pair("D",100),
+                        Pair("E",120),
+                    ),
+                    modifier = Modifier.size(200.dp)
+                )
+            }
         }
     }
 }

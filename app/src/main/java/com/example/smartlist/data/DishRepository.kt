@@ -127,7 +127,8 @@ class DefaultDishRepository(
         recipeDao.updateRecipe(
             id = recipe.id,
             name = recipe.name,
-            portions = recipe.portions
+            portions = recipe.portions,
+            photoPath = recipe.photoPath,
         )
     }
 

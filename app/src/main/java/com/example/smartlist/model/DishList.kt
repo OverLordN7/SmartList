@@ -28,6 +28,7 @@ data class Recipe(
     val listId: UUID,
     val name: String,
     val portions: Int,
+    val photoPath: String? = null,
 )
 
 @Entity(

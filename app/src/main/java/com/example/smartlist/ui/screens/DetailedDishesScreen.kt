@@ -1,7 +1,14 @@
 package com.example.smartlist.ui.screens
 
+import android.graphics.Bitmap
+import android.graphics.ImageDecoder
+import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -44,6 +51,7 @@ import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -57,9 +65,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -74,6 +84,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.core.net.toUri
 import androidx.navigation.NavController
 import com.example.smartlist.R
 import com.example.smartlist.model.DishComponent
@@ -312,6 +323,10 @@ fun RecipeCard(
     val showCalTable = remember { mutableStateOf(false) }
     val context = LocalContext.current
 
+    //Attributes for photo
+    var imageUri by remember { mutableStateOf<Uri?>(null)}
+    val bitmap = remember{ mutableStateOf<Bitmap?>(null)}
+
     Card(
         elevation = 4.dp,
         backgroundColor = LightBlue200,
@@ -339,14 +354,35 @@ fun RecipeCard(
             ) {
                 Row {
 
-                    Image(
-                        painter = painterResource(id = R.drawable.pasta1),
-                        contentDescription = stringResource(id = R.string.recipe_image),
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .size(64.dp)
-                            .border(2.dp, Color.Gray, CircleShape)
-                    )
+                    if (!recipe.photoPath.isNullOrEmpty()){
+
+                        val source = ImageDecoder.createSource(context.contentResolver,recipe.photoPath.toUri())
+                        bitmap.value = ImageDecoder.decodeBitmap(source)
+
+                        Image(
+                            bitmap = bitmap.value!!.asImageBitmap(),
+                            contentDescription = stringResource(id = R.string.recipe_image),
+                            modifier = Modifier
+                                .size(64.dp)
+                                .border(2.dp, Color.Gray, CircleShape),
+                            contentScale = ContentScale.Crop,
+                        )
+                    } else{
+                        Box (
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.padding(4.dp)
+                        ){
+                            Image(
+                                painter = painterResource(id = R.drawable.pasta1),
+                                contentDescription = stringResource(id = R.string.recipe_image),
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .size(64.dp)
+                                    .border(2.dp, Color.Gray, CircleShape)
+                                    .clip(CircleShape)
+                            )
+                        }
+                    }
 
                     Column(
                         verticalArrangement = Arrangement.Center,
@@ -983,6 +1019,12 @@ fun NewRecipeDialog(
     var portionsField by remember { mutableStateOf(TextFieldValue("1")) }
     var errorFieldStatus by remember { mutableStateOf(false) }
 
+    //Attributes for photo capture
+    var imageUri by remember { mutableStateOf<Uri?>(null)}
+    val launcher = rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()){ uri: Uri? ->
+        imageUri = uri
+    }
+
 
     Dialog(onDismissRequest = {setShowDialog(false)}) {
 
@@ -1071,6 +1113,33 @@ fun NewRecipeDialog(
                     }
                 }
 
+                //Photo capture
+                item {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.padding(4.dp)
+                    ){
+
+                        Image(
+                            imageVector = Icons.Default.Photo,
+                            contentDescription = "",
+                            modifier = Modifier
+                                .size(50.dp)
+                                .weight(1f)
+                        )
+
+                        Spacer(modifier = Modifier.weight(1f))
+
+                        Button(
+                            onClick = {launcher.launch("images/*")},
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Pick image")
+                        }
+                    }
+                }
+
                 //Error message
                 item{
                     if (errorFieldStatus){
@@ -1106,6 +1175,7 @@ fun NewRecipeDialog(
                                         listId = currentListId,
                                         name = nameField.text,
                                         portions = portionsField.text.toFloat().toInt(),
+                                        photoPath = if(imageUri.toString() == "null") null else imageUri.toString()
                                     )
                                     onConfirm(newRecipe)
                                     setShowDialog(false)

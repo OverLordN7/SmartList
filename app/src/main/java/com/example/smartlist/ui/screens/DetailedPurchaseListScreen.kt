@@ -65,6 +65,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.example.smartlist.R
+import com.example.smartlist.extend_functions.capitalizeFirstChar
 import com.example.smartlist.model.Item
 import com.example.smartlist.model.ListOfMenuItem
 import com.example.smartlist.ui.menu.DrawerBody
@@ -137,7 +138,7 @@ fun DetailedPurchaseListScreen(
                 val newItemPrice: Float = parts.subList(9,parts.size).joinToString("").replace(',', '.').toFloat()
 
                 val newItem = Item(
-                    name = newItemName,
+                    name = newItemName.capitalizeFirstChar(),
                     weight = newItemWeight,
                     weightType = newItemType,
                     price = newItemPrice,
@@ -177,7 +178,8 @@ fun DetailedPurchaseListScreen(
                 onMicrophoneOn = {
                     if(it){ homeViewModel.startListening() }
                     else{ homeViewModel.stopListening() }
-                }
+                },
+                isRetryActionEnabled = true,
             )
             },
         drawerContent = {
@@ -840,7 +842,7 @@ fun NewPurchaseListItemDialog(
                                     //Check is OK, continue..
                                     totalPrice = weight.text.toFloat() * price.text.toFloat()
                                     val tempItem = Item(
-                                        name = fieldValue.text,
+                                        name = fieldValue.text.capitalizeFirstChar(),
                                         weight = weight.text.toFloat(),
                                         weightType = selectedOptionText,
                                         price = price.text.toFloat(),

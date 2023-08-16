@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.example.smartlist.R
+import com.example.smartlist.extend_functions.capitalizeFirstChar
 import com.example.smartlist.model.ListOfMenuItem
 import com.example.smartlist.model.PurchaseList
 import com.example.smartlist.navigation.Screen
@@ -111,10 +112,10 @@ fun PurchasesScreen(
             val formatter = DateTimeFormatter.ofPattern("LLLL", Locale.getDefault())
             val systemMonth = currentDate.format(formatter)
             val newPurchaseList = PurchaseList(
-                name = newPurchaseListName,
+                name = newPurchaseListName.capitalizeFirstChar(),
                 listSize = 0,
                 year = currentDate.year,
-                month = systemMonth,
+                month = systemMonth.capitalizeFirstChar(),
                 day = currentDate.dayOfMonth
             )
             onSubmit(newPurchaseList)
@@ -141,7 +142,8 @@ fun PurchasesScreen(
                     if(it){ homeViewModel.startListening() }
 
                     else{ homeViewModel.stopListening() }
-                }
+                },
+                isRetryActionEnabled = true,
             )
         },
         drawerContent = {
@@ -463,10 +465,10 @@ fun NewPurchaseListDialog(
 
 
                                 val list = PurchaseList(
-                                    name = fieldValue.text,
+                                    name = fieldValue.text.capitalizeFirstChar(),
                                     listSize = 0,
                                     year = date.year,
-                                    month = systemMonth,
+                                    month = systemMonth.capitalizeFirstChar(),
                                     day = date.dayOfMonth
                                 )
                                 onConfirm(list)

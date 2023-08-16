@@ -103,7 +103,6 @@ fun SettingsScreen(
                 name = stringResource(id = R.string.settings),
                 state = state,
                 onNavigationIconClick = { scope.launch { scaffoldState.drawerState.open() } },
-                retryAction = {},
                 onMicrophoneOn = {
                     if(it){ homeViewModel.startListening() }
 

@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.example.smartlist.R
+import com.example.smartlist.extend_functions.capitalizeFirstChar
 import com.example.smartlist.model.DishList
 import com.example.smartlist.model.ListOfMenuItem
 import com.example.smartlist.navigation.Screen
@@ -101,10 +102,10 @@ fun DishesScreen(
             val formatter = DateTimeFormatter.ofPattern("LLLL", Locale.getDefault())
             val systemMonth = currentDate.format(formatter)
             val newDishList = DishList(
-                name = newDishListName,
+                name = newDishListName.capitalizeFirstChar(),
                 listSize = 0,
                 year = currentDate.year,
-                month = systemMonth,
+                month = systemMonth.capitalizeFirstChar(),
                 day = currentDate.dayOfMonth
             )
             onSubmit(newDishList)
@@ -136,7 +137,8 @@ fun DishesScreen(
                 onMicrophoneOn = {
                     if(it){ homeViewModel.startListening() }
                     else{ homeViewModel.stopListening() }
-                }
+                },
+                isRetryActionEnabled = true,
             )
         },
 
@@ -453,10 +455,10 @@ fun NewDishListDialog(
                                 val systemMonth = date.format(formatter)
 
                                 val list = DishList(
-                                    name = fieldValue.text,
+                                    name = fieldValue.text.capitalizeFirstChar(),
                                     listSize = 0,
                                     year = date.year,
-                                    month = systemMonth,
+                                    month = systemMonth.capitalizeFirstChar(),
                                     day = date.dayOfMonth
                                 )
                                 onConfirm(list)

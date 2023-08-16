@@ -3,8 +3,6 @@ package com.example.smartlist.ui.screens
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.net.Uri
-import android.os.Build
-import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -87,6 +85,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.core.net.toUri
 import androidx.navigation.NavController
 import com.example.smartlist.R
+import com.example.smartlist.extend_functions.capitalizeFirstChar
 import com.example.smartlist.model.DishComponent
 import com.example.smartlist.model.ListOfMenuItem
 import com.example.smartlist.model.Recipe
@@ -165,7 +164,7 @@ fun DetailedDishesScreen(
                 val newRecipePortions: Int = convertStringToNumber(parts.subList(5,parts.size).joinToString(""))
                 val newRecipe = Recipe(
                     listId = dishViewModel.currentListId,
-                    name = newRecipeName,
+                    name = newRecipeName.capitalizeFirstChar(),
                     portions = newRecipePortions
                 )
                 addNewRecipe(newRecipe)
@@ -324,7 +323,6 @@ fun RecipeCard(
     val context = LocalContext.current
 
     //Attributes for photo
-    var imageUri by remember { mutableStateOf<Uri?>(null)}
     val bitmap = remember{ mutableStateOf<Bitmap?>(null)}
 
     Card(
@@ -362,10 +360,12 @@ fun RecipeCard(
                         Image(
                             bitmap = bitmap.value!!.asImageBitmap(),
                             contentDescription = stringResource(id = R.string.recipe_image),
+                            contentScale = ContentScale.Crop,
                             modifier = Modifier
                                 .size(64.dp)
-                                .border(2.dp, Color.Gray, CircleShape),
-                            contentScale = ContentScale.Crop,
+                                .border(2.dp, Color.Gray, CircleShape)
+                                .clip(CircleShape),
+
                         )
                     } else{
                         Box (
@@ -1025,7 +1025,6 @@ fun NewRecipeDialog(
         imageUri = uri
     }
 
-
     Dialog(onDismissRequest = {setShowDialog(false)}) {
 
         Surface(shape = RoundedCornerShape(16.dp), color = Color.White) {
@@ -1117,25 +1116,21 @@ fun NewRecipeDialog(
                 item {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier.padding(4.dp)
+                        horizontalArrangement = Arrangement.Start,
                     ){
 
-                        Image(
-                            imageVector = Icons.Default.Photo,
-                            contentDescription = "",
-                            modifier = Modifier
-                                .size(50.dp)
-                                .weight(1f)
+                        Text(
+                            text = stringResource(id = R.string.photo_button),
+                            fontSize = 16.sp,
+                            color = Color.Black,
+                            modifier = Modifier.padding(end = 4.dp)
                         )
 
-                        Spacer(modifier = Modifier.weight(1f))
-
-                        Button(
-                            onClick = {launcher.launch("images/*")},
-                            modifier = Modifier.weight(1f)
+                        IconButton(
+                            onClick = { launcher.launch("images/*")},
+                            modifier = Modifier.size(60.dp)
                         ) {
-                            Text("Pick image")
+                            Icon(imageVector = Icons.Default.Photo, contentDescription = null)
                         }
                     }
                 }
@@ -1173,7 +1168,7 @@ fun NewRecipeDialog(
                                     val newRecipe = Recipe(
                                         id = UUID.randomUUID(),
                                         listId = currentListId,
-                                        name = nameField.text,
+                                        name = nameField.text.capitalizeFirstChar(),
                                         portions = portionsField.text.toFloat().toInt(),
                                         photoPath = if(imageUri.toString() == "null") null else imageUri.toString()
                                     )
@@ -1536,7 +1531,7 @@ fun NewDishComponentDialog(
                                             val newDishComponent = DishComponent(
                                                 id = UUID.randomUUID(),
                                                 recipeId = recipeId,
-                                                name = name.text,
+                                                name = name.text.capitalizeFirstChar(),
                                                 weight = weight.text.toFloat(),
                                                 weightType = selectedOptionText,
                                                 price = price.text.toFloat(),
@@ -1556,7 +1551,7 @@ fun NewDishComponentDialog(
                                         val newDishComponent = DishComponent(
                                             id = UUID.randomUUID(),
                                             recipeId = recipeId,
-                                            name = name.text,
+                                            name = name.text.capitalizeFirstChar(),
                                             weight = weight.text.toFloat(),
                                             weightType = selectedOptionText,
                                             price = price.text.toFloat(),

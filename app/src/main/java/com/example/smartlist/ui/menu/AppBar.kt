@@ -164,9 +164,10 @@ fun MainAppBar(
 fun HomeAppBar(
     state:VoiceToTextParserState,
     onNavigationIconClick:()->Unit,
-    retryAction: () -> Unit,
+    retryAction: () -> Unit = {},
     onMicrophoneOn: (Boolean) -> Unit = {},
     name: String = "",
+    isRetryActionEnabled: Boolean = false,
     ) {
 
     val title = stringResource(id = R.string.app_name)
@@ -201,11 +202,13 @@ fun HomeAppBar(
             }
         },
         actions = {
-            IconButton(onClick = retryAction) {
-                Icon(
-                    Icons.Default.Refresh,
-                    stringResource(id = R.string.button_refresh)
-                )
+            if (isRetryActionEnabled){
+                IconButton(onClick = retryAction) {
+                    Icon(
+                        Icons.Default.Refresh,
+                        stringResource(id = R.string.button_refresh)
+                    )
+                }
             }
             IconButton(
                 onClick = {

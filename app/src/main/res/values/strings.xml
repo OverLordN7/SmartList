@@ -183,5 +183,6 @@
     <string name="detailed_dishes_screen">Detailed dishes screen</string>
     <string name="detailed_purchase_screen">Detailed purchcase screen</string>
     <string name="cal_table_button">Calories</string>
+    <string name="photo_button">Add picture:</string>
 
 </resources>

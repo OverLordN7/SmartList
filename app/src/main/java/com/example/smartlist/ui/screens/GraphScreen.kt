@@ -68,7 +68,6 @@ fun GraphScreen(
             HomeAppBar(
                 state = voiceState,
                 onNavigationIconClick = { scope.launch { scaffoldState.drawerState.open() } },
-                retryAction = {},
                 onMicrophoneOn = {
                     if(it){ homeViewModel.startListening() }
 

@@ -80,7 +80,6 @@ fun HomeScreen(
             HomeAppBar(
                 state = state,
                 onNavigationIconClick = { scope.launch { scaffoldState.drawerState.open() } },
-                retryAction = {},
                 onMicrophoneOn = {
                     if(it){ homeViewModel.startListening() }
 

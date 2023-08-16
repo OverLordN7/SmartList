@@ -12,6 +12,7 @@ import com.example.smartlist.SmartListApplication
 import com.example.smartlist.data.DishRepository
 import com.example.smartlist.data.PurchaseRepository
 import com.example.smartlist.data.VoiceToTextParser
+import com.example.smartlist.extend_functions.capitalizeFirstChar
 import com.example.smartlist.model.MenuItem
 import com.example.smartlist.model.VoiceCommand
 import com.example.smartlist.navigation.Screen
@@ -76,7 +77,7 @@ class HomeViewModel(
         _voiceCommand.value = null
     }
 
-    fun startListening(languageCode: String = "ru") = voiceToTextParser.startListening(languageCode)
+    fun startListening(languageCode: String = currentLanguage.value) = voiceToTextParser.startListening(languageCode)
     fun stopListening() = voiceToTextParser.stopListening()
 
     fun processNavigationCommand(
@@ -100,12 +101,12 @@ class HomeViewModel(
         )
 
         // Show message if user already on currentScreen or switch otherwise
-        if (command.text == currentScreen){
+        if (command.text.capitalizeFirstChar() == currentScreen){
             Toast.makeText(context, sameScreenMessage, Toast.LENGTH_SHORT).show()
         }
         else{
             for (screen in mapOfScreen){
-                if (command.text == screen.key){
+                if (command.text.capitalizeFirstChar() == screen.key){
                     isCommandMatchSuccessful = true
                     Toast.makeText(context, navigationTransition, Toast.LENGTH_SHORT).show()
                     clearVoiceCommand()

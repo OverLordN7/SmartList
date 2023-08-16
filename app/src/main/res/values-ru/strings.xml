@@ -13,7 +13,7 @@
     <string name="empty_card_message_2">Нажмите на кнопку +</string>
 
     <string name="button_cancel">Отмена</string>
-    <string name="button_confirm">Подтвердить</string>
+    <string name="button_confirm">Готово</string>
 
     <string name="new_dish_list_name_title">Введите имя нового списка: </string>
     <string name="new_dish_list_name_hint">напр. Обед</string>
@@ -108,7 +108,7 @@
     <string name="add_new_ingredient">Добавить новый ингредиент</string>
     <string name="delete_recipe">Удалить рецепт</string>
     <string name="edit_recipe">Изменить рецепт</string>
-    <string name="portions_number"> Порции: %1$d </string>
+    <string name="portions_number"> Порций: %1$d </string>
     <string name="recipe_image">Изображение рецепта</string>
 
     <string name="add_new_recipe">Добавить новый рецепт</string>
@@ -141,12 +141,12 @@
     <string name="settings">Настройки</string>
     <string name="go_to_settings_screen">Перейти к настройкам</string>
 
-    <string name="home_screen">домой</string>
-    <string name="purchase_screen">список покупок</string>
-    <string name="dish_screen">список блюд</string>
-    <string name="dish_screen_alt">списка блюд</string>
-    <string name="graph_screen">графики</string>
-    <string name="settings_screen">настройки</string>
+    <string name="home_screen">Домой</string>
+    <string name="purchase_screen">Список покупок</string>
+    <string name="dish_screen">Список блюд</string>
+    <string name="dish_screen_alt">Списка блюд</string>
+    <string name="graph_screen">Графики</string>
+    <string name="settings_screen">Настройки</string>
 
     <string name="notification_message">Вы уже на этом экране</string>
 
@@ -185,4 +185,6 @@
     <string name="detailed_dishes_screen">Детальный список блюд</string>
     <string name="detailed_purchase_screen">Детальный список покупок</string>
     <string name="cal_table_button">Калории</string>
+
+    <string name="photo_button">Добавить фото:</string>
 </resources>

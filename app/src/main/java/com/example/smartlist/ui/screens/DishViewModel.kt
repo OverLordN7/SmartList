@@ -19,6 +19,7 @@ import com.example.smartlist.SmartListApplication
 import com.example.smartlist.data.DishRepository
 import com.example.smartlist.data.ProductRepository
 import com.example.smartlist.data.PurchaseRepository
+import com.example.smartlist.extend_functions.capitalizeFirstChar
 import com.example.smartlist.model.DishComponent
 import com.example.smartlist.model.DishList
 import com.example.smartlist.model.Item
@@ -138,10 +139,10 @@ class DishViewModel (
 
             val exportPurchaseList = PurchaseList(
                 id = UUID.randomUUID(),
-                name = exportName,
+                name = exportName.capitalizeFirstChar(),
                 listSize = 0,
                 year = date.year,
-                month = systemMonth,
+                month = systemMonth.capitalizeFirstChar(),
                 day = date.dayOfMonth
             )
             var listSize = 0

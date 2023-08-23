@@ -135,6 +135,7 @@
     <string name="purchase_list_title_item_hint">Go to Purchase list screen</string>
     <string name="dishes_list_title_item_hint">Go to Dishes list screen</string>
     <string name="graphs_title_item_hint">Go to graphs screen</string>
+    <string name="product_screen_hint">Go to product screen</string>
 
     <string name="settings">Settings</string>
     <string name="go_to_settings_screen">Go to settings screen</string>
@@ -144,6 +145,7 @@
     <string name="dish_screen">Dish screen</string>
     <string name="graph_screen">Graphs</string>
     <string name="settings_screen">Settings</string>
+    <string name="product_screen">Products</string>
 
     <string name="notification_message">You are already on this screen</string>
 
@@ -184,5 +186,7 @@
     <string name="detailed_purchase_screen">Detailed purchcase screen</string>
     <string name="cal_table_button">Calories</string>
     <string name="photo_button">Add picture:</string>
+
+    <string name="new_product_title">New Product</string>
 
 </resources>

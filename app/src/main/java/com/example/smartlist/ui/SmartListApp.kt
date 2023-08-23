@@ -22,6 +22,8 @@ import com.example.smartlist.ui.screens.DishesScreen
 import com.example.smartlist.ui.screens.GraphScreen
 import com.example.smartlist.ui.screens.HomeScreen
 import com.example.smartlist.ui.screens.HomeViewModel
+import com.example.smartlist.ui.screens.ProductScreen
+import com.example.smartlist.ui.screens.ProductViewModel
 import com.example.smartlist.ui.screens.PurchaseViewModel
 import com.example.smartlist.ui.screens.PurchasesScreen
 import com.example.smartlist.ui.screens.SettingsScreen
@@ -57,6 +59,8 @@ fun SmartListApp(
     val purchaseViewModel: PurchaseViewModel = viewModel(factory = PurchaseViewModel.Factory)
 
     val dishViewModel: DishViewModel = viewModel(factory = DishViewModel.Factory)
+
+    val productViewModel: ProductViewModel = viewModel(factory = ProductViewModel.Factory)
 
     NavHost(navController = navController, startDestination = Screen.HomeScreen.route){
 
@@ -151,6 +155,20 @@ fun SmartListApp(
             SettingsScreen(
                 navController = navController,
                 homeViewModel = homeViewModel,
+            )
+        }
+
+        //Navigate to ProductScreen
+        composable(
+            route = Screen.ProductScreen.route
+        ){
+            ProductScreen(
+                homeViewModel = homeViewModel,
+                productViewModel = productViewModel,
+                navController = navController,
+                onConfirm = productViewModel::insertProduct,
+                onDelete = productViewModel::deleteProduct,
+                onUpdate = productViewModel::updateProduct,
             )
         }
 

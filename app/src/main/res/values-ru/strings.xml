@@ -137,6 +137,7 @@
     <string name="purchase_list_title_item_hint">Перейти на список покупок</string>
     <string name="dishes_list_title_item_hint">Перейти на список блюд</string>
     <string name="graphs_title_item_hint">Перейти к графикам</string>
+    <string name="product_screen_hint">Перейти к продуктам</string>
 
     <string name="settings">Настройки</string>
     <string name="go_to_settings_screen">Перейти к настройкам</string>
@@ -147,6 +148,7 @@
     <string name="dish_screen_alt">Списка блюд</string>
     <string name="graph_screen">Графики</string>
     <string name="settings_screen">Настройки</string>
+    <string name="product_screen">Продукты</string>
 
     <string name="notification_message">Вы уже на этом экране</string>
 
@@ -187,4 +189,6 @@
     <string name="cal_table_button">Калории</string>
 
     <string name="photo_button">Добавить фото:</string>
+
+    <string name="new_product_title">Новый продукт</string>
 </resources>

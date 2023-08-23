@@ -294,6 +294,7 @@ fun VoiceCommandListCard(currentLanguage: String,modifier: Modifier = Modifier){
                         Text(text = " - "+stringResource(id = R.string.home_screen))
                         Text(text = " - "+stringResource(id = R.string.purchase_screen))
                         Text(text = " - "+stringResource(id = R.string.dish_screen))
+                        Text(text = " - "+stringResource(id = R.string.product_screen))
                         Text(text = " - "+stringResource(id = R.string.graph_screen))
                         Text(text = " - "+stringResource(id = R.string.settings_screen))
 

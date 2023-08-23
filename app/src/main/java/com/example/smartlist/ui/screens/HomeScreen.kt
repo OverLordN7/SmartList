@@ -108,7 +108,8 @@ fun HomeScreen(
             ScreensButtonsMenu(
                 onPurchaseScreenButton = {navController.navigate(Screen.PurchasesScreen.route)},
                 onDishesScreenButton = {navController.navigate(Screen.DishesScreen.route)},
-                onGraphScreenButton = {navController.navigate(Screen.GraphScreen.route)}
+                onGraphScreenButton = {navController.navigate(Screen.GraphScreen.route)},
+                onProductScreenButton = {navController.navigate(Screen.ProductScreen.route)}
             )
         }
     }
@@ -119,6 +120,7 @@ private fun ScreensButtonsMenu(
     onPurchaseScreenButton : ()->Unit,
     onDishesScreenButton: ()->Unit,
     onGraphScreenButton: ()->Unit,
+    onProductScreenButton: ()->Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -195,14 +197,14 @@ private fun ScreensButtonsMenu(
                     .height(120.dp)
                     .padding(8.dp)
             ) {
-                Button(onClick = { Toast.makeText(context,"Table will be here",Toast.LENGTH_SHORT).show()}) {
+                Button(onClick = onProductScreenButton) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(
                             imageVector = Icons.Default.Cookie,
                             contentDescription = "",
                             modifier = Modifier.size(40.dp)
                         )
-                        Text(text = stringResource(id = R.string.cal_table_button), fontSize = 14.sp)
+                        Text(text = stringResource(id = R.string.product_screen), fontSize = 14.sp)
                     }
                 }
             }

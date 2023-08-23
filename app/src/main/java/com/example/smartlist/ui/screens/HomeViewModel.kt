@@ -97,7 +97,8 @@ class HomeViewModel(
             context.getString(R.string.purchase_screen) to Screen.PurchasesScreen.route,
             context.getString(R.string.dish_screen) to Screen.DishesScreen.route,
             context.getString(R.string.graph_screen) to Screen.GraphScreen.route,
-            context.getString(R.string.settings_screen) to Screen.SettingScreen.route
+            context.getString(R.string.settings_screen) to Screen.SettingScreen.route,
+            context.getString(R.string.product_screen) to Screen.ProductScreen.route
         )
 
         // Show message if user already on currentScreen or switch otherwise
@@ -136,7 +137,8 @@ class HomeViewModel(
             "purchaseList" to Screen.PurchasesScreen.route,
             "dishList" to Screen.DishesScreen.route,
             "graphs" to Screen.GraphScreen.route,
-            "settings" to Screen.SettingScreen.route
+            "settings" to Screen.SettingScreen.route,
+            "products" to Screen.ProductScreen.route
         )
 
         if (item.id == currentScreen){

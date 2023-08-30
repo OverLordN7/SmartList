@@ -1,8 +1,13 @@
 package com.example.smartlist.ui.screens
 
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
 import android.net.Uri
+import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -66,6 +71,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -86,6 +92,7 @@ import androidx.core.net.toUri
 import androidx.navigation.NavController
 import com.example.smartlist.R
 import com.example.smartlist.extend_functions.capitalizeFirstChar
+import com.example.smartlist.extend_functions.generateUniqueFileName
 import com.example.smartlist.model.DishComponent
 import com.example.smartlist.model.ListOfMenuItem
 import com.example.smartlist.model.Recipe
@@ -98,6 +105,9 @@ import com.example.smartlist.ui.theme.Fat200
 import com.example.smartlist.ui.theme.LightBlue200
 import com.example.smartlist.ui.theme.Protein200
 import kotlinx.coroutines.launch
+import java.io.File
+import java.io.FileOutputStream
+import java.io.OutputStream
 import java.util.Locale
 import java.util.UUID
 
@@ -325,6 +335,8 @@ fun RecipeCard(
     //Attributes for photo
     val bitmap = remember{ mutableStateOf<Bitmap?>(null)}
 
+    val bitmapCorrupted = remember { mutableStateOf(false) }
+
     Card(
         elevation = 4.dp,
         backgroundColor = LightBlue200,
@@ -354,19 +366,28 @@ fun RecipeCard(
 
                     if (!recipe.photoPath.isNullOrEmpty()){
 
-                        val source = ImageDecoder.createSource(context.contentResolver,recipe.photoPath.toUri())
-                        bitmap.value = ImageDecoder.decodeBitmap(source)
+                        try {
+                            val source = ImageDecoder.createSource(context.contentResolver,recipe.photoPath.toUri())
+                            bitmap.value = ImageDecoder.decodeBitmap(source)
+                            bitmapCorrupted.value = false
+
+                        }
+                        catch (e: Exception){
+                            e.printStackTrace()
+                            Toast.makeText(context,e.toString(),Toast.LENGTH_SHORT).show()
+                            bitmapCorrupted.value = true
+                        }
 
                         Image(
-                            bitmap = bitmap.value!!.asImageBitmap(),
+                            bitmap = if (bitmapCorrupted.value) getBitmapFromImage(context, R.drawable.pasta1) else bitmap.value!!.asImageBitmap(),
                             contentDescription = stringResource(id = R.string.recipe_image),
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
                                 .size(64.dp)
                                 .border(2.dp, Color.Gray, CircleShape)
-                                .clip(CircleShape),
-
+                                .clip(CircleShape)
                         )
+
                     } else{
                         Box (
                             contentAlignment = Alignment.Center,
@@ -1021,8 +1042,15 @@ fun NewRecipeDialog(
 
     //Attributes for photo capture
     var imageUri by remember { mutableStateOf<Uri?>(null)}
-    val launcher = rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()){ uri: Uri? ->
-        imageUri = uri
+    val context = LocalContext.current
+    val launcher = rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()){
+        result->
+        if (result.resultCode == Activity.RESULT_OK){
+            imageUri = result.data?.data
+            if (imageUri != null){
+                imageUri = saveImageToInternalStorage(context, imageUri!!)
+            }
+        }
     }
 
     Dialog(onDismissRequest = {setShowDialog(false)}) {
@@ -1127,7 +1155,10 @@ fun NewRecipeDialog(
                         )
 
                         IconButton(
-                            onClick = { launcher.launch("images/*")},
+                            onClick = {
+                                val galleryIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+                                launcher.launch(galleryIntent)
+                            },
                             modifier = Modifier.size(60.dp)
                         ) {
                             Icon(imageVector = Icons.Default.Photo, contentDescription = null)
@@ -1659,4 +1690,34 @@ fun convertStringToNumber(input: String): Int {
     }
 
     return total + currentNumber
+}
+
+fun saveImageToInternalStorage(context: Context, uri: Uri): Uri {
+    val outputStream: OutputStream
+    val uniqueFileName = generateUniqueFileName()
+
+    val contentResolver = context.contentResolver
+    val imageFile = File(context.filesDir, uniqueFileName)
+
+    outputStream = FileOutputStream(imageFile)
+
+    val inputStream = contentResolver.openInputStream(uri)
+    inputStream?.copyTo(outputStream)
+
+    outputStream.flush()
+    outputStream.close()
+    inputStream?.close()
+
+    return Uri.fromFile(imageFile)
+}
+
+@Composable
+private fun getBitmapFromImage(context: Context, drawable: Int): ImageBitmap {
+    val option = BitmapFactory.Options()
+    option.inPreferredConfig = Bitmap.Config.ARGB_8888
+    return BitmapFactory.decodeResource(
+        LocalContext.current.resources,
+        drawable,
+        option
+    ).asImageBitmap()
 }

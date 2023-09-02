@@ -63,6 +63,7 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
     fun getPurchaseLists(){
         viewModelScope.launch {
             purchaseUiState = PurchaseUiState.Loading
+            delay(600) // for Users to fill impact of refresh button
             purchaseUiState = try{
                 PurchaseUiState.Success(getAllLists())
             }catch (e: Exception){
@@ -80,6 +81,7 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
     fun getItemsOfPurchaseList(){
         viewModelScope.launch {
             purchaseItemUiState = PurchaseItemUiState.Loading
+            delay(800)
             purchaseItemUiState = try{
                 PurchaseItemUiState.Success(getItemsForPurchaseList())
             }catch (e: Exception){

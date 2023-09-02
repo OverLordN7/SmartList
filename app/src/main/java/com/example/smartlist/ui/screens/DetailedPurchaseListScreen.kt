@@ -13,11 +13,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
 import androidx.compose.material.Card
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ExposedDropdownMenuBox
@@ -68,6 +70,7 @@ import com.example.smartlist.R
 import com.example.smartlist.extend_functions.capitalizeFirstChar
 import com.example.smartlist.model.Item
 import com.example.smartlist.model.ListOfMenuItem
+import com.example.smartlist.ui.common_composables.LoadingScreen
 import com.example.smartlist.ui.menu.DrawerBody
 import com.example.smartlist.ui.menu.DrawerHeader
 import com.example.smartlist.ui.menu.HomeAppBar
@@ -210,7 +213,7 @@ fun DetailedPurchaseListScreen(
         Surface(modifier = modifier.padding(it)) {
 
             when(state){
-                is PurchaseItemUiState.Loading ->{}
+                is PurchaseItemUiState.Loading -> LoadingScreen()
                 is PurchaseItemUiState.Error ->{}
                 is PurchaseItemUiState.Success ->{
                     ResultItemScreen(
@@ -227,8 +230,6 @@ fun DetailedPurchaseListScreen(
     }
 }
 
-
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ResultItemScreen(
     itemsOfList: List<Item>,

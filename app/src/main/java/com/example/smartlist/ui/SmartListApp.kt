@@ -169,6 +169,7 @@ fun SmartListApp(
                 onConfirm = productViewModel::insertProduct,
                 onDelete = productViewModel::deleteProduct,
                 onUpdate = productViewModel::updateProduct,
+                onRefresh = productViewModel::getProducts,
             )
         }
 

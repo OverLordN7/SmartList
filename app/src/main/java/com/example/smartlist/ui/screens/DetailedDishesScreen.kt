@@ -96,6 +96,7 @@ import com.example.smartlist.extend_functions.generateUniqueFileName
 import com.example.smartlist.model.DishComponent
 import com.example.smartlist.model.ListOfMenuItem
 import com.example.smartlist.model.Recipe
+import com.example.smartlist.ui.common_composables.LoadingScreen
 import com.example.smartlist.ui.menu.DrawerBody
 import com.example.smartlist.ui.menu.DrawerHeader
 import com.example.smartlist.ui.menu.MainAppBar
@@ -243,7 +244,7 @@ fun DetailedDishesScreen(
             .fillMaxSize()) {
             
             when(state){
-                is RecipeUiState.Loading ->{}
+                is RecipeUiState.Loading -> LoadingScreen()
                 is RecipeUiState.Error ->{}
                 is RecipeUiState.Success ->{
                     //Main content

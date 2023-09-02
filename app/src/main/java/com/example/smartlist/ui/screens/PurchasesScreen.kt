@@ -54,6 +54,7 @@ import com.example.smartlist.extend_functions.capitalizeFirstChar
 import com.example.smartlist.model.ListOfMenuItem
 import com.example.smartlist.model.PurchaseList
 import com.example.smartlist.navigation.Screen
+import com.example.smartlist.ui.common_composables.LoadingScreen
 import com.example.smartlist.ui.menu.DrawerBody
 import com.example.smartlist.ui.menu.DrawerHeader
 import com.example.smartlist.ui.menu.HomeAppBar
@@ -173,7 +174,7 @@ fun PurchasesScreen(
     ) { it ->
         Surface(modifier = modifier.padding(it)) {
             when(state){
-                is PurchaseUiState.Loading ->{}
+                is PurchaseUiState.Loading -> LoadingScreen()
                 is PurchaseUiState.Error ->{}
                 is PurchaseUiState.Success ->{
                     ResultScreen(

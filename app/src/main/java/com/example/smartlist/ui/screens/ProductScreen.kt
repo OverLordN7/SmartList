@@ -1,6 +1,5 @@
 package com.example.smartlist.ui.screens
 
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -12,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
@@ -47,9 +45,9 @@ import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.example.smartlist.R
 import com.example.smartlist.extend_functions.capitalizeFirstChar
-import com.example.smartlist.model.DishComponent
 import com.example.smartlist.model.ListOfMenuItem
 import com.example.smartlist.model.Product
+import com.example.smartlist.ui.common_composables.LoadingScreen
 import com.example.smartlist.ui.menu.DrawerBody
 import com.example.smartlist.ui.menu.DrawerHeader
 import com.example.smartlist.ui.menu.HomeAppBar
@@ -64,6 +62,7 @@ fun ProductScreen(
     onConfirm: (Product) -> Unit,
     onDelete: (Product) -> Unit,
     onUpdate: (Product) -> Unit,
+    onRefresh: ()-> Unit,
     modifier: Modifier = Modifier
 ){
     val scaffoldState = rememberScaffoldState()
@@ -105,7 +104,7 @@ fun ProductScreen(
                     else { homeViewModel.stopListening() }
                 },
                 isRetryActionEnabled = true,
-                retryAction = {}
+                retryAction = onRefresh,
             )
         },
         drawerContent = {
@@ -129,7 +128,7 @@ fun ProductScreen(
 
             when(state){
                 is ProductUIState.Error -> {}
-                is ProductUIState.Loading -> {}
+                is ProductUIState.Loading -> LoadingScreen()
                 is ProductUIState.Success -> {
                     // List of database
                     TableOfProducts(

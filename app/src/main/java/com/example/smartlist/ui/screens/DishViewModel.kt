@@ -26,6 +26,7 @@ import com.example.smartlist.model.Item
 import com.example.smartlist.model.PurchaseList
 import com.example.smartlist.model.Recipe
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -89,6 +90,7 @@ class DishViewModel (
     fun getDishLists(){
         viewModelScope.launch {
             dishUiState = DishUiState.Loading
+            delay(800) // for Users to fill impact of refresh button
             dishUiState = try{
                 DishUiState.Success(getAllLists())
             } catch (e: Exception){
@@ -286,6 +288,7 @@ class DishViewModel (
     fun getRecipesList(){
         viewModelScope.launch {
             recipeUiState = RecipeUiState.Loading
+            delay(800) // for Users to fill impact of refresh button
             recipeUiState = try {
                 RecipeUiState.Success(getRecipeListFromDb())
             } catch (e: Exception){

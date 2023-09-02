@@ -13,6 +13,7 @@ import com.example.smartlist.SmartListApplication
 import com.example.smartlist.data.ProductRepository
 import com.example.smartlist.model.Product
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -40,6 +41,7 @@ class ProductViewModel(private val productRepository: ProductRepository): ViewMo
     fun getProducts(){
         viewModelScope.launch {
             productUIState = ProductUIState.Loading
+            delay(600) // for Users to fill impact of refresh button
             productUIState = try{
                 ProductUIState.Success(getAllProducts())
             }catch (e: Exception){

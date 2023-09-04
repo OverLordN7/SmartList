@@ -1,18 +1,17 @@
 package com.example.smartlist.ui.screens
 
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
@@ -34,19 +33,24 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.smartlist.R
 import com.example.smartlist.model.ListOfMenuItem
+import com.example.smartlist.model.PurchaseList
 import com.example.smartlist.ui.charts.DonutChart
-import com.example.smartlist.ui.charts.PieChart
+import com.example.smartlist.ui.common_composables.LoadingScreen
 import com.example.smartlist.ui.menu.DrawerBody
 import com.example.smartlist.ui.menu.DrawerHeader
 import com.example.smartlist.ui.menu.HomeAppBar
 import com.example.smartlist.ui.theme.Carb200
 import com.example.smartlist.ui.theme.*
 import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
+private const val TAG = "GraphScreen"
 @Composable
 fun GraphScreen(
     navController: NavController,
     homeViewModel: HomeViewModel,
+    graphViewModel: GraphViewModel,
+    onRetryAction: ()-> Unit,
     modifier: Modifier = Modifier,
 ){
 
@@ -60,6 +64,8 @@ fun GraphScreen(
     //Voice attributes
     val voiceState by homeViewModel.voiceToTextParser.state.collectAsState()
     val voiceCommand by homeViewModel.voiceCommand.collectAsState()
+
+    val state: GraphUiState = graphViewModel.graphUiState
 
     //When switch to different screen, refresh command
     LaunchedEffect(navController.currentBackStackEntry){
@@ -84,9 +90,11 @@ fun GraphScreen(
                 onNavigationIconClick = { scope.launch { scaffoldState.drawerState.open() } },
                 onMicrophoneOn = {
                     if(it){ homeViewModel.startListening() }
-
                     else{ homeViewModel.stopListening() }
-                }
+                },
+                isRetryActionEnabled = true,
+                retryAction = onRetryAction
+
             )
         },
         drawerContent = {
@@ -105,46 +113,34 @@ fun GraphScreen(
             )
         }
     ) {
-        Surface(modifier = modifier
-            .fillMaxSize()
-            .padding(it)) {
-            Column {
-                Text(text = stringResource(id = R.string.graph_screen_button))
-
-                DonutGraphCard()
-
-//                PieChart(
-//                    data = mapOf(
-//                        Pair("A",30),
-//                        Pair("B",10),
-//                        Pair("C",75),
-//                        Pair("D",100),
-//                        Pair("E",120),
-//                    ),
-//                    modifier = Modifier.size(200.dp)
-//                )
+        Surface(modifier = modifier.padding(it)) {
+            when(state){
+                is GraphUiState.Loading -> LoadingScreen()
+                is GraphUiState.Error -> {}
+                is GraphUiState.Success ->{
+                    DonutGraphCard(state.purchaseMap)
+                }
             }
         }
     }
 }
 
 @Composable
-fun DonutGraphCard(modifier: Modifier = Modifier){
+fun DonutGraphCard(data: Map<Float, PurchaseList>, modifier: Modifier = Modifier){
 
-    val colors = listOf(
+    var colors = listOf(
         Carb200,
         Fat200,
         Protein200,
         Cal200
     )
 
-    val dummy = listOf(
-        60f,
-        110f,
-        20f,
-        35f
-    )
+    val totalValueList = data.keys.toList()
+    val totalValueListName = data.values.toList()
 
+    if (colors.size > totalValueList.size){
+        colors = colors.subList(0,totalValueList.size)
+    }
 
     Card(
         elevation = 4.dp,
@@ -161,7 +157,7 @@ fun DonutGraphCard(modifier: Modifier = Modifier){
                 horizontalArrangement = Arrangement.Start,
                 modifier = Modifier.padding(4.dp)
             ) {
-                Text(text = "The most expensive lists in purchase screen", fontSize = 20.sp, fontWeight = FontWeight.Bold )
+                Text(text = stringResource(R.string.the_most_expensive_lists), fontSize = 20.sp, fontWeight = FontWeight.Bold )
             }
 
             //Body of Donut graph
@@ -170,19 +166,23 @@ fun DonutGraphCard(modifier: Modifier = Modifier){
             ) {
                 DonutChart(
                     colors = colors,
-                    inputValues = dummy,
+                    inputValues = totalValueList,
                     textColor = Color.Black,
                     modifier = Modifier
-                        .size(200.dp)
+                        .size(150.dp)
                         .padding(4.dp)
-                        .weight(1f)
+                        .weight(0.6f)
                 )
 
                 LazyColumn(modifier = Modifier
                     .padding(4.dp)
                     .weight(1f)){
-                    items(dummy.size){
-                        DonutGraphCardItem(color = colors[it], data = dummy[it].toString())
+                    items(totalValueList.size){
+                        DonutGraphCardItem(
+                            color = colors[it],
+                            item = totalValueList[it],
+                            name = totalValueListName[it].name,
+                        )
                     }
                 }
             }
@@ -192,17 +192,64 @@ fun DonutGraphCard(modifier: Modifier = Modifier){
 }
 
 @Composable
-fun DonutGraphCardItem(color: Color, data: String,modifier: Modifier = Modifier){
-    Card(modifier = modifier
+fun DonutGraphCardItem(
+    color: Color,
+    item: Float,
+    name:String,
+    modifier: Modifier = Modifier
+){
+    val context = LocalContext.current
+
+    Card(
+        shape = RoundedCornerShape(0.dp),
+        modifier = modifier
         .padding(4.dp)
-        .fillMaxWidth()) {
-        Row {
+        .fillMaxWidth()
+        .height(30.dp)) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Box(modifier = Modifier
-                .size(20.dp)
+                .size(30.dp)
                 .background(color)
-                .weight(1f))
-            Spacer(modifier = Modifier.weight(1f))
-            Text(text = data, modifier = Modifier.weight(3f))
+                .weight(1f)
+                .padding(start = 4.dp))
+            //Spacer(modifier = Modifier.weight(0.5f))
+            Text(text = name, modifier = Modifier
+                .weight(3f)
+                .padding(start = 4.dp))
+            Text(text = normalizeTotalValue(item,context), modifier = Modifier.weight(4f))
         }
     }
+}
+
+fun normalizeTotalValue(value: Float, context: Context): String{
+
+    return when(value.toInt()){
+        //Range between 100K and 1M
+        in 99999..999999 ->{
+            val tempResult: Int = (value/1000).roundToInt() // 300K
+            var tempReminder = value/1000 - tempResult //0.250K
+            tempReminder = ((tempReminder * 1000).roundToInt() / 1000.0).toFloat() //round to 3 digits
+            tempReminder = ((tempReminder * 100.0).roundToInt() / 100.0).toFloat() //round to 2 digits
+            val result: Float = tempResult + tempReminder
+
+            "${result}K " + context.getString(R.string.currency_title)
+        }
+        //Range between 1M and 1B
+        in 999999..1999999999 -> {
+            val tempResult: Int = (value/1000000).roundToInt() // 300K
+            var tempReminder = value/1000000 - tempResult //0.250K
+            tempReminder = ((tempReminder * 1000).roundToInt() / 1000.0).toFloat() //round to 3 digits
+            tempReminder = ((tempReminder * 100.0).roundToInt() / 100.0).toFloat() //round to 2 digits
+            val result: Float = tempResult + tempReminder
+
+            "${result}M " + context.getString(R.string.currency_title)
+        }
+        //Range between 0 and 100K
+        else -> {
+            "${value.toInt()} " + context.getString(R.string.currency_title)
+        }
+    }
+
 }

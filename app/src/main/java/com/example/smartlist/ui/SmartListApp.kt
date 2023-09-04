@@ -20,6 +20,7 @@ import com.example.smartlist.ui.screens.DetailedPurchaseListScreen
 import com.example.smartlist.ui.screens.DishViewModel
 import com.example.smartlist.ui.screens.DishesScreen
 import com.example.smartlist.ui.screens.GraphScreen
+import com.example.smartlist.ui.screens.GraphViewModel
 import com.example.smartlist.ui.screens.HomeScreen
 import com.example.smartlist.ui.screens.HomeViewModel
 import com.example.smartlist.ui.screens.ProductScreen
@@ -56,11 +57,12 @@ fun SmartListApp(
     val contextWithUpdatedConfig = ContextThemeWrapper(context, R.style.Theme_SmartList)
     contextWithUpdatedConfig.resources.updateConfiguration(configuration, resources.displayMetrics)
 
+
+    //ViewModel setup
     val purchaseViewModel: PurchaseViewModel = viewModel(factory = PurchaseViewModel.Factory)
-
     val dishViewModel: DishViewModel = viewModel(factory = DishViewModel.Factory)
-
     val productViewModel: ProductViewModel = viewModel(factory = ProductViewModel.Factory)
+    val graphViewModel: GraphViewModel = viewModel(factory = GraphViewModel.Factory)
 
     NavHost(navController = navController, startDestination = Screen.HomeScreen.route){
 
@@ -103,6 +105,8 @@ fun SmartListApp(
             GraphScreen(
                 navController = navController,
                 homeViewModel = homeViewModel,
+                graphViewModel = graphViewModel,
+                onRetryAction = graphViewModel::getPurchaseListsMap
             )
         }
 

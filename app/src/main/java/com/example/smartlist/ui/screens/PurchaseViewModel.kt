@@ -78,10 +78,10 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
         }
     }
 
-    fun getItemsOfPurchaseList(){
+    fun getItemsOfPurchaseList(delayValue: Long = 0){
         viewModelScope.launch {
             purchaseItemUiState = PurchaseItemUiState.Loading
-            delay(800)
+            delay(delayValue)
             purchaseItemUiState = try{
                 PurchaseItemUiState.Success(getItemsForPurchaseList())
             }catch (e: Exception){

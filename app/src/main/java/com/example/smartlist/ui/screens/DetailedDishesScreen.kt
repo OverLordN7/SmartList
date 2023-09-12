@@ -128,7 +128,7 @@ fun DetailedDishesScreen(
     deleteDishComponent: (UUID) -> Unit,
     onEdit: (DishComponent) -> Unit,
     modifier: Modifier = Modifier,
-    onRefresh: ()->Unit,
+    onRefresh: (Long)->Unit,
     onExport: (String)->Unit,
 ){
     val state: RecipeUiState = dishViewModel.recipeUiState
@@ -205,7 +205,7 @@ fun DetailedDishesScreen(
                 name = dishViewModel.currentName,
                 menuState = menuState,
                 state = voiceState,
-                retryAction = onRefresh,
+                retryAction = {onRefresh(800)},
                 onExport = onExport,
                 onNavigationIconClick = { scope.launch { scaffoldState.drawerState.open() } },
                 onMicrophoneOn = {

@@ -35,7 +35,6 @@ class HomeViewModel(
 
     //Attributes of sharedPreferences
     private val sharedPrefFileName = "my_pref_file_name"
-
     private val themeKey = "theme_pref"
     private val sharedPreferences = application.getSharedPreferences(sharedPrefFileName,Context.MODE_PRIVATE)
 

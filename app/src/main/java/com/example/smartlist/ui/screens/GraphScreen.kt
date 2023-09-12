@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
@@ -34,7 +35,9 @@ import androidx.navigation.NavController
 import com.example.smartlist.R
 import com.example.smartlist.model.ListOfMenuItem
 import com.example.smartlist.model.PurchaseList
+import com.example.smartlist.ui.charts.bar_graph.BarGraph
 import com.example.smartlist.ui.charts.DonutChart
+import com.example.smartlist.ui.charts.bar_graph.BarType
 import com.example.smartlist.ui.common_composables.LoadingScreen
 import com.example.smartlist.ui.menu.DrawerBody
 import com.example.smartlist.ui.menu.DrawerHeader
@@ -82,6 +85,8 @@ fun GraphScreen(
         )
     }
 
+    graphViewModel.getPurchaseListsForGraph(context)
+
     Scaffold(
         scaffoldState = scaffoldState,
         topBar = {
@@ -118,7 +123,10 @@ fun GraphScreen(
                 is GraphUiState.Loading -> LoadingScreen()
                 is GraphUiState.Error -> {}
                 is GraphUiState.Success ->{
-                    DonutGraphCard(state.purchaseMap)
+                    Column {
+                        DonutGraphCard(state.purchaseMap)
+                        BarGraphCard(state.monthDataList)
+                    }
                 }
             }
         }
@@ -203,9 +211,9 @@ fun DonutGraphCardItem(
     Card(
         shape = RoundedCornerShape(0.dp),
         modifier = modifier
-        .padding(4.dp)
-        .fillMaxWidth()
-        .height(30.dp)) {
+            .padding(4.dp)
+            .fillMaxWidth()
+            .height(30.dp)) {
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -219,6 +227,55 @@ fun DonutGraphCardItem(
                 .weight(3f)
                 .padding(start = 4.dp))
             Text(text = normalizeTotalValue(item,context), modifier = Modifier.weight(4f))
+        }
+    }
+}
+
+@Composable
+fun BarGraphCard(monthDataList: List<MonthData>,modifier: Modifier = Modifier){
+    Card(
+        elevation = 4.dp,
+        modifier = modifier
+            .padding(8.dp)
+            .fillMaxWidth()
+    ){
+        //val dataList = mutableListOf(2,3,1,0,5,6,0,1,2,2,5,3)
+        //val floatValue = mutableListOf<Float>()
+
+        //val datesList = mutableListOf(1,2,3,4,5,6,7,8,9,10,11,12)
+        //val datesList1 = mutableListOf("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
+
+        var xAxisValuesList: ArrayList<String> = arrayListOf()
+        var yAxisValuesList: ArrayList<Int> = arrayListOf()
+        var graphBarValues = mutableListOf<Float>()
+
+        monthDataList.forEach { monthData ->
+            xAxisValuesList.add(monthData.monthShort) // fill x-Axis coordinates with values
+            yAxisValuesList.add((monthData.data)) // fill y-Axis coordinates with values
+        }
+
+        yAxisValuesList.forEachIndexed { index,value ->
+            graphBarValues.add(index = index, element = value.toFloat()/yAxisValuesList.max().toFloat())
+        }
+
+
+        
+//        dataList.forEachIndexed { index, value ->
+//            floatValue.add(index = index , element = value.toFloat()/dataList.max().toFloat())
+//        }
+
+        Column(modifier = Modifier.padding(4.dp)) {
+            Text(text = "Purchase lists created this year", fontSize = 20.sp, fontWeight = FontWeight.Bold )
+            BarGraph(
+                graphBarData = graphBarValues,
+                xAxisScaleData = xAxisValuesList,
+                barDataValue = yAxisValuesList,
+                height = 300.dp,
+                roundType = BarType.TOP_CURVED,
+                barWidth = 20.dp,
+                barColor = MaterialTheme.colors.primary,
+                barArrangement = Arrangement.SpaceEvenly
+            )
         }
     }
 }

@@ -81,10 +81,10 @@ class DishViewModel (
         return dishList
     }
 
-    fun getDishLists(){
+    fun getDishLists(delayValue: Long = 0){
         viewModelScope.launch {
             dishUiState = DishUiState.Loading
-            delay(800) // for Users to fill impact of refresh button
+            delay(delayValue) // for Users to fill impact of refresh button
             dishUiState = try{
                 DishUiState.Success(getAllLists())
             } catch (e: Exception){
@@ -279,10 +279,10 @@ class DishViewModel (
         }
     }
 
-    fun getRecipesList(){
+    fun getRecipesList(delayValue: Long = 0){
         viewModelScope.launch {
             recipeUiState = RecipeUiState.Loading
-            delay(800) // for Users to fill impact of refresh button
+            delay(delayValue) // for Users to fill impact of refresh button
             recipeUiState = try {
                 RecipeUiState.Success(getRecipeListFromDb())
             } catch (e: Exception){

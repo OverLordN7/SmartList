@@ -89,7 +89,7 @@ fun DetailedPurchaseListScreen(
     homeViewModel: HomeViewModel,
     navController: NavController,
     onSubmit: (Item) -> Unit,
-    onRefresh: ()->Unit,
+    onRefresh: (Long)->Unit,
     onDelete: (UUID) -> Unit,
     onEdit: (Item) -> Unit,
     onItemBoughtChanged: (Item,Boolean)-> Unit,
@@ -177,7 +177,7 @@ fun DetailedPurchaseListScreen(
                 name = purchaseViewModel.currentName,
                 state = voiceState,
                 onNavigationIconClick = { scope.launch { scaffoldState.drawerState.open() } },
-                retryAction = onRefresh,
+                retryAction = {onRefresh(800)},
                 onMicrophoneOn = {
                     if(it){ homeViewModel.startListening() }
                     else{ homeViewModel.stopListening() }

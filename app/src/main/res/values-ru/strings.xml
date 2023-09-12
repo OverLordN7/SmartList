@@ -95,12 +95,12 @@
     <string name="carb_table">Уг: %1$d г</string>
     <string name="fat_table">Жиры: %1$d г</string>
     <string name="protein_table">Белки: %1$d г</string>
-    <string name="cal_table">Кал: %1$d г</string>
+    <string name="cal_table">Кал: %1$d кал</string>
 
     <string name="carb_table_alternative">Уг: %1$d кг</string>
     <string name="fat_table_alternative">Жиры: %1$d кг</string>
     <string name="protein_table_alternative">Белки: %1$d кг</string>
-    <string name="cal_table_alternative">Кал: %1$d кг</string>
+    <string name="cal_table_alternative">Кал: %1$d Ккал</string>
 
     <string name="plus">+</string>
     <string name="minus">-</string>
@@ -192,4 +192,30 @@
 
     <string name="new_product_title">Новый продукт</string>
     <string name="the_most_expensive_lists">Самые дорогие списки покупок</string>
+
+    <string name="month_jan">Январь</string>
+    <string name="month_feb">Февраль</string>
+    <string name="month_mar">Март</string>
+    <string name="month_apr">Апрель</string>
+    <string name="month_may">Май</string>
+    <string name="month_jun">Июнь</string>
+    <string name="month_jul">Июль</string>
+    <string name="month_aug">Август</string>
+    <string name="month_sep">Сентябрь</string>
+    <string name="month_oct">Октябрь</string>
+    <string name="month_nov">Ноябрь</string>
+    <string name="month_dec">Декабрь</string>
+
+    <string name="month_jan_short">Я</string>
+    <string name="month_feb_short">Ф</string>
+    <string name="month_mar_short">М</string>
+    <string name="month_apr_short">А</string>
+    <string name="month_may_short">М</string>
+    <string name="month_jun_short">Ин</string>
+    <string name="month_jul_short">Ил</string>
+    <string name="month_aug_short">А</string>
+    <string name="month_sep_short">С</string>
+    <string name="month_oct_short">О</string>
+    <string name="month_nov_short">Н</string>
+    <string name="month_dec_short">Д</string>
 </resources>

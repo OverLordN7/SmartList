@@ -93,12 +93,12 @@
     <string name="carb_table">Carbs: %1$d g</string>
     <string name="fat_table">Fat: %1$d g</string>
     <string name="protein_table">Protein: %1$d g</string>
-    <string name="cal_table">Cal: %1$d g</string>
+    <string name="cal_table">Cal: %1$d cal</string>
 
-    <string name="carb_table_alternative">Carbs: %1$d kg</string>
+    <string name="carb_table_alternative">Carbs: %1$d ru</string>
     <string name="fat_table_alternative">Fat: %1$d kg</string>
     <string name="protein_table_alternative">Protein: %1$d kg</string>
-    <string name="cal_table_alternative">Cal: %1$d kg</string>
+    <string name="cal_table_alternative">Cal: %1$d Ccal</string>
 
     <string name="plus">+</string>
     <string name="minus">-</string>
@@ -189,5 +189,31 @@
 
     <string name="new_product_title">New Product</string>
     <string name="the_most_expensive_lists">The most expensive purchase lists</string>
+
+    <string name="month_jan">January</string>
+    <string name="month_feb">February</string>
+    <string name="month_mar">March</string>
+    <string name="month_apr">April</string>
+    <string name="month_may">May</string>
+    <string name="month_jun">June</string>
+    <string name="month_jul">July</string>
+    <string name="month_aug">August</string>
+    <string name="month_sep">September</string>
+    <string name="month_oct">October</string>
+    <string name="month_nov">November</string>
+    <string name="month_dec">December</string>
+
+    <string name="month_jan_short">J</string>
+    <string name="month_feb_short">F</string>
+    <string name="month_mar_short">M</string>
+    <string name="month_apr_short">A</string>
+    <string name="month_may_short">M</string>
+    <string name="month_jun_short">J</string>
+    <string name="month_jul_short">J</string>
+    <string name="month_aug_short">A</string>
+    <string name="month_sep_short">S</string>
+    <string name="month_oct_short">O</string>
+    <string name="month_nov_short">N</string>
+    <string name="month_dec_short">D</string>
 
 </resources>

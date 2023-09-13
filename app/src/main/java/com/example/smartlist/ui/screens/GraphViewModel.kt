@@ -1,16 +1,13 @@
 package com.example.smartlist.ui.screens
 
-import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import com.example.smartlist.R
 import com.example.smartlist.SmartListApplication
 import com.example.smartlist.data.DishRepository
 import com.example.smartlist.data.PurchaseRepository
@@ -34,8 +31,7 @@ sealed interface GraphUiState{
 }
 
 data class MonthData(
-    val month: String,
-    val monthShort: String,
+    val monthValue: Int,
     var data: Int = 0,
 )
 
@@ -43,11 +39,9 @@ data class MonthData(
 class GraphViewModel(
     val purchaseRepository: PurchaseRepository,
     val dishRepository: DishRepository,
-    application: SmartListApplication
-): AndroidViewModel(application) {
+): ViewModel() {
 
     var graphUiState: GraphUiState by mutableStateOf(GraphUiState.Loading)
-    var context: Context by mutableStateOf(application.applicationContext)
 
 
 
@@ -94,58 +88,21 @@ class GraphViewModel(
         return resultMap.toMap()
     }
 
-    private suspend fun getPurchaseLists(context: Context): List<MonthData>{
+    private suspend fun getPurchaseLists(): List<MonthData>{
 
-        var resultList: List<MonthData> = listOf(
-            MonthData(
-                month = context.getString(R.string.month_jan),
-                monthShort = context.getString(R.string.month_jan_short)
-            ),
-            MonthData(
-                month = context.getString(R.string.month_feb),
-                monthShort = context.getString(R.string.month_feb_short)
-            ),
-            MonthData(
-                month = context.getString(R.string.month_mar),
-                monthShort = context.getString(R.string.month_mar_short)
-            ),
-            MonthData(
-                month = context.getString(R.string.month_apr),
-                monthShort = context.getString(R.string.month_apr_short)
-            ),
-            MonthData(
-                month = context.getString(R.string.month_may),
-                monthShort = context.getString(R.string.month_may_short)
-            ),
-            MonthData(
-                month = context.getString(R.string.month_jun),
-                monthShort = context.getString(R.string.month_jun_short)
-            ),
-            MonthData(
-                month = context.getString(R.string.month_jul),
-                monthShort = context.getString(R.string.month_jul_short)
-            ),
-            MonthData(
-                month = context.getString(R.string.month_aug),
-                monthShort = context.getString(R.string.month_aug_short)
-            ),
-            MonthData(
-                month = context.getString(R.string.month_sep),
-                monthShort = context.getString(R.string.month_sep_short)
-            ),
-            MonthData(
-                month = context.getString(R.string.month_oct),
-                monthShort = context.getString(R.string.month_oct_short)
-            ),
-            MonthData(
-                month = context.getString(R.string.month_nov),
-                monthShort = context.getString(R.string.month_nov_short)
-            ),
-            MonthData(
-                month = context.getString(R.string.month_dec),
-                monthShort = context.getString(R.string.month_dec_short)
-            ),
-
+        val resultList: List<MonthData> = listOf(
+            MonthData(monthValue = 1),
+            MonthData(monthValue = 2),
+            MonthData(monthValue = 3),
+            MonthData(monthValue = 4),
+            MonthData(monthValue = 5),
+            MonthData(monthValue = 6),
+            MonthData(monthValue = 7),
+            MonthData(monthValue = 8),
+            MonthData(monthValue = 9),
+            MonthData(monthValue = 10),
+            MonthData(monthValue = 11),
+            MonthData(monthValue = 12),
         )
 
         //Get a full list of purchase lists
@@ -156,24 +113,15 @@ class GraphViewModel(
         //Calculate entries in each month
         purchaseLists.forEach { purchaseList ->
             resultList.forEach { monthData ->
-                if (purchaseList.month == monthData.month)
+                //Statement compares if month value as an integer is same with the list,
+                // increase value of this entry by one
+                if (purchaseList.monthValue == monthData.monthValue)
                     monthData.data++
             }
         }
 
-//        resultList.forEach {
-//            Log.d(TAG,"month: ${it.month} and data: ${it.data}")
-//        }
-
         return resultList
     }
-
-    fun getPurchaseListsForGraph(context: Context){
-        viewModelScope.launch {
-            getPurchaseLists(context)
-        }
-    }
-
 
     fun getPurchaseListsMap(){
         viewModelScope.launch {
@@ -182,7 +130,7 @@ class GraphViewModel(
             graphUiState = try{
                 GraphUiState.Success(
                     purchaseMap = getExpensivePurchaseLists(),
-                    monthDataList = getPurchaseLists(context),
+                    monthDataList = getPurchaseLists(),
                     )
             } catch (e: Exception){
                 GraphUiState.Error
@@ -201,7 +149,6 @@ class GraphViewModel(
                 GraphViewModel(
                     purchaseRepository = purchaseRepository,
                     dishRepository = dishRepository,
-                    application = application,
                 )
             }
         }

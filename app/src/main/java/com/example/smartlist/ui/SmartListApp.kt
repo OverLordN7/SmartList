@@ -64,9 +64,6 @@ fun SmartListApp(
     val productViewModel: ProductViewModel = viewModel(factory = ProductViewModel.Factory)
     val graphViewModel: GraphViewModel = viewModel(factory = GraphViewModel.Factory)
 
-    //update context for graphViewModel
-    graphViewModel.context = context
-
     NavHost(navController = navController, startDestination = Screen.HomeScreen.route){
 
         //Navigate to HomeScreen screen

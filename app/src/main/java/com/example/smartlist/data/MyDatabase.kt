@@ -18,9 +18,9 @@ import java.io.InputStreamReader
 import java.util.UUID
 
 
-val MIGRATION_7_8 = object : Migration(7,8){
+val MIGRATION_8_9 = object : Migration(8,9){
     override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("ALTER TABLE recipe_table ADD COLUMN photoPath TEXT")
+        database.execSQL("ALTER TABLE list_table ADD COLUMN monthValue INTEGER")
     }
 }
 
@@ -34,7 +34,7 @@ val MIGRATION_7_8 = object : Migration(7,8){
         Recipe::class,
         Product::class
     ],
-    version = 8,
+    version = 9,
     exportSchema = false
 )
 abstract class MyDatabase: RoomDatabase() {
@@ -63,7 +63,7 @@ abstract class MyDatabase: RoomDatabase() {
                     MyDatabase::class.java,
                     DB_NAME
                 )
-                    //.addMigrations(MIGRATION_7_8)
+                    //.addMigrations(MIGRATION_8_9)
                     .addCallback(object : RoomDatabase.Callback(){
                     override fun onCreate(db: SupportSQLiteDatabase) {
                         super.onCreate(db)

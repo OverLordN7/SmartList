@@ -218,4 +218,7 @@
     <string name="month_oct_short">О</string>
     <string name="month_nov_short">Н</string>
     <string name="month_dec_short">Д</string>
+    <string name="graph_bar_title">Списки покупок созданные в текущем году</string>
+    <string name="empty_message_1">Нет данных для графиков</string>
+    <string name="empty_message_2">Попробуйте добавить новые списки</string>
 </resources>

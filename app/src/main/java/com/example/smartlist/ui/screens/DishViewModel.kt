@@ -139,6 +139,7 @@ class DishViewModel (
                 listSize = 0,
                 year = date.year,
                 month = systemMonth.capitalizeFirstChar(),
+                monthValue = date.monthValue,
                 day = date.dayOfMonth
             )
             var listSize = 0

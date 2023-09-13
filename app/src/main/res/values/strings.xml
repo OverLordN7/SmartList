@@ -215,5 +215,8 @@
     <string name="month_oct_short">O</string>
     <string name="month_nov_short">N</string>
     <string name="month_dec_short">D</string>
+    <string name="graph_bar_title">Purchase lists created this year</string>
+    <string name="empty_message_1">Nothing to show</string>
+    <string name="empty_message_2">Try to add some lists</string>
 
 </resources>

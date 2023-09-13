@@ -1,11 +1,13 @@
 package com.example.smartlist.ui.screens
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -85,7 +87,6 @@ fun GraphScreen(
         )
     }
 
-    graphViewModel.getPurchaseListsForGraph(context)
 
     Scaffold(
         scaffoldState = scaffoldState,
@@ -124,10 +125,34 @@ fun GraphScreen(
                 is GraphUiState.Error -> {}
                 is GraphUiState.Success ->{
                     Column {
-                        DonutGraphCard(state.purchaseMap)
-                        BarGraphCard(state.monthDataList)
+                        if (state.purchaseMap.isEmpty() || state.monthDataList.isEmpty()){
+                            EmptyScreen()
+                        } else{
+                            DonutGraphCard(state.purchaseMap)
+                            BarGraphCard(state.monthDataList)
+                        }
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun EmptyScreen(modifier: Modifier = Modifier){
+    Card(
+        shape = RoundedCornerShape(0.dp),
+        modifier = modifier
+            .padding(4.dp)
+            .fillMaxSize()
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+            ) {
+                Text(text = stringResource(R.string.empty_message_1))
+                Text(text = stringResource(R.string.empty_message_2))
             }
         }
     }
@@ -146,7 +171,7 @@ fun DonutGraphCard(data: Map<Float, PurchaseList>, modifier: Modifier = Modifier
     val totalValueList = data.keys.toList()
     val totalValueListName = data.values.toList()
 
-    if (colors.size > totalValueList.size){
+    if (colors.size > totalValueList.size-1){
         colors = colors.subList(0,totalValueList.size)
     }
 
@@ -239,18 +264,31 @@ fun BarGraphCard(monthDataList: List<MonthData>,modifier: Modifier = Modifier){
             .padding(8.dp)
             .fillMaxWidth()
     ){
-        //val dataList = mutableListOf(2,3,1,0,5,6,0,1,2,2,5,3)
-        //val floatValue = mutableListOf<Float>()
 
-        //val datesList = mutableListOf(1,2,3,4,5,6,7,8,9,10,11,12)
-        //val datesList1 = mutableListOf("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
 
-        var xAxisValuesList: ArrayList<String> = arrayListOf()
+
         var yAxisValuesList: ArrayList<Int> = arrayListOf()
         var graphBarValues = mutableListOf<Float>()
 
+
+        // fill x-Axis coordinates with values
+        var xAxisValuesListAlternative = listOf(
+            stringResource(id = R.string.month_jan_short),
+            stringResource(id = R.string.month_feb_short),
+            stringResource(id = R.string.month_mar_short),
+            stringResource(id = R.string.month_apr_short),
+            stringResource(id = R.string.month_may_short),
+            stringResource(id = R.string.month_jun_short),
+            stringResource(id = R.string.month_jul_short),
+            stringResource(id = R.string.month_aug_short),
+            stringResource(id = R.string.month_sep_short),
+            stringResource(id = R.string.month_oct_short),
+            stringResource(id = R.string.month_nov_short),
+            stringResource(id = R.string.month_dec_short),
+
+        ).toMutableList()
+
         monthDataList.forEach { monthData ->
-            xAxisValuesList.add(monthData.monthShort) // fill x-Axis coordinates with values
             yAxisValuesList.add((monthData.data)) // fill y-Axis coordinates with values
         }
 
@@ -259,16 +297,11 @@ fun BarGraphCard(monthDataList: List<MonthData>,modifier: Modifier = Modifier){
         }
 
 
-        
-//        dataList.forEachIndexed { index, value ->
-//            floatValue.add(index = index , element = value.toFloat()/dataList.max().toFloat())
-//        }
-
         Column(modifier = Modifier.padding(4.dp)) {
-            Text(text = "Purchase lists created this year", fontSize = 20.sp, fontWeight = FontWeight.Bold )
+            Text(text = stringResource(R.string.graph_bar_title), fontSize = 20.sp, fontWeight = FontWeight.Bold )
             BarGraph(
                 graphBarData = graphBarValues,
-                xAxisScaleData = xAxisValuesList,
+                xAxisScaleData = xAxisValuesListAlternative,
                 barDataValue = yAxisValuesList,
                 height = 300.dp,
                 roundType = BarType.TOP_CURVED,

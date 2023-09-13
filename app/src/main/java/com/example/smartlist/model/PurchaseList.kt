@@ -13,6 +13,7 @@ data class PurchaseList(
     val listSize: Int,
     val year: Int,
     val month: String,
+    val monthValue: Int,
     val day: Int,
 )
 

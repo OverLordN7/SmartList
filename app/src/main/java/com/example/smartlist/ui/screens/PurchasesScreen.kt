@@ -117,6 +117,7 @@ fun PurchasesScreen(
                 listSize = 0,
                 year = currentDate.year,
                 month = systemMonth.capitalizeFirstChar(),
+                monthValue = currentDate.monthValue,
                 day = currentDate.dayOfMonth
             )
             onSubmit(newPurchaseList)
@@ -363,6 +364,7 @@ fun EditScreen(
                             listSize = list.listSize,
                             year = list.year,
                             month = list.month,
+                            monthValue = list.monthValue,
                             day = list.day
                         )
                         onSubmit(newList)
@@ -470,6 +472,7 @@ fun NewPurchaseListDialog(
                                     listSize = 0,
                                     year = date.year,
                                     month = systemMonth.capitalizeFirstChar(),
+                                    monthValue = date.monthValue,
                                     day = date.dayOfMonth
                                 )
                                 onConfirm(list)

@@ -1,7 +1,6 @@
 package com.example.smartlist.ui.screens
 
 import android.content.Context
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -49,7 +48,6 @@ import com.example.smartlist.ui.theme.*
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
-private const val TAG = "GraphScreen"
 @Composable
 fun GraphScreen(
     navController: NavController,
@@ -109,7 +107,7 @@ fun GraphScreen(
                 items = myItems,
                 onItemClick = {
                     scope.launch { scaffoldState.drawerState.close() }
-                    homeViewModel.processDrawerBodyCommand(
+                        homeViewModel.processDrawerBodyCommand(
                         item = it,
                         currentScreen = "graphs",
                         context = context,
@@ -264,15 +262,11 @@ fun BarGraphCard(monthDataList: List<MonthData>,modifier: Modifier = Modifier){
             .padding(8.dp)
             .fillMaxWidth()
     ){
-
-
-
-        var yAxisValuesList: ArrayList<Int> = arrayListOf()
-        var graphBarValues = mutableListOf<Float>()
-
+        val yAxisValuesList: ArrayList<Int> = arrayListOf()
+        val graphBarValues = mutableListOf<Float>()
 
         // fill x-Axis coordinates with values
-        var xAxisValuesListAlternative = listOf(
+        val xAxisValuesListAlternative = listOf(
             stringResource(id = R.string.month_jan_short),
             stringResource(id = R.string.month_feb_short),
             stringResource(id = R.string.month_mar_short),

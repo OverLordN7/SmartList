@@ -13,13 +13,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
 import androidx.compose.material.Card
-import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ExposedDropdownMenuBox
@@ -223,8 +221,6 @@ fun DetailedPurchaseListScreen(
                         onEdit = onEdit
                     )
                 }
-
-                else -> {}
             }
         }
     }
@@ -241,7 +237,7 @@ fun ResultItemScreen(
     //If no Item received but call ended with Success
     if (itemsOfList.isEmpty()) {
         EmptyCard()
-        return Unit
+        return
     }
     LazyColumn{
 
@@ -650,7 +646,7 @@ fun NewPurchaseListItemDialog(
     var fieldValue by remember{ mutableStateOf(TextFieldValue("")) }
     var weight by remember { mutableStateOf(TextFieldValue("")) }
     var price by remember { mutableStateOf(TextFieldValue("")) }
-    var totalPrice : Float = 0.0f
+    var totalPrice : Float
 
     //values for DropDownMenu
     val options = listOf(

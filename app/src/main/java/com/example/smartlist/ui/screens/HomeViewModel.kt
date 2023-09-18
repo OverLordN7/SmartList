@@ -19,8 +19,6 @@ import com.example.smartlist.navigation.Screen
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
-private const val TAG = "HomeViewModel"
-
 class HomeViewModel(
     val voiceToTextParser: VoiceToTextParser,
     val purchaseRepository: PurchaseRepository,

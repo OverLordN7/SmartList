@@ -105,6 +105,7 @@ fun ProductScreen(
                 },
                 isRetryActionEnabled = true,
                 retryAction = onRefresh,
+                name = stringResource(R.string.products)
             )
         },
         drawerContent = {
@@ -156,7 +157,7 @@ fun TableOfProducts(
     val showDialog = remember { mutableStateOf(false) }
 
     if (showDialog.value){
-        newProductDialog(
+        NewProductDialog(
             setShowDialog = {showDialog.value = it},
             onConfirm = onConfirm,
         )
@@ -253,7 +254,6 @@ fun TableItem(
     id: Int,
     onDelete: (Product) -> Unit,
     onUpdate: (Product) -> Unit,
-    modifier: Modifier = Modifier
 ){
 
     val showEditDialog = remember { mutableStateOf(false) }
@@ -265,8 +265,6 @@ fun TableItem(
             onUpdate = onUpdate,
         )
     }
-
-    val context = LocalContext.current
     var isExpanded by remember {mutableStateOf(false)}
 
     Card {
@@ -353,7 +351,7 @@ fun TableItem(
 
 
 @Composable
-fun newProductDialog(
+fun NewProductDialog(
     setShowDialog: (Boolean) -> Unit,
     onConfirm: (Product) -> Unit,
     modifier: Modifier = Modifier

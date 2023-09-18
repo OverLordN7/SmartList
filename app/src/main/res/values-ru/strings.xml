@@ -221,4 +221,5 @@
     <string name="graph_bar_title">Списки покупок созданные в текущем году</string>
     <string name="empty_message_1">Нет данных для графиков</string>
     <string name="empty_message_2">Попробуйте добавить новые списки</string>
+    <string name="products">Продукты</string>
 </resources>

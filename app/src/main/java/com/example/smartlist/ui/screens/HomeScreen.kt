@@ -1,6 +1,5 @@
 package com.example.smartlist.ui.screens
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -123,7 +122,6 @@ private fun ScreensButtonsMenu(
     onProductScreenButton: ()->Unit,
     modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
 
     Column {
         Row(

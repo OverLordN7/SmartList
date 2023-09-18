@@ -31,8 +31,6 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import java.util.UUID
 
-
-private const val TAG = "DishViewModel"
 sealed interface DishUiState{
     data class Success(var dishList: List<DishList>): DishUiState
     object Error: DishUiState

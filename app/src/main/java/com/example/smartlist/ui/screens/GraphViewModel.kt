@@ -18,7 +18,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-private const val TAG = "GraphViewModel"
 sealed interface GraphUiState{
     data class Success(
         var purchaseMap: Map<Float,PurchaseList>,

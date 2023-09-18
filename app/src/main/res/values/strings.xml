@@ -218,5 +218,6 @@
     <string name="graph_bar_title">Purchase lists created this year</string>
     <string name="empty_message_1">Nothing to show</string>
     <string name="empty_message_2">Try to add some lists</string>
+    <string name="products">Products</string>
 
 </resources>

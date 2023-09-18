@@ -21,8 +21,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.*
 
-private const val TAG = "PurchaseViewModel"
-
 sealed interface PurchaseUiState{
     data class Success(var purchaseLists: List<PurchaseList>): PurchaseUiState
     object Error: PurchaseUiState

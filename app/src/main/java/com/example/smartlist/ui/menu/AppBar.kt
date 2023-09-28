@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MicOff
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -168,6 +169,8 @@ fun HomeAppBar(
     onMicrophoneOn: (Boolean) -> Unit = {},
     name: String = "",
     isRetryActionEnabled: Boolean = false,
+    isShareActionEnabled: Boolean = false,
+    onShareAction: ()-> Unit = {},
     ) {
 
     val title = stringResource(id = R.string.app_name)
@@ -235,6 +238,15 @@ fun HomeAppBar(
                     Icon(
                         imageVector = Icons.Default.MicOff,
                         contentDescription = stringResource(id = R.string.mic_off)
+                    )
+                }
+            }
+
+            if(isShareActionEnabled){
+                IconButton(onClick = onShareAction) {
+                    Icon(
+                        Icons.Default.Share,
+                        stringResource(id =R.string.share_btn)
                     )
                 }
             }

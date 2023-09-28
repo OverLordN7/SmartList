@@ -1,5 +1,6 @@
 package com.example.smartlist.ui.screens
 
+import android.content.Intent
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -181,6 +182,12 @@ fun DetailedPurchaseListScreen(
                     else{ homeViewModel.stopListening() }
                 },
                 isRetryActionEnabled = true,
+                isShareActionEnabled = true,
+                onShareAction = {
+                    val messageHeader = context.getString(R.string.messageHeader)
+                    val currency = context.getString(R.string.currency_title)
+                    purchaseViewModel.sharePurchaseList(messageHeader,currency,context)
+                }
             )
             },
         drawerContent = {

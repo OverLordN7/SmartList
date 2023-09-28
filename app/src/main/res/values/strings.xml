@@ -220,4 +220,8 @@
     <string name="empty_message_2">Try to add some lists</string>
     <string name="products">Products</string>
 
+    <string name="share_btn">Share</string>
+
+    <string name="messageHeader">Name - Quantity - Total</string>
+
 </resources>

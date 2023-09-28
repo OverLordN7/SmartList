@@ -1,6 +1,6 @@
 package com.example.smartlist.ui.screens
 
-import android.content.Intent
+
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -38,6 +38,8 @@ import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
@@ -246,21 +248,28 @@ fun ResultItemScreen(
         EmptyCard()
         return
     }
-    LazyColumn{
+//    LazyColumn{
+//
+//        item{
+//            ListInfoCard(itemsOfList)
+//        }
+//
+//        items(itemsOfList.size){
+//            SwipeWrapperItemCard(
+//                item = itemsOfList[it],
+//                onClick = onItemBoughtChanged,
+//                onDelete = {id-> onDelete(id) },
+//                onEdit = onEdit
+//            )
+//        }
+//    }
+    ActiveListCard(
+        itemsOfList = itemsOfList,
+        onItemBoughtChanged = onItemBoughtChanged,
+        onEdit = onEdit,
+        onDelete = onDelete
+    )
 
-        item{
-            ListInfoCard(itemsOfList)
-        }
-
-        items(itemsOfList.size){
-            SwipeWrapperItemCard(
-                item = itemsOfList[it],
-                onClick = onItemBoughtChanged,
-                onDelete = {id-> onDelete(id) },
-                onEdit = onEdit
-            )
-        }
-    }
 }
 
 @Composable
@@ -274,6 +283,89 @@ fun EmptyCard(modifier: Modifier = Modifier){
 }
 
 @Composable
+fun ActiveListCard(
+    itemsOfList: List<Item>,
+    onItemBoughtChanged: (Item,Boolean)-> Unit,
+    onEdit: (Item) -> Unit,
+    onDelete: (UUID) -> Unit,
+    modifier: Modifier = Modifier
+){
+
+    var isActiveExpanded by remember { mutableStateOf(true) }
+    var isNotActiveExpanded by remember { mutableStateOf(false) }
+
+    Card(
+        elevation = 4.dp,
+        modifier = modifier.fillMaxWidth().padding(8.dp)
+    ) {
+        LazyColumn{
+            item{
+                ListInfoCard(itemsOfList)
+            }
+
+            item {
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(8.dp)
+                ) {
+                    Text(text = "Active: ", modifier = Modifier.weight(1f))
+                    Spacer(modifier = Modifier.weight(1f))
+                    IconButton(onClick = { isActiveExpanded = !isActiveExpanded}) {
+                        Icon(
+                            imageVector = if(isActiveExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                            contentDescription = "Expand list"
+                        )
+                    }
+                }
+            }
+            if (isActiveExpanded){
+                items(itemsOfList.size){
+                    if (!itemsOfList[it].isBought){
+                        SwipeWrapperItemCard(
+                            item = itemsOfList[it],
+                            onClick = onItemBoughtChanged,
+                            onDelete = {id-> onDelete(id) },
+                            onEdit = onEdit
+                        )
+                    }
+                }
+            }
+
+            item {
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(8.dp)
+                ) {
+                    Text(text = "Offline: ", modifier = Modifier.weight(1f))
+                    Spacer(modifier = Modifier.weight(1f))
+                    IconButton(onClick = { isNotActiveExpanded = !isNotActiveExpanded}) {
+                        Icon(
+                            imageVector = if(isNotActiveExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                            contentDescription = "Expand list"
+                        )
+                    }
+                }
+            }
+
+            if (isNotActiveExpanded){
+                items(itemsOfList.size){
+                    if (itemsOfList[it].isBought){
+                        SwipeWrapperItemCard(
+                            item = itemsOfList[it],
+                            onClick = onItemBoughtChanged,
+                            onDelete = {id-> onDelete(id) },
+                            onEdit = onEdit
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun SwipeWrapperItemCard(
     item: Item,
     onClick: (Item, Boolean) -> Unit,
@@ -281,11 +373,18 @@ private fun SwipeWrapperItemCard(
     onDelete: (UUID) -> Unit,
     modifier: Modifier = Modifier
 ){
+    //Temporary commented
     val deleteAction = SwipeAction(
         icon = {rememberVectorPainter(image = Icons.TwoTone.Delete)},
         background = Color.Red,
-        onSwipe = {onDelete(item.id)},
+        onSwipe = { onDelete(item.id) },
     )
+
+//    val boughtAction = SwipeAction(
+//        icon = {rememberVectorPainter(image = Icons.TwoTone.Delete)},
+//        background = Color.Gray,
+//        onSwipe = { item.isBought = !item.isBought },
+//    )
 
     SwipeableActionsBox(
         modifier = modifier,
@@ -433,7 +532,7 @@ fun ListInfoCard(items: List<Item>, modifier: Modifier = Modifier){
     val convertedTotal = DecimalFormat("#,###", DecimalFormatSymbols(Locale.US)).format(total)
     val convertedLeft = DecimalFormat("#,###", DecimalFormatSymbols(Locale.US)).format(left)
 
-    Card(elevation = 4.dp, modifier = modifier
+    Card(elevation = 0.dp, modifier = modifier
         .fillMaxWidth()
         .padding(8.dp)
         .height(80.dp)) {

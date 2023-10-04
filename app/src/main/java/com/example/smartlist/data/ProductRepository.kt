@@ -1,7 +1,10 @@
 package com.example.smartlist.data
 
+import android.util.Log
 import com.example.smartlist.model.Product
 
+
+private const val TAG = "DefaultProductRepository"
 interface ProductRepository {
     suspend fun getAllProducts(): List<Product>
 

@@ -1,6 +1,9 @@
 package com.example.smartlist.ui.screens
 
 
+import android.content.Context
+import android.content.Intent
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -21,6 +24,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.*
 
+private const val TAG = "PurchaseViewModel"
 sealed interface PurchaseUiState{
     data class Success(var purchaseLists: List<PurchaseList>): PurchaseUiState
     object Error: PurchaseUiState
@@ -45,6 +49,8 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
     private var currentListSize: Int by mutableIntStateOf(0)
 
     var currentName: String by mutableStateOf("List unknown")
+
+    var sharedMessage: String by mutableStateOf("none")
 
     init {
         getPurchaseLists()
@@ -150,6 +156,24 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
             withContext(Dispatchers.IO){
                 purchaseRepository.updateListSize(value, listId)
             }
+        }
+    }
+
+    fun sharePurchaseList(messageHeader: String,currency: String,context: Context){
+        viewModelScope.launch {
+            val itemList: List<Item> = getItemsForPurchaseList()
+
+            sharedMessage = "$messageHeader\n"
+            itemList.forEach {item->
+                sharedMessage += "${item.name} - ${item.weight} ${item.weightType}  - ${item.total} $currency\n"
+            }
+            Log.d(TAG,sharedMessage)
+
+            val intent = Intent(Intent.ACTION_SEND)
+            intent.type = "text/plain"
+            intent.putExtra(Intent.EXTRA_SUBJECT,"share")
+            intent.putExtra(Intent.EXTRA_TEXT, sharedMessage)
+            context.startActivity(Intent.createChooser(intent,"test?"))
         }
     }
 

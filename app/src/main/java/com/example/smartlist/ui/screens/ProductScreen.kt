@@ -1,5 +1,6 @@
 package com.example.smartlist.ui.screens
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -54,6 +55,8 @@ import com.example.smartlist.ui.menu.HomeAppBar
 import kotlinx.coroutines.launch
 import java.util.UUID
 
+
+private const val TAG = "ProductScreen"
 @Composable
 fun ProductScreen(
     homeViewModel: HomeViewModel,
@@ -283,7 +286,8 @@ fun TableItem(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier.weight(0.5f)
                 ) {
-                    Text(text = id.toString())
+                    // increase id by 1 for user convenience
+                    Text(text = (id + 1).toString())
                 }
 
                 Box(

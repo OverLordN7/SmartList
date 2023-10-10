@@ -6,11 +6,13 @@ import android.widget.Toast
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +21,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -66,10 +69,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalContext
@@ -98,6 +103,7 @@ import com.example.smartlist.ui.menu.DrawerHeader
 import com.example.smartlist.ui.menu.HomeAppBar
 import com.example.smartlist.ui.swipe.SwipeAction
 import com.example.smartlist.ui.swipe.SwipeableActionsBox
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.intellij.lang.annotations.Language
 import java.text.DecimalFormat
@@ -133,6 +139,50 @@ fun DetailedPurchaseListScreen(
 
     //Navigation attributes
     val unknownVoiceCommandMessage = stringResource(id = R.string.unknown_command)
+
+    //Test attribute for controlling floating button
+    var isFabVisible by remember { mutableStateOf(true) }
+
+    val fabAlpha = remember { androidx.compose.animation.core.Animatable(1f) }
+    val fabScale = remember { androidx.compose.animation.core.Animatable(1f) }
+    var touched by remember { mutableStateOf(false) }
+
+    val fabSlideOffset by animateFloatAsState(
+        targetValue = if(isFabVisible) 0f else 100f,
+        animationSpec = tween(durationMillis = 1000),
+        label = "",
+    )
+
+    val fabAlpha1 by animateFloatAsState(
+        targetValue = if(isFabVisible) 1f else 0f,
+        animationSpec = tween(durationMillis = 1000),
+        label = "",
+        )
+
+    LaunchedEffect(isFabVisible){
+        if (!isFabVisible){
+            fabAlpha.animateTo(0f)
+
+
+
+            //fabScale.animateTo(0f)
+        } else{
+            fabAlpha.animateTo(1f)
+            //fabScale.animateTo(1f)
+        }
+        //fabAlpha.animateTo(if (isFabVisible) 1f else 0f)
+    }
+
+    LaunchedEffect(touched){
+        if (touched){
+            isFabVisible = true
+        }
+
+        delay(5000)
+        isFabVisible = false
+        touched = false
+    }
+
 
     if (showDialog.value){
         NewPurchaseListItemDialog(
@@ -231,13 +281,23 @@ fun DetailedPurchaseListScreen(
         },
         floatingActionButtonPosition = FabPosition.End,
         floatingActionButton = {
-            FloatingActionButton(onClick = { showDialog.value = true}) {
+            FloatingActionButton(
+                onClick = { showDialog.value = true},
+                //modifier = Modifier.alpha(fabAlpha.value)
+                modifier = Modifier.alpha(fabAlpha1).offset(fabSlideOffset.dp)
+            ) {
                 Icon(
                     imageVector = Icons.Filled.Add,
                     contentDescription = stringResource(id = R.string.add_purchase_item)
                 )
             }
-        }
+        },
+        modifier = Modifier.pointerInput(Unit) {
+            detectTapGestures {
+                touched = true
+                //isFabVisible = !isFabVisible
+            }
+        },
     ) {
         Surface(modifier = modifier.padding(it)) {
 
@@ -579,7 +639,9 @@ fun ListInfoCard(items: List<Item>, modifier: Modifier = Modifier){
             modifier = Modifier.padding(4.dp)
         ) {
 
-            Row(modifier = Modifier.weight(1f).padding(start = 4.dp)) {
+            Row(modifier = Modifier
+                .weight(1f)
+                .padding(start = 4.dp)) {
                 Text(
                     text = context.getString(R.string.total,convertedTotal,currency),
                     fontSize = 16.sp,

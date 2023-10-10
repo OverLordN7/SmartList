@@ -34,4 +34,5 @@ data class Item(
     val total: Float,
     var isBought: Boolean = false,
     val listId: UUID, //foreign key to purchase list
+    var drawableId: Int = (0..2).random(),
 )

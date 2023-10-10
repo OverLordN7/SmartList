@@ -47,8 +47,8 @@ interface ItemDao{
     @Query("DELETE FROM item_table WHERE id = CAST(:listId AS BLOB)")
     fun deleteItemsAssociatedWithList(listId: UUID)
 
-    @Query("UPDATE item_table SET name =:name,weight=:weight, weightType=:weightType, price=:price, total =:total, listId = CAST(:listId AS BLOB) WHERE id = CAST(:id AS BLOB)")
-    fun updateItem(id: UUID,name: String, weight: Float,weightType: String, price: Float, total: Float,listId: UUID)
+    @Query("UPDATE item_table SET name =:name,weight=:weight, weightType=:weightType, price=:price, total =:total, drawableId =:drawableId, listId = CAST(:listId AS BLOB) WHERE id = CAST(:id AS BLOB)")
+    fun updateItem(id: UUID,name: String, weight: Float,weightType: String, price: Float, total: Float,listId: UUID,drawableId: Int)
 
     @Query("UPDATE item_table SET isBought=:isBought WHERE id=CAST(:id AS BLOB)")
     fun updateItemBoughtAttribute(id: UUID,isBought: Boolean)

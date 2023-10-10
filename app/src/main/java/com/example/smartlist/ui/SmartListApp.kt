@@ -128,6 +128,7 @@ fun SmartListApp(
                 onRefresh = purchaseViewModel::getItemsOfPurchaseList,
                 onDelete = purchaseViewModel::deleteItem,
                 onEdit = purchaseViewModel::updateItemInDb,
+                onRestore = purchaseViewModel::restoreAllItems,
                 onItemBoughtChanged = purchaseViewModel::updateItemBoughtAttribute
             )
         }

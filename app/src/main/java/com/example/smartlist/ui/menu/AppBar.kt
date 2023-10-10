@@ -4,6 +4,11 @@ import android.Manifest
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -43,6 +48,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -195,7 +201,10 @@ fun HomeAppBar(
     }
 
     TopAppBar(
-        title = { Text(text = if(name.isNotBlank()) "$title > $name" else title) },
+        title = {
+            val text = if(name.isNotBlank()) "$title > $name" else title
+            Text(text = text)
+        },
         navigationIcon = {
             IconButton(onClick = onNavigationIconClick) {
                 Icon(
@@ -342,7 +351,9 @@ fun HintDialog(
         Surface(shape = RoundedCornerShape(16.dp), color = Color.White) {
             Box(
                 contentAlignment = Alignment.Center,
-                modifier = modifier.fillMaxWidth().height(50.dp)
+                modifier = modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
             ) {
                 Text(text = "Say: my name")
             }

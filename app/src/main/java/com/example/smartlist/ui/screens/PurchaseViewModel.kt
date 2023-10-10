@@ -3,6 +3,7 @@ package com.example.smartlist.ui.screens
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.drawable.Drawable
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -14,6 +15,7 @@ import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.AP
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.smartlist.R
 import com.example.smartlist.SmartListApplication
 import com.example.smartlist.data.PurchaseRepository
 import com.example.smartlist.model.Item
@@ -23,6 +25,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.*
+import kotlin.collections.ArrayList
 
 private const val TAG = "PurchaseViewModel"
 sealed interface PurchaseUiState{
@@ -236,6 +239,21 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
             //Refresh Item List
             getItemsOfPurchaseList()
             delay(1500)
+        }
+    }
+
+    fun restoreAllItems(list: List<Item>){
+        viewModelScope.launch {
+            withContext(Dispatchers.IO){
+                list.forEach { item ->
+                    if (item.isBought){
+                        purchaseRepository.updateItemBoughtAttribute(item,false)
+                    }
+                }
+            }
+
+            //Refresh Item List
+            getItemsOfPurchaseList()
         }
     }
     //End of Item functions

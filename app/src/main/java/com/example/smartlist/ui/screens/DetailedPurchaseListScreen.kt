@@ -3,7 +3,13 @@ package com.example.smartlist.ui.screens
 
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.animation.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,8 +20,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
 import androidx.compose.material.Card
@@ -28,18 +37,22 @@ import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.OutlinedButton
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.MoneyOff
+import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
@@ -53,16 +66,24 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.Placeholder
+import androidx.compose.ui.text.PlaceholderVerticalAlign
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -78,6 +99,7 @@ import com.example.smartlist.ui.menu.HomeAppBar
 import com.example.smartlist.ui.swipe.SwipeAction
 import com.example.smartlist.ui.swipe.SwipeableActionsBox
 import kotlinx.coroutines.launch
+import org.intellij.lang.annotations.Language
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.Locale
@@ -93,6 +115,7 @@ fun DetailedPurchaseListScreen(
     onRefresh: (Long)->Unit,
     onDelete: (UUID) -> Unit,
     onEdit: (Item) -> Unit,
+    onRestore: (List<Item>) -> Unit = {},
     onItemBoughtChanged: (Item,Boolean)-> Unit,
     modifier: Modifier = Modifier
 ){
@@ -101,7 +124,6 @@ fun DetailedPurchaseListScreen(
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-
     //Menu drawer items
     val myItems = ListOfMenuItem(context).getItems()
 
@@ -227,7 +249,8 @@ fun DetailedPurchaseListScreen(
                         itemsOfList = state.items,
                         onItemBoughtChanged = onItemBoughtChanged,
                         onDelete = {itemId-> onDelete(itemId)},
-                        onEdit = onEdit
+                        onEdit = onEdit,
+                        onRestore = onRestore,
                     )
                 }
             }
@@ -240,7 +263,8 @@ fun ResultItemScreen(
     itemsOfList: List<Item>,
     onItemBoughtChanged: (Item,Boolean)-> Unit,
     onEdit: (Item) -> Unit,
-    onDelete: (UUID) -> Unit
+    onDelete: (UUID) -> Unit,
+    onRestore: (List<Item>) -> Unit,
 ){
 
     //If no Item received but call ended with Success
@@ -248,26 +272,12 @@ fun ResultItemScreen(
         EmptyCard()
         return
     }
-//    LazyColumn{
-//
-//        item{
-//            ListInfoCard(itemsOfList)
-//        }
-//
-//        items(itemsOfList.size){
-//            SwipeWrapperItemCard(
-//                item = itemsOfList[it],
-//                onClick = onItemBoughtChanged,
-//                onDelete = {id-> onDelete(id) },
-//                onEdit = onEdit
-//            )
-//        }
-//    }
     ActiveListCard(
         itemsOfList = itemsOfList,
         onItemBoughtChanged = onItemBoughtChanged,
         onEdit = onEdit,
-        onDelete = onDelete
+        onDelete = onDelete,
+        onRestore = onRestore,
     )
 
 }
@@ -288,15 +298,31 @@ fun ActiveListCard(
     onItemBoughtChanged: (Item,Boolean)-> Unit,
     onEdit: (Item) -> Unit,
     onDelete: (UUID) -> Unit,
+    onRestore: (List<Item>) -> Unit,
     modifier: Modifier = Modifier
 ){
 
     var isActiveExpanded by remember { mutableStateOf(true) }
     var isNotActiveExpanded by remember { mutableStateOf(false) }
 
+
+    val notBoughtList: MutableList<Item> = emptyList<Item>().toMutableList()
+    val boughtList: MutableList<Item> = emptyList<Item>().toMutableList()
+    val context = LocalContext.current
+
+    itemsOfList.forEach { item ->
+        if (item.isBought){
+            boughtList += item
+        } else{
+            notBoughtList += item
+        }
+    }
+
     Card(
         elevation = 4.dp,
-        modifier = modifier.fillMaxWidth().padding(8.dp)
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(8.dp)
     ) {
         LazyColumn{
             item{
@@ -309,26 +335,24 @@ fun ActiveListCard(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(8.dp)
                 ) {
-                    Text(text = "Active: ", modifier = Modifier.weight(1f))
+                    Text(text = stringResource(R.string.active), modifier = Modifier.weight(1f))
                     Spacer(modifier = Modifier.weight(1f))
                     IconButton(onClick = { isActiveExpanded = !isActiveExpanded}) {
                         Icon(
                             imageVector = if(isActiveExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                            contentDescription = "Expand list"
+                            contentDescription = null
                         )
                     }
                 }
             }
             if (isActiveExpanded){
-                items(itemsOfList.size){
-                    if (!itemsOfList[it].isBought){
-                        SwipeWrapperItemCard(
-                            item = itemsOfList[it],
-                            onClick = onItemBoughtChanged,
-                            onDelete = {id-> onDelete(id) },
-                            onEdit = onEdit
-                        )
-                    }
+                items(notBoughtList.size){
+                    SwipeWrapperItemCard(
+                        item = notBoughtList[it],
+                        onClick = onItemBoughtChanged,
+                        onDelete = {id-> onDelete(id) },
+                        onEdit = onEdit
+                    )
                 }
             }
 
@@ -338,27 +362,34 @@ fun ActiveListCard(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(8.dp)
                 ) {
-                    Text(text = "Offline: ", modifier = Modifier.weight(1f))
+                    Text(text = stringResource(R.string.offline), modifier = Modifier.weight(1f))
                     Spacer(modifier = Modifier.weight(1f))
+                    IconButton(onClick = {
+                        /*TODO add function which update all bought items to not bought*/
+                        onRestore(itemsOfList)
+                        Toast.makeText(context, "Restore all items", Toast.LENGTH_SHORT).show()
+
+
+                    }) {
+                        Icon(imageVector = Icons.Default.Restore, contentDescription = null)
+                    }
                     IconButton(onClick = { isNotActiveExpanded = !isNotActiveExpanded}) {
                         Icon(
                             imageVector = if(isNotActiveExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                            contentDescription = "Expand list"
+                            contentDescription = null
                         )
                     }
                 }
             }
 
             if (isNotActiveExpanded){
-                items(itemsOfList.size){
-                    if (itemsOfList[it].isBought){
-                        SwipeWrapperItemCard(
-                            item = itemsOfList[it],
-                            onClick = onItemBoughtChanged,
-                            onDelete = {id-> onDelete(id) },
-                            onEdit = onEdit
-                        )
-                    }
+                items(boughtList.size){
+                    SwipeWrapperItemCard(
+                        item = boughtList[it],
+                        onClick = onItemBoughtChanged,
+                        onDelete = {id-> onDelete(id) },
+                        onEdit = onEdit
+                    )
                 }
             }
         }
@@ -373,18 +404,11 @@ private fun SwipeWrapperItemCard(
     onDelete: (UUID) -> Unit,
     modifier: Modifier = Modifier
 ){
-    //Temporary commented
     val deleteAction = SwipeAction(
         icon = {rememberVectorPainter(image = Icons.TwoTone.Delete)},
         background = Color.Red,
         onSwipe = { onDelete(item.id) },
     )
-
-//    val boughtAction = SwipeAction(
-//        icon = {rememberVectorPainter(image = Icons.TwoTone.Delete)},
-//        background = Color.Gray,
-//        onSwipe = { item.isBought = !item.isBought },
-//    )
 
     SwipeableActionsBox(
         modifier = modifier,
@@ -416,6 +440,13 @@ fun ItemCard(
 
     var isBought by remember { mutableStateOf(item.isBought) }
 
+    val drawablesList = listOf(
+        R.drawable.veg,
+        R.drawable.veg2,
+        R.drawable.veg3,
+    )
+
+
     Card(
         elevation = 4.dp,
         backgroundColor = if(isBought) Color.LightGray else Color.White,
@@ -437,21 +468,25 @@ fun ItemCard(
             ) {
 
                 Image(
-                    painter = painterResource(id = R.drawable.circle),
+                    painter = painterResource(id = drawablesList[item.drawableId]),
                     contentDescription = stringResource(id = R.string.purchase_image),
+                    contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .weight(2f)
-                        .padding(start = 4.dp, end = 4.dp)
+                        //.weight(2f)
+                        .size(48.dp)
+                        //.padding(start = 4.dp, end = 4.dp)
+                        .border(2.dp, Color.Gray, CircleShape)
+                        .clip(CircleShape)
                 )
 
                 Column(modifier = Modifier
                     .weight(8f)
-                    .padding(top = 4.dp)) {
+                    .padding(top = 4.dp, start = 4.dp)) {
 
                     Text(
                         text = item.name,
                         fontSize = 20.sp,
-                        color = Color.Black
+                        color = Color.Black,
                     )
 
                     Row(horizontalArrangement = Arrangement.SpaceAround){
@@ -508,7 +543,6 @@ fun ItemCard(
         }
     }
 }
-
 @Composable
 fun ListInfoCard(items: List<Item>, modifier: Modifier = Modifier){
 
@@ -528,33 +562,39 @@ fun ListInfoCard(items: List<Item>, modifier: Modifier = Modifier){
             left-=it.total.toInt()
         }
     }
-
-    val convertedTotal = DecimalFormat("#,###", DecimalFormatSymbols(Locale.US)).format(total)
+    val convertedTotal: String = DecimalFormat("#,###", DecimalFormatSymbols(Locale.US)).format(total)
     val convertedLeft = DecimalFormat("#,###", DecimalFormatSymbols(Locale.US)).format(left)
 
-    Card(elevation = 0.dp, modifier = modifier
-        .fillMaxWidth()
-        .padding(8.dp)
-        .height(80.dp)) {
 
-        Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+    Card(
+        elevation = 4.dp,
+        backgroundColor = MaterialTheme.colors.primary,
+        modifier = modifier
+            .fillMaxWidth()
+            .height(40.dp)
+    ) {
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(4.dp)
         ) {
 
-            Text(
-                text = context.getString(R.string.total,convertedTotal,currency),
-                fontSize = 18.sp,
-                color = Color.Black,
-                modifier = Modifier.weight(1f)
-            )
+            Row(modifier = Modifier.weight(1f).padding(start = 4.dp)) {
+                Text(
+                    text = context.getString(R.string.total,convertedTotal,currency),
+                    fontSize = 16.sp,
+                    color = Color.White,
+                )
+            }
 
-            Text(
-                text = context.getString(R.string.left,convertedLeft,currency),
-                fontSize = 18.sp,
-                color = Color.Gray,
-                modifier = Modifier.weight(1f)
-            )
+            Row(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = context.getString(R.string.left,convertedLeft,currency),
+                    fontSize = 16.sp,
+                    color = Color.White,
+                )
+            }
+
         }
     }
 }

@@ -59,6 +59,7 @@ import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
@@ -71,7 +72,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.pointer.pointerInput
@@ -88,6 +92,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -103,6 +108,7 @@ import com.example.smartlist.ui.menu.DrawerHeader
 import com.example.smartlist.ui.menu.HomeAppBar
 import com.example.smartlist.ui.swipe.SwipeAction
 import com.example.smartlist.ui.swipe.SwipeableActionsBox
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.intellij.lang.annotations.Language
@@ -139,50 +145,6 @@ fun DetailedPurchaseListScreen(
 
     //Navigation attributes
     val unknownVoiceCommandMessage = stringResource(id = R.string.unknown_command)
-
-    //Test attribute for controlling floating button
-    var isFabVisible by remember { mutableStateOf(true) }
-
-    val fabAlpha = remember { androidx.compose.animation.core.Animatable(1f) }
-    val fabScale = remember { androidx.compose.animation.core.Animatable(1f) }
-    var touched by remember { mutableStateOf(false) }
-
-    val fabSlideOffset by animateFloatAsState(
-        targetValue = if(isFabVisible) 0f else 100f,
-        animationSpec = tween(durationMillis = 1000),
-        label = "",
-    )
-
-    val fabAlpha1 by animateFloatAsState(
-        targetValue = if(isFabVisible) 1f else 0f,
-        animationSpec = tween(durationMillis = 1000),
-        label = "",
-        )
-
-    LaunchedEffect(isFabVisible){
-        if (!isFabVisible){
-            fabAlpha.animateTo(0f)
-
-
-
-            //fabScale.animateTo(0f)
-        } else{
-            fabAlpha.animateTo(1f)
-            //fabScale.animateTo(1f)
-        }
-        //fabAlpha.animateTo(if (isFabVisible) 1f else 0f)
-    }
-
-    LaunchedEffect(touched){
-        if (touched){
-            isFabVisible = true
-        }
-
-        delay(5000)
-        isFabVisible = false
-        touched = false
-    }
-
 
     if (showDialog.value){
         NewPurchaseListItemDialog(
@@ -279,25 +241,6 @@ fun DetailedPurchaseListScreen(
                 }
             )
         },
-        floatingActionButtonPosition = FabPosition.End,
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { showDialog.value = true},
-                //modifier = Modifier.alpha(fabAlpha.value)
-                modifier = Modifier.alpha(fabAlpha1).offset(fabSlideOffset.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Add,
-                    contentDescription = stringResource(id = R.string.add_purchase_item)
-                )
-            }
-        },
-        modifier = Modifier.pointerInput(Unit) {
-            detectTapGestures {
-                touched = true
-                //isFabVisible = !isFabVisible
-            }
-        },
     ) {
         Surface(modifier = modifier.padding(it)) {
 
@@ -307,6 +250,8 @@ fun DetailedPurchaseListScreen(
                 is PurchaseItemUiState.Success ->{
                     ResultItemScreen(
                         itemsOfList = state.items,
+                        listId = purchaseViewModel.currentListId,
+                        onSubmit = onSubmit,
                         onItemBoughtChanged = onItemBoughtChanged,
                         onDelete = {itemId-> onDelete(itemId)},
                         onEdit = onEdit,
@@ -321,6 +266,8 @@ fun DetailedPurchaseListScreen(
 @Composable
 fun ResultItemScreen(
     itemsOfList: List<Item>,
+    listId: UUID,
+    onSubmit: (Item) -> Unit,
     onItemBoughtChanged: (Item,Boolean)-> Unit,
     onEdit: (Item) -> Unit,
     onDelete: (UUID) -> Unit,
@@ -334,6 +281,8 @@ fun ResultItemScreen(
     }
     ActiveListCard(
         itemsOfList = itemsOfList,
+        listId = listId,
+        onSubmit = onSubmit,
         onItemBoughtChanged = onItemBoughtChanged,
         onEdit = onEdit,
         onDelete = onDelete,
@@ -355,6 +304,8 @@ fun EmptyCard(modifier: Modifier = Modifier){
 @Composable
 fun ActiveListCard(
     itemsOfList: List<Item>,
+    listId: UUID,
+    onSubmit: (Item) -> Unit,
     onItemBoughtChanged: (Item,Boolean)-> Unit,
     onEdit: (Item) -> Unit,
     onDelete: (UUID) -> Unit,
@@ -364,6 +315,18 @@ fun ActiveListCard(
 
     var isActiveExpanded by remember { mutableStateOf(true) }
     var isNotActiveExpanded by remember { mutableStateOf(false) }
+    val showDialog = remember { mutableStateOf(false) }
+
+    if (showDialog.value){
+        NewPurchaseListItemDialog(
+            listId =  listId,
+            setShowDialog = {showDialog.value = it},
+            onConfirm = {item->
+                //Submit newly created item to DB using callback of ViewModel
+                onSubmit(item)
+            }
+        )
+    }
 
 
     val notBoughtList: MutableList<Item> = emptyList<Item>().toMutableList()
@@ -406,6 +369,29 @@ fun ActiveListCard(
                 }
             }
             if (isActiveExpanded){
+
+                item {
+                    val stroke = Stroke(
+                        width = 2f,
+                        pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f,10f),0f)
+                    )
+
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(60.dp)
+                            .padding(start = 8.dp, end = 8.dp, bottom = 4.dp, top = 16.dp)
+                            .drawBehind { drawRect(color = Color.DarkGray, style = stroke) }
+                            .clickable { showDialog.value = true }
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.add_purchase_item),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+
                 items(notBoughtList.size){
                     SwipeWrapperItemCard(
                         item = notBoughtList[it],

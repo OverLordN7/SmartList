@@ -238,7 +238,7 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
 
             //Refresh Item List
             getItemsOfPurchaseList()
-            delay(1500)
+            //delay(1500)
         }
     }
 

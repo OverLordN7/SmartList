@@ -6,11 +6,13 @@ import android.widget.Toast
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +21,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -56,6 +59,7 @@ import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
@@ -66,10 +70,15 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalContext
@@ -83,6 +92,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -98,6 +108,8 @@ import com.example.smartlist.ui.menu.DrawerHeader
 import com.example.smartlist.ui.menu.HomeAppBar
 import com.example.smartlist.ui.swipe.SwipeAction
 import com.example.smartlist.ui.swipe.SwipeableActionsBox
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.intellij.lang.annotations.Language
 import java.text.DecimalFormat
@@ -229,15 +241,6 @@ fun DetailedPurchaseListScreen(
                 }
             )
         },
-        floatingActionButtonPosition = FabPosition.End,
-        floatingActionButton = {
-            FloatingActionButton(onClick = { showDialog.value = true}) {
-                Icon(
-                    imageVector = Icons.Filled.Add,
-                    contentDescription = stringResource(id = R.string.add_purchase_item)
-                )
-            }
-        }
     ) {
         Surface(modifier = modifier.padding(it)) {
 
@@ -247,6 +250,8 @@ fun DetailedPurchaseListScreen(
                 is PurchaseItemUiState.Success ->{
                     ResultItemScreen(
                         itemsOfList = state.items,
+                        listId = purchaseViewModel.currentListId,
+                        onSubmit = onSubmit,
                         onItemBoughtChanged = onItemBoughtChanged,
                         onDelete = {itemId-> onDelete(itemId)},
                         onEdit = onEdit,
@@ -261,6 +266,8 @@ fun DetailedPurchaseListScreen(
 @Composable
 fun ResultItemScreen(
     itemsOfList: List<Item>,
+    listId: UUID,
+    onSubmit: (Item) -> Unit,
     onItemBoughtChanged: (Item,Boolean)-> Unit,
     onEdit: (Item) -> Unit,
     onDelete: (UUID) -> Unit,
@@ -274,6 +281,8 @@ fun ResultItemScreen(
     }
     ActiveListCard(
         itemsOfList = itemsOfList,
+        listId = listId,
+        onSubmit = onSubmit,
         onItemBoughtChanged = onItemBoughtChanged,
         onEdit = onEdit,
         onDelete = onDelete,
@@ -295,6 +304,8 @@ fun EmptyCard(modifier: Modifier = Modifier){
 @Composable
 fun ActiveListCard(
     itemsOfList: List<Item>,
+    listId: UUID,
+    onSubmit: (Item) -> Unit,
     onItemBoughtChanged: (Item,Boolean)-> Unit,
     onEdit: (Item) -> Unit,
     onDelete: (UUID) -> Unit,
@@ -304,6 +315,18 @@ fun ActiveListCard(
 
     var isActiveExpanded by remember { mutableStateOf(true) }
     var isNotActiveExpanded by remember { mutableStateOf(false) }
+    val showDialog = remember { mutableStateOf(false) }
+
+    if (showDialog.value){
+        NewPurchaseListItemDialog(
+            listId =  listId,
+            setShowDialog = {showDialog.value = it},
+            onConfirm = {item->
+                //Submit newly created item to DB using callback of ViewModel
+                onSubmit(item)
+            }
+        )
+    }
 
 
     val notBoughtList: MutableList<Item> = emptyList<Item>().toMutableList()
@@ -346,6 +369,29 @@ fun ActiveListCard(
                 }
             }
             if (isActiveExpanded){
+
+                item {
+                    val stroke = Stroke(
+                        width = 2f,
+                        pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f,10f),0f)
+                    )
+
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(60.dp)
+                            .padding(start = 8.dp, end = 8.dp, bottom = 4.dp, top = 16.dp)
+                            .drawBehind { drawRect(color = Color.DarkGray, style = stroke) }
+                            .clickable { showDialog.value = true }
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.add_purchase_item),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+
                 items(notBoughtList.size){
                     SwipeWrapperItemCard(
                         item = notBoughtList[it],
@@ -579,7 +625,9 @@ fun ListInfoCard(items: List<Item>, modifier: Modifier = Modifier){
             modifier = Modifier.padding(4.dp)
         ) {
 
-            Row(modifier = Modifier.weight(1f).padding(start = 4.dp)) {
+            Row(modifier = Modifier
+                .weight(1f)
+                .padding(start = 4.dp)) {
                 Text(
                     text = context.getString(R.string.total,convertedTotal,currency),
                     fontSize = 16.sp,

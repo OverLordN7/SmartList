@@ -3,16 +3,9 @@ package com.example.smartlist.ui.screens
 
 import android.util.Log
 import android.widget.Toast
-import androidx.compose.animation.Animatable
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,13 +14,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
 import androidx.compose.material.Card
@@ -35,31 +26,24 @@ import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ExposedDropdownMenuBox
 import androidx.compose.material.ExposedDropdownMenuDefaults
-import androidx.compose.material.FabPosition
-import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedButton
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.MoneyOff
 import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
@@ -70,30 +54,22 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.Placeholder
-import androidx.compose.ui.text.PlaceholderVerticalAlign
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -108,10 +84,7 @@ import com.example.smartlist.ui.menu.DrawerHeader
 import com.example.smartlist.ui.menu.HomeAppBar
 import com.example.smartlist.ui.swipe.SwipeAction
 import com.example.smartlist.ui.swipe.SwipeableActionsBox
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.intellij.lang.annotations.Language
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.Locale
@@ -127,7 +100,7 @@ fun DetailedPurchaseListScreen(
     onRefresh: (Long)->Unit,
     onDelete: (UUID) -> Unit,
     onEdit: (Item) -> Unit,
-    onRestore: (List<Item>) -> Unit = {},
+    onRestore: (List<Item>) -> Unit,
     onItemBoughtChanged: (Item,Boolean)-> Unit,
     modifier: Modifier = Modifier
 ){
@@ -248,15 +221,22 @@ fun DetailedPurchaseListScreen(
                 is PurchaseItemUiState.Loading -> LoadingScreen()
                 is PurchaseItemUiState.Error ->{}
                 is PurchaseItemUiState.Success ->{
-                    ResultItemScreen(
-                        itemsOfList = state.items,
-                        listId = purchaseViewModel.currentListId,
-                        onSubmit = onSubmit,
-                        onItemBoughtChanged = onItemBoughtChanged,
-                        onDelete = {itemId-> onDelete(itemId)},
-                        onEdit = onEdit,
-                        onRestore = onRestore,
-                    )
+                    if ( state.items.isEmpty()){
+                        EmptyCard(
+                            listId = purchaseViewModel.currentListId,
+                            onSubmit = onSubmit,
+                            )
+                    } else{
+                        ActiveListCard(
+                            itemsOfList =  state.items,
+                            listId = purchaseViewModel.currentListId,
+                            onSubmit = onSubmit,
+                            onItemBoughtChanged = onItemBoughtChanged,
+                            onDelete = {itemId-> onDelete(itemId)},
+                            onEdit = onEdit,
+                            onRestore = onRestore,
+                        )
+                    }
                 }
             }
         }
@@ -264,39 +244,49 @@ fun DetailedPurchaseListScreen(
 }
 
 @Composable
-fun ResultItemScreen(
-    itemsOfList: List<Item>,
+fun EmptyCard(
     listId: UUID,
     onSubmit: (Item) -> Unit,
-    onItemBoughtChanged: (Item,Boolean)-> Unit,
-    onEdit: (Item) -> Unit,
-    onDelete: (UUID) -> Unit,
-    onRestore: (List<Item>) -> Unit,
+    modifier: Modifier = Modifier
 ){
+    val showDialog = remember { mutableStateOf(false) }
 
-    //If no Item received but call ended with Success
-    if (itemsOfList.isEmpty()) {
-        EmptyCard()
-        return
+    if (showDialog.value){
+        NewPurchaseListItemDialog(
+            listId =  listId,
+            setShowDialog = {showDialog.value = it},
+            onConfirm = {item->
+                //Submit newly created item to DB using callback of ViewModel
+                onSubmit(item)
+            }
+        )
     }
-    ActiveListCard(
-        itemsOfList = itemsOfList,
-        listId = listId,
-        onSubmit = onSubmit,
-        onItemBoughtChanged = onItemBoughtChanged,
-        onEdit = onEdit,
-        onDelete = onDelete,
-        onRestore = onRestore,
-    )
 
-}
-
-@Composable
-fun EmptyCard(modifier: Modifier = Modifier){
     Box(contentAlignment = Alignment.Center, modifier = modifier.fillMaxSize()) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(text = stringResource(id = R.string.empty_card_message_1), color = Color.Black)
-            Text(text = stringResource(id = R.string.empty_card_message_2), color = Color.Black)
+            //Text(text = stringResource(id = R.string.empty_card_message_2), color = Color.Black)
+
+            val stroke = Stroke(
+                width = 2f,
+                pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f,10f),0f)
+            )
+
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(60.dp)
+                    .padding(start = 8.dp, end = 8.dp, bottom = 4.dp, top = 16.dp)
+                    .drawBehind { drawRect(color = Color.DarkGray, style = stroke) }
+                    .clickable { showDialog.value = true }
+            ) {
+                Text(
+                    text = stringResource(id = R.string.add_purchase_item),
+                    textAlign = TextAlign.Center
+                )
+            }
+
         }
     }
 }
@@ -327,11 +317,8 @@ fun ActiveListCard(
             }
         )
     }
-
-
     val notBoughtList: MutableList<Item> = emptyList<Item>().toMutableList()
     val boughtList: MutableList<Item> = emptyList<Item>().toMutableList()
-    val context = LocalContext.current
 
     itemsOfList.forEach { item ->
         if (item.isBought){
@@ -368,6 +355,7 @@ fun ActiveListCard(
                     }
                 }
             }
+
             if (isActiveExpanded){
 
                 item {
@@ -410,13 +398,7 @@ fun ActiveListCard(
                 ) {
                     Text(text = stringResource(R.string.offline), modifier = Modifier.weight(1f))
                     Spacer(modifier = Modifier.weight(1f))
-                    IconButton(onClick = {
-                        /*TODO add function which update all bought items to not bought*/
-                        onRestore(itemsOfList)
-                        Toast.makeText(context, "Restore all items", Toast.LENGTH_SHORT).show()
-
-
-                    }) {
+                    IconButton(onClick = {onRestore(itemsOfList)}) {
                         Icon(imageVector = Icons.Default.Restore, contentDescription = null)
                     }
                     IconButton(onClick = { isNotActiveExpanded = !isNotActiveExpanded}) {
@@ -484,7 +466,8 @@ fun ItemCard(
     val currency = stringResource(id = R.string.currency_title)
     val isExpanded = remember { mutableStateOf(false) }
 
-    var isBought by remember { mutableStateOf(item.isBought) }
+    //var isBought by remember { mutableStateOf(item.isBought) }
+    var isBought: Boolean = item.isBought
 
     val drawablesList = listOf(
         R.drawable.veg,
@@ -1050,7 +1033,6 @@ fun NewPurchaseListItemDialog(
                         ) {
                             Text(text = stringResource(id = R.string.button_confirm))
                         }
-
                     }
                 }
             }

@@ -36,7 +36,7 @@ import java.nio.ByteBuffer
         Recipe::class,
         Product::class
     ],
-    version = 10,
+    version = 11,
     exportSchema = false
 )
 abstract class MyDatabase: RoomDatabase() {

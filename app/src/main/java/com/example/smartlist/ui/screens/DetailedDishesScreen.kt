@@ -1713,7 +1713,7 @@ fun saveImageToInternalStorage(context: Context, uri: Uri): Uri {
 }
 
 @Composable
-private fun getBitmapFromImage(context: Context, drawable: Int): ImageBitmap {
+fun getBitmapFromImage(context: Context, drawable: Int): ImageBitmap {
     val option = BitmapFactory.Options()
     option.inPreferredConfig = Bitmap.Config.ARGB_8888
     return BitmapFactory.decodeResource(

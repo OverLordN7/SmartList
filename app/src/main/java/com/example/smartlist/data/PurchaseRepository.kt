@@ -92,6 +92,7 @@ class DefaultPurchaseRepository(
             total = item.total,
             listId = item.listId,
             drawableId = item.drawableId,
+            photoPath = item.photoPath,
         )
     }
 

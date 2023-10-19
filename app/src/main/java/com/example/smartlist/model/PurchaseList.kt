@@ -35,4 +35,5 @@ data class Item(
     var isBought: Boolean = false,
     val listId: UUID, //foreign key to purchase list
     var drawableId: Int = (0..2).random(),
+    var photoPath: String? = null,
 )

@@ -1,8 +1,16 @@
 package com.example.smartlist.ui.screens
 
 
+import android.app.Activity
+import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.ImageDecoder
+import android.net.Uri
+import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -40,6 +48,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.rememberScaffoldState
@@ -58,6 +67,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
@@ -73,6 +83,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.core.net.toUri
 import androidx.navigation.NavController
 import com.example.smartlist.R
 import com.example.smartlist.extend_functions.capitalizeFirstChar
@@ -466,7 +477,6 @@ fun ItemCard(
     val currency = stringResource(id = R.string.currency_title)
     val isExpanded = remember { mutableStateOf(false) }
 
-    //var isBought by remember { mutableStateOf(item.isBought) }
     var isBought: Boolean = item.isBought
 
     val drawablesList = listOf(
@@ -474,6 +484,11 @@ fun ItemCard(
         R.drawable.veg2,
         R.drawable.veg3,
     )
+
+    //Attributes for photo
+    val bitmap = remember{ mutableStateOf<Bitmap?>(null)}
+
+    val bitmapCorrupted = remember { mutableStateOf(false) }
 
 
     Card(
@@ -496,17 +511,57 @@ fun ItemCard(
                 modifier = Modifier.padding(4.dp)
             ) {
 
-                Image(
-                    painter = painterResource(id = drawablesList[item.drawableId]),
-                    contentDescription = stringResource(id = R.string.purchase_image),
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        //.weight(2f)
-                        .size(48.dp)
-                        //.padding(start = 4.dp, end = 4.dp)
-                        .border(2.dp, Color.Gray, CircleShape)
-                        .clip(CircleShape)
-                )
+                if (!item.photoPath.isNullOrEmpty()){
+                    try {
+                        val source = ImageDecoder.createSource(context.contentResolver,
+                            item.photoPath!!.toUri())
+                        bitmap.value = ImageDecoder.decodeBitmap(source)
+                        bitmapCorrupted.value = false
+
+                    }
+                    catch (e: Exception){
+                        e.printStackTrace()
+                        Toast.makeText(context,e.toString(),Toast.LENGTH_SHORT).show()
+                        bitmapCorrupted.value = true
+                    }
+
+                    Image(
+                        bitmap = if(bitmapCorrupted.value) getBitmapFromImage(context,R.drawable.circle) else bitmap.value!!.asImageBitmap(),
+                        contentDescription = stringResource(id = R.string.purchase_image),
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            //.weight(2f)
+                            .size(48.dp)
+                            //.padding(start = 4.dp, end = 4.dp)
+                            .border(2.dp, Color.Gray, CircleShape)
+                            .clip(CircleShape)
+                    )
+
+                } else {
+                    Image(
+                        painter = painterResource(id = drawablesList[item.drawableId]),
+                        contentDescription = stringResource(id = R.string.purchase_image),
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            //.weight(2f)
+                            .size(48.dp)
+                            //.padding(start = 4.dp, end = 4.dp)
+                            .border(2.dp, Color.Gray, CircleShape)
+                            .clip(CircleShape)
+                    )
+                }
+
+//                Image(
+//                    painter = painterResource(id = drawablesList[item.drawableId]),
+//                    contentDescription = stringResource(id = R.string.purchase_image),
+//                    contentScale = ContentScale.Crop,
+//                    modifier = Modifier
+//                        //.weight(2f)
+//                        .size(48.dp)
+//                        //.padding(start = 4.dp, end = 4.dp)
+//                        .border(2.dp, Color.Gray, CircleShape)
+//                        .clip(CircleShape)
+//                )
 
                 Column(modifier = Modifier
                     .weight(8f)
@@ -835,6 +890,19 @@ fun NewPurchaseListItemDialog(
     var expanded by remember { mutableStateOf(false) }
     var selectedOptionText by remember { mutableStateOf(options[0]) }
 
+    //Attributes for photo capture
+    var imageUri by remember { mutableStateOf<Uri?>(null)}
+    val context = LocalContext.current
+    val launcher = rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()){
+            result->
+        if (result.resultCode == Activity.RESULT_OK){
+            imageUri = result.data?.data
+            if (imageUri != null){
+                imageUri = saveImageToInternalStorage(context, imageUri!!)
+            }
+        }
+    }
+
     Dialog(onDismissRequest = {setShowDialog(false)}) {
 
         Surface(shape = RoundedCornerShape(16.dp), color = Color.White) {
@@ -975,6 +1043,33 @@ fun NewPurchaseListItemDialog(
                     }
                 }
 
+                //Photo capture
+                item {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Start,
+                        modifier = Modifier.padding(end = 4.dp),
+                    ){
+
+                        Text(
+                            text = stringResource(id = R.string.photo_button),
+                            fontSize = 16.sp,
+                            color = Color.Black,
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        IconButton(
+                            onClick = {
+                                val galleryIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+                                launcher.launch(galleryIntent)
+                            },
+                            modifier = Modifier.size(60.dp).weight(2f)
+                        ) {
+                            Icon(imageVector = Icons.Default.Photo, contentDescription = null)
+                        }
+                    }
+                }
+
                 item{
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -1021,7 +1116,8 @@ fun NewPurchaseListItemDialog(
                                         weightType = selectedOptionText,
                                         price = price.text.toFloat(),
                                         total = totalPrice,
-                                        listId = listId
+                                        listId = listId,
+                                        photoPath = if(imageUri.toString() == "null") null else imageUri.toString()
                                     )
                                     onConfirm(tempItem)
                                     setShowDialog(false)

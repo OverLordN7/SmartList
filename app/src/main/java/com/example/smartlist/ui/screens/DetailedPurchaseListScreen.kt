@@ -1,8 +1,11 @@
 package com.example.smartlist.ui.screens
 
 
+import android.Manifest
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.net.Uri
@@ -11,9 +14,11 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -83,8 +88,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import androidx.navigation.NavController
+import com.example.smartlist.BuildConfig
 import com.example.smartlist.R
 import com.example.smartlist.extend_functions.capitalizeFirstChar
 import com.example.smartlist.model.Item
@@ -96,9 +104,13 @@ import com.example.smartlist.ui.menu.HomeAppBar
 import com.example.smartlist.ui.swipe.SwipeAction
 import com.example.smartlist.ui.swipe.SwipeableActionsBox
 import kotlinx.coroutines.launch
+import java.io.File
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
+import java.util.Objects
 import java.util.UUID
 
 private const val TAG = "DetailedPurchaseListScreen"
@@ -149,7 +161,6 @@ fun DetailedPurchaseListScreen(
     voiceCommand?.let { command->
 
         val parts = command.text.split(" ")
-        //создай новый предмет вилка вес 2,5 тип кг цена 10 000
         if (parts.size>=3 && parts[0] == "создай" && parts[1] == "новый" && parts[2] == "предмет"){
 
             try {
@@ -465,6 +476,7 @@ private fun SwipeWrapperItemCard(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ItemCard(
     item: Item,
@@ -490,6 +502,15 @@ fun ItemCard(
 
     val bitmapCorrupted = remember { mutableStateOf(false) }
 
+    val showImageDialog = remember { mutableStateOf(false) }
+
+    if (showImageDialog.value){
+        ShowItemImage(
+            item = item,
+            setShowDialog = {showImageDialog.value = it},
+        )
+    }
+
 
     Card(
         elevation = 4.dp,
@@ -497,10 +518,13 @@ fun ItemCard(
         modifier = modifier
             .padding(8.dp)
             .fillMaxWidth()
-            .clickable {
-                isBought = !isBought
-                onClick(item, isBought)
-            }
+            .combinedClickable(
+                onClick = {
+                    isBought = !isBought
+                    onClick(item, isBought)
+                },
+                onLongClick = { showImageDialog.value = true }
+            )
 
     ) {
         Column {
@@ -903,6 +927,30 @@ fun NewPurchaseListItemDialog(
         }
     }
 
+//    //Adding camera support
+//    val file = context.createImageFile()
+//    val uri = FileProvider.getUriForFile(Objects.requireNonNull(context),BuildConfig.APPLICATION_ID + ".provider",file)
+//
+//    val cameraLauncher = rememberLauncherForActivityResult(contract = ActivityResultContracts.TakePicture()){
+//        result ->
+//        if (result){
+//            imageUri = uri
+//        }
+//    }
+
+//    val permissionLauncher = rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestPermission()){
+//        isSuccess ->
+//        if (isSuccess){
+//            Toast.makeText(context, "Permission Granted", Toast.LENGTH_SHORT).show()
+//            cameraLauncher.launch(uri)
+//        } else {
+//            Toast.makeText(context, "Permission Denied", Toast.LENGTH_SHORT).show()
+//        }
+//    }
+//
+//    val permissionCheckResult = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
+
+
     Dialog(onDismissRequest = {setShowDialog(false)}) {
 
         Surface(shape = RoundedCornerShape(16.dp), color = Color.White) {
@@ -1062,8 +1110,17 @@ fun NewPurchaseListItemDialog(
                             onClick = {
                                 val galleryIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
                                 launcher.launch(galleryIntent)
+//                                if(permissionCheckResult == PackageManager.PERMISSION_GRANTED){
+//                                    cameraLauncher.launch(uri)
+//                                } else {
+//                                    //Request permission
+//                                    permissionLauncher.launch(Manifest.permission.CAMERA)
+//                                }
+
                             },
-                            modifier = Modifier.size(60.dp).weight(2f)
+                            modifier = Modifier
+                                .size(60.dp)
+                                .weight(2f)
                         ) {
                             Icon(imageVector = Icons.Default.Photo, contentDescription = null)
                         }
@@ -1134,4 +1191,68 @@ fun NewPurchaseListItemDialog(
             }
         }
     }
+}
+
+@Composable
+fun ShowItemImage(
+    item: Item,
+    setShowDialog: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+    ){
+
+    val context = LocalContext.current
+    val bitmapFromDrawable = getBitmapFromImage(context = context, drawable = R.drawable.veg)
+
+    var height = context.resources.configuration.screenHeightDp
+    var width = context.resources.configuration.screenWidthDp
+
+    //make a square
+    if (height > width){
+        height = width
+    } else{
+       width = height
+    }
+
+    //Attributes for photo
+    val bitmap = remember{ mutableStateOf<Bitmap?>(null)}
+
+    val bitmapCorrupted = remember { mutableStateOf(false) }
+
+    try {
+        val source = ImageDecoder.createSource(context.contentResolver,
+            item.photoPath!!.toUri())
+        bitmap.value = ImageDecoder.decodeBitmap(source)
+        bitmapCorrupted.value = false
+
+    }
+    catch (e: Exception){
+        e.printStackTrace()
+        Toast.makeText(context,e.toString(),Toast.LENGTH_SHORT).show()
+        bitmapCorrupted.value = true
+    }
+
+
+
+    Dialog(
+        onDismissRequest = { setShowDialog(false) },
+    ) {
+        Surface(modifier = modifier.size(width.dp,height.dp)) {
+            Card(modifier = Modifier.clickable {
+                setShowDialog(false)
+            }){
+                Image(
+                    bitmap = if (bitmapCorrupted.value) bitmapFromDrawable else bitmap.value!!.asImageBitmap(),
+                    contentScale = ContentScale.Crop,
+                    contentDescription = null,
+                    )
+            }
+        }
+    }
+}
+
+fun Context.createImageFile(): File {
+    val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
+    val imageFileName = "JPEG_" + timeStamp + "_"
+
+    return File.createTempFile(imageFileName, ".jpg", externalCacheDir)
 }

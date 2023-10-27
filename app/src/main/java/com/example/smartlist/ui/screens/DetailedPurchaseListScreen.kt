@@ -7,9 +7,12 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.Camera
 import android.graphics.ImageDecoder
+import android.hardware.camera2.CameraDevice
 import android.net.Uri
 import android.provider.MediaStore
+import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -47,6 +50,7 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
@@ -58,6 +62,7 @@ import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
@@ -77,6 +82,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -88,13 +94,19 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
 import com.example.smartlist.BuildConfig
+import com.example.smartlist.MainActivity
 import com.example.smartlist.R
+import com.example.smartlist.extend_functions.bitmapToUri
 import com.example.smartlist.extend_functions.capitalizeFirstChar
+import com.example.smartlist.extend_functions.saveImageToInternalStorage
 import com.example.smartlist.model.Item
 import com.example.smartlist.model.ListOfMenuItem
 import com.example.smartlist.ui.common_composables.LoadingScreen
@@ -103,6 +115,11 @@ import com.example.smartlist.ui.menu.DrawerHeader
 import com.example.smartlist.ui.menu.HomeAppBar
 import com.example.smartlist.ui.swipe.SwipeAction
 import com.example.smartlist.ui.swipe.SwipeableActionsBox
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.PermissionState
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.shouldShowRationale
 import kotlinx.coroutines.launch
 import java.io.File
 import java.text.DecimalFormat
@@ -114,6 +131,7 @@ import java.util.Objects
 import java.util.UUID
 
 private const val TAG = "DetailedPurchaseListScreen"
+private val CAMERA_PERMISSION_REQUEST_CODE = 1001 // Произвольный код запроса разрешения
 @Composable
 fun DetailedPurchaseListScreen(
     purchaseViewModel: PurchaseViewModel,
@@ -890,7 +908,7 @@ fun EditScreen(
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterialApi::class, ExperimentalPermissionsApi::class)
 @Composable
 fun NewPurchaseListItemDialog(
     listId: UUID,
@@ -927,28 +945,34 @@ fun NewPurchaseListItemDialog(
         }
     }
 
-//    //Adding camera support
-//    val file = context.createImageFile()
-//    val uri = FileProvider.getUriForFile(Objects.requireNonNull(context),BuildConfig.APPLICATION_ID + ".provider",file)
-//
-//    val cameraLauncher = rememberLauncherForActivityResult(contract = ActivityResultContracts.TakePicture()){
-//        result ->
-//        if (result){
-//            imageUri = uri
-//        }
-//    }
+    //Adding camera support
 
-//    val permissionLauncher = rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestPermission()){
-//        isSuccess ->
-//        if (isSuccess){
-//            Toast.makeText(context, "Permission Granted", Toast.LENGTH_SHORT).show()
-//            cameraLauncher.launch(uri)
-//        } else {
-//            Toast.makeText(context, "Permission Denied", Toast.LENGTH_SHORT).show()
-//        }
-//    }
-//
-//    val permissionCheckResult = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
+
+    val cameraPermissionState = rememberPermissionState(permission = Manifest.permission.CAMERA)
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    DisposableEffect(
+        key1 = lifecycleOwner,
+        effect = {
+            val observer  = LifecycleEventObserver { _, event ->
+                if(event == Lifecycle.Event.ON_RESUME){
+                    cameraPermissionState.launchPermissionRequest()
+                }
+            }
+
+            lifecycleOwner.lifecycle.addObserver(observer)
+
+            onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+        }
+    )
+
+    val cameraLauncher = rememberLauncherForActivityResult(contract = ActivityResultContracts.TakePicturePreview()){
+        bitmap ->
+        if (bitmap != null){
+            imageUri = bitmapToUri(context, bitmap)
+        }
+
+    }
 
 
     Dialog(onDismissRequest = {setShowDialog(false)}) {
@@ -1106,23 +1130,27 @@ fun NewPurchaseListItemDialog(
                             modifier = Modifier.weight(1f)
                         )
 
-                        IconButton(
-                            onClick = {
-                                val galleryIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-                                launcher.launch(galleryIntent)
-//                                if(permissionCheckResult == PackageManager.PERMISSION_GRANTED){
-//                                    cameraLauncher.launch(uri)
-//                                } else {
-//                                    //Request permission
-//                                    permissionLauncher.launch(Manifest.permission.CAMERA)
-//                                }
+                        Row(modifier = Modifier.weight(2f)){
+                            IconButton(
+                                onClick = {
+                                    val galleryIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+                                    launcher.launch(galleryIntent)
+                                },
+                                modifier = Modifier
+                                    .size(60.dp)
+                                    .weight(1f)
+                            ) {
+                                Icon(imageVector = Icons.Default.Photo, contentDescription = null)
+                            }
 
-                            },
-                            modifier = Modifier
-                                .size(60.dp)
-                                .weight(2f)
-                        ) {
-                            Icon(imageVector = Icons.Default.Photo, contentDescription = null)
+                            IconButton(
+                                onClick = { cameraLauncher.launch(null) },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .size(60.dp)
+                            ) {
+                                Icon(imageVector = Icons.Default.CameraAlt, contentDescription = null)
+                            }
                         }
                     }
                 }
@@ -1248,11 +1276,4 @@ fun ShowItemImage(
             }
         }
     }
-}
-
-fun Context.createImageFile(): File {
-    val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
-    val imageFileName = "JPEG_" + timeStamp + "_"
-
-    return File.createTempFile(imageFileName, ".jpg", externalCacheDir)
 }

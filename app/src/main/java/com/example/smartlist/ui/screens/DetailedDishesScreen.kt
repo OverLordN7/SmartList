@@ -1549,6 +1549,11 @@ fun NewDishComponentDialog(
 
                         Button(
                             onClick = {
+                                val test = name.text.capitalizeFirstChar().replace("\\s+$".toRegex(), "")
+                                Log.d(TAG, "*$test*")
+
+
+
 
                                 //Check if all primary fields are not empty
                                 if (checkForError(name, weight, price)){
@@ -1565,7 +1570,7 @@ fun NewDishComponentDialog(
                                             val newDishComponent = DishComponent(
                                                 id = UUID.randomUUID(),
                                                 recipeId = recipeId,
-                                                name = name.text.capitalizeFirstChar(),
+                                                name = name.text.capitalizeFirstChar().replace("\\s+$".toRegex(), ""),
                                                 weight = weight.text.toFloat(),
                                                 weightType = selectedOptionText,
                                                 price = price.text.toFloat(),
@@ -1575,6 +1580,7 @@ fun NewDishComponentDialog(
                                                 protein = protein.text.toFloat(),
                                                 cal = cal.text.toFloat()
                                             )
+
 
                                             //Submit new DishComponent and close dialog
                                             setShowDialog(false)

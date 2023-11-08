@@ -30,7 +30,8 @@ import kotlin.collections.ArrayList
 private const val TAG = "PurchaseViewModel"
 sealed interface PurchaseUiState{
     data class Success(var purchaseLists: List<PurchaseList>): PurchaseUiState
-    object Error: PurchaseUiState
+    //object Error: PurchaseUiState
+    data class Error(var errorMessage: Exception): PurchaseUiState
     object Loading: PurchaseUiState
 }
 
@@ -74,7 +75,7 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
             purchaseUiState = try{
                 PurchaseUiState.Success(getAllLists())
             }catch (e: Exception){
-                PurchaseUiState.Error
+                PurchaseUiState.Error(e)
             }
         }
     }

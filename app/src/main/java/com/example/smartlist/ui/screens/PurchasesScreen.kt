@@ -176,7 +176,7 @@ fun PurchasesScreen(
         Surface(modifier = modifier.padding(it)) {
             when(state){
                 is PurchaseUiState.Loading -> LoadingScreen()
-                is PurchaseUiState.Error ->{}
+                is PurchaseUiState.Error ->ErrorCard(state.errorMessage)
                 is PurchaseUiState.Success ->{
                     ResultScreen(
                         lists = state.purchaseLists,

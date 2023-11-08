@@ -21,11 +21,11 @@ import java.io.InputStream
 import java.io.InputStreamReader
 import java.nio.ByteBuffer
 
-//val MIGRATION_9_10 = object : Migration(9,10){
-//    override fun migrate(database: SupportSQLiteDatabase) {
-//        database.execSQL("ALTER TABLE item_table ADD COLUMN drawableId INTEGER")
-//    }
-//}
+val MIGRATION_9_10 = object : Migration(9,10){
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("ALTER TABLE item_table ADD COLUMN drawableId INTEGER")
+    }
+}
 
 @Database(
     entities = [

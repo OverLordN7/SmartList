@@ -3,16 +3,11 @@ package com.example.smartlist.ui.screens
 
 import android.Manifest
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.Camera
 import android.graphics.ImageDecoder
-import android.hardware.camera2.CameraDevice
 import android.net.Uri
 import android.provider.MediaStore
-import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -42,6 +37,8 @@ import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ExposedDropdownMenuBox
 import androidx.compose.material.ExposedDropdownMenuDefaults
+import androidx.compose.material.FabPosition
+import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
@@ -50,6 +47,7 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Check
@@ -94,15 +92,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
-import com.example.smartlist.BuildConfig
-import com.example.smartlist.MainActivity
 import com.example.smartlist.R
 import com.example.smartlist.extend_functions.bitmapToUri
 import com.example.smartlist.extend_functions.capitalizeFirstChar
@@ -116,22 +109,16 @@ import com.example.smartlist.ui.menu.HomeAppBar
 import com.example.smartlist.ui.swipe.SwipeAction
 import com.example.smartlist.ui.swipe.SwipeableActionsBox
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.PermissionState
-import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
-import com.google.accompanist.permissions.shouldShowRationale
 import kotlinx.coroutines.launch
-import java.io.File
+import java.lang.Math.round
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
-import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
-import java.util.Objects
 import java.util.UUID
+import kotlin.math.roundToInt
 
 private const val TAG = "DetailedPurchaseListScreen"
-private val CAMERA_PERMISSION_REQUEST_CODE = 1001 // Произвольный код запроса разрешения
 @Composable
 fun DetailedPurchaseListScreen(
     purchaseViewModel: PurchaseViewModel,
@@ -254,6 +241,18 @@ fun DetailedPurchaseListScreen(
                 }
             )
         },
+        floatingActionButtonPosition = FabPosition.End,
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { showDialog.value = true },
+                modifier = Modifier
+            ){
+                Icon(
+                    imageVector = Icons.Filled.Add,
+                    contentDescription = stringResource(id = R.string.add_purchase_item),
+                )
+            }
+        }
     ) {
         Surface(modifier = modifier.padding(it)) {
 
@@ -328,6 +327,13 @@ fun EmptyCard(
             }
 
         }
+    }
+}
+
+@Composable
+fun ErrorCard(errorMessage: Exception, modifier: Modifier = Modifier){
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Text(text = errorMessage.message.toString())
     }
 }
 
@@ -563,7 +569,7 @@ fun ItemCard(
                     }
                     catch (e: Exception){
                         e.printStackTrace()
-                        Toast.makeText(context,e.toString(),Toast.LENGTH_SHORT).show()
+                        //Toast.makeText(context,e.toString(),Toast.LENGTH_SHORT).show()
                         bitmapCorrupted.value = true
                     }
 
@@ -593,18 +599,6 @@ fun ItemCard(
                     )
                 }
 
-//                Image(
-//                    painter = painterResource(id = drawablesList[item.drawableId]),
-//                    contentDescription = stringResource(id = R.string.purchase_image),
-//                    contentScale = ContentScale.Crop,
-//                    modifier = Modifier
-//                        //.weight(2f)
-//                        .size(48.dp)
-//                        //.padding(start = 4.dp, end = 4.dp)
-//                        .border(2.dp, Color.Gray, CircleShape)
-//                        .clip(CircleShape)
-//                )
-
                 Column(modifier = Modifier
                     .weight(8f)
                     .padding(top = 4.dp, start = 4.dp)) {
@@ -621,12 +615,13 @@ fun ItemCard(
                             fontSize = 16.sp,
                             color = Color.Gray,
                             modifier = modifier
-                                .weight(2f)
+                                .weight(3f)
                                 .padding(4.dp)
                         )
 
                         Text(
-                            text = context.getString(R.string.purchase_total,item.total.toInt(),currency),
+                            //text = context.getString(R.string.purchase_total,item.total.toInt(),currency),
+                            text = formatTotal(item.total,currency),
                             fontSize = 16.sp,
                             color = Color.Gray,
                             modifier = modifier
@@ -1255,7 +1250,7 @@ fun ShowItemImage(
     }
     catch (e: Exception){
         e.printStackTrace()
-        Toast.makeText(context,e.toString(),Toast.LENGTH_SHORT).show()
+        //Toast.makeText(context,e.toString(),Toast.LENGTH_SHORT).show()
         bitmapCorrupted.value = true
     }
 
@@ -1274,6 +1269,24 @@ fun ShowItemImage(
                     contentDescription = null,
                     )
             }
+        }
+    }
+}
+
+fun formatTotal(total: Float, currency: String): String {
+    return when {
+        total >= 1000000 -> {
+            val formattedTotal = (total / 1000000)
+            var temp = String.format("%.2f", formattedTotal)
+            temp += "M $currency"
+            temp
+        }
+        total >= 100000 -> {
+            val formattedTotal = round((total / 1000)).toInt()
+            "${formattedTotal}K $currency"
+        }
+        else -> {
+            String.format("%.0f %s", total, currency)
         }
     }
 }

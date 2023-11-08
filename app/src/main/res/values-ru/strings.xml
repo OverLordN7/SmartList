@@ -122,7 +122,7 @@
     <string name="new_purchase">Новый предмет</string>
 
     <string name="purchase_total">%1$d %2$s</string>
-    <string name="purchase_weight">%1$.2f %2$s</string>
+    <string name="purchase_weight">%1$.1f %2$s</string>
     <string name="purchase_image">Изображение предмета</string>
 
     <string name="add_purchase_item">Добавить новый предмет</string>
@@ -228,4 +228,6 @@
     <string name="messageHeader">Имя - Количество - Сумма </string>
     <string name="active">Нужно купить: </string>
     <string name="offline">Куплено: </string>
+    <string name="edit">Изменить</string>
+    <string name="delete">Удалить</string>
 </resources>

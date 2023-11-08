@@ -1,5 +1,6 @@
 package com.example.smartlist.ui.screens
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -31,6 +32,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import java.util.UUID
 
+private const val TAG = "DishViewModel"
 sealed interface DishUiState{
     data class Success(var dishList: List<DishList>): DishUiState
     object Error: DishUiState
@@ -318,7 +320,9 @@ class DishViewModel (
                 }
 
                 for (product in tempProductList){
-                    if (component.name == product.name){
+                    Log.d(TAG, "*${component.name.trimEnd()}* and *${product.name.trimEnd()}* are equal:${component.name.equals(product.name)}")
+
+                    if (component.name.trimEnd() == product.name.trimEnd()){
                         component.carbs = product.carb * mulFactor
                         component.fat = product.fat * mulFactor
                         component.protein = product.protein * mulFactor

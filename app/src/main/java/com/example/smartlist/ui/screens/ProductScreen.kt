@@ -40,6 +40,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -277,10 +279,7 @@ fun TableItem(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .padding(4.dp)
-                    .clickable {
-                        isExpanded = !isExpanded
-                        //Toast.makeText(context, isExpanded.toString(), Toast.LENGTH_SHORT).show()
-                    },
+                    .clickable { isExpanded = !isExpanded },
             ) {
                 Box(
                     contentAlignment = Alignment.Center,
@@ -294,7 +293,12 @@ fun TableItem(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier.weight(1.5f)
                 ) {
-                    Text(text = product.name)
+                    Text(
+                        text = product.name,
+                        overflow = TextOverflow.Ellipsis,
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
+                    )
                 }
 
                 Box(
@@ -336,7 +340,7 @@ fun TableItem(
                         modifier = Modifier.weight(1f),
                         onClick = { showEditDialog.value = true }
                     ) {
-                        Text(text = "Edit")
+                        Text(text = stringResource(R.string.edit))
                     }
 
                     Spacer(modifier = Modifier.weight(0.5f))
@@ -345,7 +349,7 @@ fun TableItem(
                         modifier = Modifier.weight(1f),
                         onClick = { onDelete(product) }
                     ) {
-                        Text(text = "Delete")
+                        Text(text = stringResource(R.string.delete))
                     }
                 }
             }
@@ -553,9 +557,12 @@ fun NewProductDialog(
                                 if (name.text.isEmpty() || checkSwitchForError(carbs, fats, protein, cal)){
                                     error = true
                                 } else{
+                                    val test = name.text.capitalizeFirstChar().replace("\\s+$".toRegex(), "")
+                                    Log.d(TAG, "*$test*")
+
                                     val newProduct = Product(
                                         id = UUID.randomUUID(),
-                                        name = name.text.capitalizeFirstChar(),
+                                        name = name.text.capitalizeFirstChar().replace("\\s+$".toRegex(), ""),
                                         carb = carbs.text.toFloat(),
                                         fat = fats.text.toFloat(),
                                         protein = protein.text.toFloat(),

@@ -225,5 +225,7 @@
     <string name="messageHeader">Name - Quantity - Total</string>
     <string name="active">Active items: </string>
     <string name="offline">Offline items: </string>
+    <string name="edit">Edit</string>
+    <string name="delete">Delete</string>
 
 </resources>

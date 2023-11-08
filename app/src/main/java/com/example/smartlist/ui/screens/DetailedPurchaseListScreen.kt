@@ -331,6 +331,13 @@ fun EmptyCard(
 }
 
 @Composable
+fun ErrorCard(errorMessage: Exception, modifier: Modifier = Modifier){
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Text(text = errorMessage.message.toString())
+    }
+}
+
+@Composable
 fun ActiveListCard(
     itemsOfList: List<Item>,
     listId: UUID,
@@ -562,7 +569,7 @@ fun ItemCard(
                     }
                     catch (e: Exception){
                         e.printStackTrace()
-                        Toast.makeText(context,e.toString(),Toast.LENGTH_SHORT).show()
+                        //Toast.makeText(context,e.toString(),Toast.LENGTH_SHORT).show()
                         bitmapCorrupted.value = true
                     }
 
@@ -1243,7 +1250,7 @@ fun ShowItemImage(
     }
     catch (e: Exception){
         e.printStackTrace()
-        Toast.makeText(context,e.toString(),Toast.LENGTH_SHORT).show()
+        //Toast.makeText(context,e.toString(),Toast.LENGTH_SHORT).show()
         bitmapCorrupted.value = true
     }
 

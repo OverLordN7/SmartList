@@ -50,6 +50,7 @@ import com.example.smartlist.R
 import com.example.smartlist.extend_functions.capitalizeFirstChar
 import com.example.smartlist.model.ListOfMenuItem
 import com.example.smartlist.model.Product
+import com.example.smartlist.ui.common_composables.ErrorScreen
 import com.example.smartlist.ui.common_composables.LoadingScreen
 import com.example.smartlist.ui.menu.DrawerBody
 import com.example.smartlist.ui.menu.DrawerHeader
@@ -133,7 +134,7 @@ fun ProductScreen(
             //Content
 
             when(state){
-                is ProductUIState.Error -> {}
+                is ProductUIState.Error -> ErrorScreen(errorMessage = state.errorMessage)
                 is ProductUIState.Loading -> LoadingScreen()
                 is ProductUIState.Success -> {
                     // List of database

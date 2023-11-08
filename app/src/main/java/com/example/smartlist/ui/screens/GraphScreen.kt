@@ -39,6 +39,7 @@ import com.example.smartlist.model.PurchaseList
 import com.example.smartlist.ui.charts.bar_graph.BarGraph
 import com.example.smartlist.ui.charts.DonutChart
 import com.example.smartlist.ui.charts.bar_graph.BarType
+import com.example.smartlist.ui.common_composables.ErrorScreen
 import com.example.smartlist.ui.common_composables.LoadingScreen
 import com.example.smartlist.ui.menu.DrawerBody
 import com.example.smartlist.ui.menu.DrawerHeader
@@ -120,7 +121,7 @@ fun GraphScreen(
         Surface(modifier = modifier.padding(it)) {
             when(state){
                 is GraphUiState.Loading -> LoadingScreen()
-                is GraphUiState.Error -> {}
+                is GraphUiState.Error -> ErrorScreen(errorMessage = state.errorMessage)
                 is GraphUiState.Success ->{
                     Column {
                         if (state.purchaseMap.isEmpty() || state.monthDataList.isEmpty()){

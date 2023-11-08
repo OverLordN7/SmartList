@@ -98,6 +98,7 @@ import com.example.smartlist.extend_functions.saveImageToInternalStorage
 import com.example.smartlist.model.DishComponent
 import com.example.smartlist.model.ListOfMenuItem
 import com.example.smartlist.model.Recipe
+import com.example.smartlist.ui.common_composables.ErrorScreen
 import com.example.smartlist.ui.common_composables.LoadingScreen
 import com.example.smartlist.ui.menu.DrawerBody
 import com.example.smartlist.ui.menu.DrawerHeader
@@ -247,7 +248,7 @@ fun DetailedDishesScreen(
             
             when(state){
                 is RecipeUiState.Loading -> LoadingScreen()
-                is RecipeUiState.Error ->{}
+                is RecipeUiState.Error -> ErrorScreen(errorMessage = state.errorMessage)
                 is RecipeUiState.Success ->{
                     //Main content
                     ResultScreen(

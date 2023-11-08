@@ -21,9 +21,10 @@ import java.io.InputStream
 import java.io.InputStreamReader
 import java.nio.ByteBuffer
 
-val MIGRATION_9_10 = object : Migration(9,10){
+val MIGRATION_11_12 = object : Migration(11,12){
     override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("ALTER TABLE item_table ADD COLUMN drawableId INTEGER")
+        database.execSQL("ALTER TABLE dish_component_table ADD COLUMN drawableId INTEGER")
+        database.execSQL("ALTER TABLE dish_component_table ADD COLUMN photoPath TEXT")
     }
 }
 
@@ -36,7 +37,7 @@ val MIGRATION_9_10 = object : Migration(9,10){
         Recipe::class,
         Product::class
     ],
-    version = 11,
+    version = 12,
     exportSchema = false
 )
 abstract class MyDatabase: RoomDatabase() {
@@ -99,7 +100,7 @@ abstract class MyDatabase: RoomDatabase() {
                     MyDatabase::class.java,
                     DB_NAME
                 )
-                    //.addMigrations(MIGRATION_9_10)
+                    .addMigrations(MIGRATION_11_12)
                     .addCallback(object : RoomDatabase.Callback(){
                     override fun onCreate(db: SupportSQLiteDatabase) {
                         super.onCreate(db)

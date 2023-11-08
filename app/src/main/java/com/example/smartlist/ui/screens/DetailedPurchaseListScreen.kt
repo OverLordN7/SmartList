@@ -102,6 +102,7 @@ import com.example.smartlist.extend_functions.capitalizeFirstChar
 import com.example.smartlist.extend_functions.saveImageToInternalStorage
 import com.example.smartlist.model.Item
 import com.example.smartlist.model.ListOfMenuItem
+import com.example.smartlist.ui.common_composables.ErrorScreen
 import com.example.smartlist.ui.common_composables.LoadingScreen
 import com.example.smartlist.ui.menu.DrawerBody
 import com.example.smartlist.ui.menu.DrawerHeader
@@ -258,7 +259,7 @@ fun DetailedPurchaseListScreen(
 
             when(state){
                 is PurchaseItemUiState.Loading -> LoadingScreen()
-                is PurchaseItemUiState.Error ->{}
+                is PurchaseItemUiState.Error -> ErrorScreen(errorMessage = state.errorMessage)
                 is PurchaseItemUiState.Success ->{
                     if ( state.items.isEmpty()){
                         EmptyCard(
@@ -327,13 +328,6 @@ fun EmptyCard(
             }
 
         }
-    }
-}
-
-@Composable
-fun ErrorCard(errorMessage: Exception, modifier: Modifier = Modifier){
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(text = errorMessage.message.toString())
     }
 }
 

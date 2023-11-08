@@ -53,6 +53,7 @@ import com.example.smartlist.extend_functions.capitalizeFirstChar
 import com.example.smartlist.model.DishList
 import com.example.smartlist.model.ListOfMenuItem
 import com.example.smartlist.navigation.Screen
+import com.example.smartlist.ui.common_composables.ErrorScreen
 import com.example.smartlist.ui.common_composables.LoadingScreen
 import com.example.smartlist.ui.menu.DrawerBody
 import com.example.smartlist.ui.menu.DrawerHeader
@@ -176,7 +177,7 @@ fun DishesScreen(
 
             when(state){
                 is DishUiState.Loading -> LoadingScreen()
-                is DishUiState.Error ->{}
+                is DishUiState.Error -> ErrorScreen(errorMessage = state.errorMessage)
                 is DishUiState.Success ->{
                     ResultScreen(
                         lists = state.dishList,

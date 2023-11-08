@@ -3,7 +3,6 @@ package com.example.smartlist.ui.screens
 
 import android.content.Context
 import android.content.Intent
-import android.graphics.drawable.Drawable
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -15,7 +14,6 @@ import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.AP
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import com.example.smartlist.R
 import com.example.smartlist.SmartListApplication
 import com.example.smartlist.data.PurchaseRepository
 import com.example.smartlist.model.Item
@@ -24,8 +22,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.*
-import kotlin.collections.ArrayList
+import java.util.UUID
 
 private const val TAG = "PurchaseViewModel"
 sealed interface PurchaseUiState{
@@ -38,7 +35,8 @@ sealed interface PurchaseUiState{
 sealed interface PurchaseItemUiState{
     data class Success(var items: List<Item>): PurchaseItemUiState
 
-    object Error: PurchaseItemUiState
+    data class Error(var errorMessage: Exception): PurchaseItemUiState
+    //object Error: PurchaseItemUiState
 
     object Loading: PurchaseItemUiState
 }
@@ -54,7 +52,7 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
 
     var currentName: String by mutableStateOf("List unknown")
 
-    var sharedMessage: String by mutableStateOf("none")
+    private var sharedMessage: String by mutableStateOf("none")
 
     init {
         getPurchaseLists()
@@ -93,7 +91,7 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
             purchaseItemUiState = try{
                 PurchaseItemUiState.Success(getItemsForPurchaseList())
             }catch (e: Exception){
-                PurchaseItemUiState.Error
+                PurchaseItemUiState.Error(e)
             }
 
         }

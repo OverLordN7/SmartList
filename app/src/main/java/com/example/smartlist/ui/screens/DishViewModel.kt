@@ -35,13 +35,17 @@ import java.util.UUID
 private const val TAG = "DishViewModel"
 sealed interface DishUiState{
     data class Success(var dishList: List<DishList>): DishUiState
-    object Error: DishUiState
+    //object Error: DishUiState
+
+    data class Error(var errorMessage: Exception): DishUiState
     object Loading: DishUiState
 }
 
 sealed interface RecipeUiState{
     data class Success(var recipeList: List<Recipe>): RecipeUiState
-    object Error: RecipeUiState
+    //object Error: RecipeUiState
+
+    data class Error(var errorMessage: Exception): RecipeUiState
     object Loading: RecipeUiState
 }
 
@@ -88,7 +92,7 @@ class DishViewModel (
             dishUiState = try{
                 DishUiState.Success(getAllLists())
             } catch (e: Exception){
-                DishUiState.Error
+                DishUiState.Error(e)
             }
         }
     }
@@ -174,7 +178,9 @@ class DishViewModel (
                                 price = dc.price,
                                 total = dc.total,
                                 isBought = false,
-                                listId = exportPurchaseList.id
+                                listId = exportPurchaseList.id,
+                                drawableId = dc.drawableId,
+                                photoPath = dc.photoPath
                             )
                         )
                         listSize++ // increment listSize of new Purchase list
@@ -287,7 +293,7 @@ class DishViewModel (
             recipeUiState = try {
                 RecipeUiState.Success(getRecipeListFromDb())
             } catch (e: Exception){
-                RecipeUiState.Error
+                RecipeUiState.Error(e)
             }
         }
     }
@@ -320,8 +326,6 @@ class DishViewModel (
                 }
 
                 for (product in tempProductList){
-                    Log.d(TAG, "*${component.name.trimEnd()}* and *${product.name.trimEnd()}* are equal:${component.name.equals(product.name)}")
-
                     if (component.name.trimEnd() == product.name.trimEnd()){
                         component.carbs = product.carb * mulFactor
                         component.fat = product.fat * mulFactor

@@ -770,8 +770,6 @@ fun DishComponentCard(
 
     val bitmapCorrupted = remember { mutableStateOf(false) }
 
-    val showImageDialog = remember { mutableStateOf(false) }
-
     val drawablesList = listOf(
         R.drawable.veg,
         R.drawable.veg2,

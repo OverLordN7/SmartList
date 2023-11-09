@@ -43,6 +43,9 @@ interface DishComponentDao{
     @Query("SELECT * FROM dish_component_table WHERE recipeId=:recipeId")
     fun getDishComponents(recipeId:UUID): List<DishComponent>
 
+    @Query("SELECT * FROM dish_component_table WHERE id = CAST(:id AS BLOB)")
+    fun getDishComponentById(id: UUID): DishComponent
+
     @Insert
     fun insertDishComponent(component: DishComponent)
 

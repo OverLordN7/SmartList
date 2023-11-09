@@ -928,6 +928,9 @@ fun NewPurchaseListItemDialog(
             result->
         if (result.resultCode == Activity.RESULT_OK){
             imageUri = result.data?.data
+
+            Log.d(TAG,"the uri in launcher: $imageUri")
+
             if (imageUri != null){
                 imageUri = saveImageToInternalStorage(context, imageUri!!)
             }
@@ -935,8 +938,6 @@ fun NewPurchaseListItemDialog(
     }
 
     //Adding camera support
-
-
     val cameraPermissionState = rememberPermissionState(permission = Manifest.permission.CAMERA)
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -1183,6 +1184,9 @@ fun NewPurchaseListItemDialog(
                                 }
                                 else{
                                     //Check is OK, continue..
+
+                                    Log.d(TAG,"the uri before creating new purchase: $imageUri")
+
                                     totalPrice = weight.text.toFloat() * price.text.toFloat()
                                     val tempItem = Item(
                                         name = fieldValue.text.capitalizeFirstChar(),

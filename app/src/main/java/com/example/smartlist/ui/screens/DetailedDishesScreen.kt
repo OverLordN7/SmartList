@@ -1,5 +1,6 @@
 package com.example.smartlist.ui.screens
 
+import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -50,6 +51,7 @@ import androidx.compose.material.Switch
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
@@ -57,6 +59,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
@@ -77,6 +80,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -89,8 +93,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.core.net.toUri
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
 import com.example.smartlist.R
+import com.example.smartlist.extend_functions.bitmapToUri
 import com.example.smartlist.extend_functions.capitalizeFirstChar
 import com.example.smartlist.extend_functions.convertStringToNumber
 import com.example.smartlist.extend_functions.generateUniqueFileName
@@ -98,6 +105,7 @@ import com.example.smartlist.extend_functions.saveImageToInternalStorage
 import com.example.smartlist.model.DishComponent
 import com.example.smartlist.model.ListOfMenuItem
 import com.example.smartlist.model.Recipe
+import com.example.smartlist.ui.common_composables.ErrorScreen
 import com.example.smartlist.ui.common_composables.LoadingScreen
 import com.example.smartlist.ui.menu.DrawerBody
 import com.example.smartlist.ui.menu.DrawerHeader
@@ -107,6 +115,8 @@ import com.example.smartlist.ui.theme.Carb200
 import com.example.smartlist.ui.theme.Fat200
 import com.example.smartlist.ui.theme.LightBlue200
 import com.example.smartlist.ui.theme.Protein200
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
@@ -247,7 +257,7 @@ fun DetailedDishesScreen(
             
             when(state){
                 is RecipeUiState.Loading -> LoadingScreen()
-                is RecipeUiState.Error ->{}
+                is RecipeUiState.Error -> ErrorScreen(errorMessage = state.errorMessage)
                 is RecipeUiState.Success ->{
                     //Main content
                     ResultScreen(
@@ -755,6 +765,17 @@ fun DishComponentCard(
     val context = LocalContext.current
     val isExpanded = remember { mutableStateOf(false) }
 
+    //Attributes for photo
+    val bitmap = remember{ mutableStateOf<Bitmap?>(null)}
+
+    val bitmapCorrupted = remember { mutableStateOf(false) }
+
+    val drawablesList = listOf(
+        R.drawable.veg,
+        R.drawable.veg2,
+        R.drawable.veg3,
+    )
+
     Card(elevation = 4.dp, modifier = modifier
         .padding(8.dp)
         .fillMaxWidth()) {
@@ -766,26 +787,59 @@ fun DishComponentCard(
                 modifier = Modifier.padding(4.dp)
             ) {
 
-                Image(
-                    painter = painterResource(id = R.drawable.circle),
-                    contentDescription = stringResource(id = R.string.ingredient_image),
-                    modifier = Modifier
-                        .weight(2f)
-                        .padding(start = 4.dp, end = 4.dp)
-                )
+                if (!component.photoPath.isNullOrEmpty()){
+                    try {
+                        val source = ImageDecoder.createSource(context.contentResolver,
+                            component.photoPath!!.toUri())
+                        bitmap.value = ImageDecoder.decodeBitmap(source)
+                        bitmapCorrupted.value = false
+
+                    }
+                    catch (e: Exception){
+                        e.printStackTrace()
+                        //Toast.makeText(context,e.toString(),Toast.LENGTH_SHORT).show()
+                        bitmapCorrupted.value = true
+                    }
+
+                    Image(
+                        bitmap = if(bitmapCorrupted.value) getBitmapFromImage(context,R.drawable.circle) else bitmap.value!!.asImageBitmap(),
+                        contentDescription = stringResource(id = R.string.purchase_image),
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            //.weight(2f)
+                            .size(48.dp)
+                            //.padding(start = 4.dp, end = 4.dp)
+                            .border(2.dp, Color.Gray, CircleShape)
+                            .clip(CircleShape)
+                    )
+
+                } else {
+                    Image(
+                        painter = painterResource(id = drawablesList[component.drawableId]),
+                        contentDescription = stringResource(id = R.string.purchase_image),
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            //.weight(2f)
+                            .size(48.dp)
+                            //.padding(start = 4.dp, end = 4.dp)
+                            .border(2.dp, Color.Gray, CircleShape)
+                            .clip(CircleShape)
+                    )
+                }
 
                 Column(
                     horizontalAlignment = Alignment.Start,
                     verticalArrangement = Arrangement.Center,
                     modifier = Modifier
                         .weight(8f)
-                        .padding(top = 4.dp)
+                        .padding(top = 4.dp,start = 4.dp)
                 ) {
 
                     Text(
                         text = component.name,
                         fontSize = 20.sp,
-                        color = Color.Black
+                        color = Color.Black,
+                        modifier = Modifier.padding(start = 4.dp)
                     )
 
                     Row(horizontalArrangement = Arrangement.SpaceAround){
@@ -795,7 +849,7 @@ fun DishComponentCard(
                             color = Color.Gray,
                             modifier = modifier
                                 .weight(3f)
-                                .padding(4.dp)
+                                .padding(start = 4.dp)
                         )
 
                         Text(
@@ -804,7 +858,7 @@ fun DishComponentCard(
                             color = Color.Gray,
                             modifier = modifier
                                 .weight(4f)
-                                .padding(4.dp)
+                                .padding(start = 4.dp)
                         )
                     }
                 }
@@ -1221,7 +1275,7 @@ fun NewRecipeDialog(
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterialApi::class, ExperimentalPermissionsApi::class)
 @Composable
 fun NewDishComponentDialog(
     recipeId: UUID,
@@ -1250,6 +1304,51 @@ fun NewDishComponentDialog(
     var fats by remember { mutableStateOf(TextFieldValue("")) }
     var protein by remember { mutableStateOf(TextFieldValue("")) }
     var cal by remember { mutableStateOf(TextFieldValue("")) }
+
+    //Attributes for photo capture
+    var imageUri by remember { mutableStateOf<Uri?>(null)}
+
+    Log.d(TAG,"the uri initial: $imageUri")
+    val context = LocalContext.current
+    val launcher = rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()){
+            result->
+        if (result.resultCode == Activity.RESULT_OK){
+            imageUri = result.data?.data
+
+            Log.d(TAG,"the uri in launcher: $imageUri")
+
+            if (imageUri != null){
+                imageUri = saveImageToInternalStorage(context, imageUri!!)
+            }
+        }
+    }
+
+    //Adding camera support
+    val cameraPermissionState = rememberPermissionState(permission = Manifest.permission.CAMERA)
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    DisposableEffect(
+        key1 = lifecycleOwner,
+        effect = {
+            val observer  = LifecycleEventObserver { _, event ->
+                if(event == Lifecycle.Event.ON_RESUME){
+                    cameraPermissionState.launchPermissionRequest()
+                }
+            }
+
+            lifecycleOwner.lifecycle.addObserver(observer)
+
+            onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+        }
+    )
+
+    val cameraLauncher = rememberLauncherForActivityResult(contract = ActivityResultContracts.TakePicturePreview()){
+            bitmap ->
+        if (bitmap != null){
+            imageUri = bitmapToUri(context, bitmap)
+        }
+
+    }
 
     Dialog(onDismissRequest = {setShowDialog(false)}) {
 
@@ -1385,6 +1484,44 @@ fun NewDishComponentDialog(
                             ),
                             modifier = Modifier.weight(2f),
                         )
+                    }
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Start,
+                        modifier = Modifier.padding(end = 4.dp),
+                    ){
+
+                        Text(
+                            text = stringResource(id = R.string.photo_button),
+                            fontSize = 16.sp,
+                            color = Color.Black,
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        Row(modifier = Modifier.weight(2f)){
+                            IconButton(
+                                onClick = {
+                                    val galleryIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+                                    launcher.launch(galleryIntent)
+                                    Log.d(TAG,"the uri in after intent: $imageUri")
+                                },
+                                modifier = Modifier
+                                    .size(60.dp)
+                                    .weight(1f)
+                            ) {
+                                Icon(imageVector = Icons.Default.Photo, contentDescription = null)
+                            }
+
+                            IconButton(
+                                onClick = { cameraLauncher.launch(null) },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .size(60.dp)
+                            ) {
+                                Icon(imageVector = Icons.Default.CameraAlt, contentDescription = null)
+                            }
+                        }
                     }
                 }
 
@@ -1567,6 +1704,8 @@ fun NewDishComponentDialog(
                                             error = true
                                         } else{
                                             //is OK, can continue
+
+                                            Log.d(TAG,"the uri before creating new dishcomponent: $imageUri")
                                             val newDishComponent = DishComponent(
                                                 id = UUID.randomUUID(),
                                                 recipeId = recipeId,
@@ -1578,7 +1717,8 @@ fun NewDishComponentDialog(
                                                 carbs = carbs.text.toFloat(),
                                                 fat = fats.text.toFloat(),
                                                 protein = protein.text.toFloat(),
-                                                cal = cal.text.toFloat()
+                                                cal = cal.text.toFloat(),
+                                                photoPath = if(imageUri.toString() == "null") null else imageUri.toString()
                                             )
 
 
@@ -1596,6 +1736,7 @@ fun NewDishComponentDialog(
                                             weightType = selectedOptionText,
                                             price = price.text.toFloat(),
                                             total = weight.text.toFloat() * price.text.toFloat(),
+                                            photoPath = if(imageUri.toString() == "null") null else imageUri.toString()
                                         )
 
                                         //Submit new DishComponent and close dialog

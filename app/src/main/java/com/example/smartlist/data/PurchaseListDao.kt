@@ -53,5 +53,8 @@ interface ItemDao{
     @Query("UPDATE item_table SET isBought=:isBought WHERE id=CAST(:id AS BLOB)")
     fun updateItemBoughtAttribute(id: UUID,isBought: Boolean)
 
+    @Query("SELECT * FROM item_table WHERE id = CAST(:id AS BLOB)")
+    fun getItemById(id: UUID): Item
+
     //add other CRUD functions
 }

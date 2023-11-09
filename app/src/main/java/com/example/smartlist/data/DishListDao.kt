@@ -43,6 +43,9 @@ interface DishComponentDao{
     @Query("SELECT * FROM dish_component_table WHERE recipeId=:recipeId")
     fun getDishComponents(recipeId:UUID): List<DishComponent>
 
+    @Query("SELECT * FROM dish_component_table WHERE id = CAST(:id AS BLOB)")
+    fun getDishComponentById(id: UUID): DishComponent
+
     @Insert
     fun insertDishComponent(component: DishComponent)
 
@@ -52,8 +55,8 @@ interface DishComponentDao{
     @Query("DELETE FROM dish_component_table WHERE id = CAST(:recipeId AS BLOB)")
     fun deleteDishComponentsAssociatedWithDishList(recipeId: UUID)
 
-    @Query("UPDATE dish_component_table SET name =:name,weight=:weight, weightType=:weightType, price=:price, total=:total, carbs=:carbs, fat=:fat, protein=:protein, cal=:cal, recipeId = CAST(:recipeId AS BLOB) WHERE id = CAST(:id AS BLOB)")
-    fun updateDishComponent(id: UUID,name: String, weight: Float, weightType: String, price:Float, total:Float, carbs: Float, fat:Float, protein:Float, cal:Float, recipeId: UUID)
+    @Query("UPDATE dish_component_table SET name =:name,weight=:weight, weightType=:weightType, price=:price, total=:total, carbs=:carbs, fat=:fat, protein=:protein, cal=:cal, drawableId =:drawableId, photoPath=:photoPath, recipeId = CAST(:recipeId AS BLOB) WHERE id = CAST(:id AS BLOB)")
+    fun updateDishComponent(id: UUID,name: String, weight: Float, weightType: String, price:Float, total:Float, carbs: Float, fat:Float, protein:Float, cal:Float, recipeId: UUID, drawableId: Int, photoPath: String?)
 }
 
 @Dao

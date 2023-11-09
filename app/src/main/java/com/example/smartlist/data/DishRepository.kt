@@ -41,6 +41,8 @@ interface DishRepository {
 
     fun getDishComponents(recipeId:UUID): List<DishComponent>
 
+    suspend fun getDishComponentById(id: UUID): DishComponent
+
 }
 
 class DefaultDishRepository(
@@ -103,7 +105,9 @@ class DefaultDishRepository(
             carbs = component.carbs,
             fat = component.fat,
             protein = component.protein,
-            cal = component.cal
+            cal = component.cal,
+            drawableId = component.drawableId,
+            photoPath = component.photoPath,
         )
     }
 
@@ -134,5 +138,9 @@ class DefaultDishRepository(
 
     override fun getDishComponents(recipeId: UUID): List<DishComponent> {
         return dishComponentDao.getDishComponents(recipeId)
+    }
+
+    override suspend fun getDishComponentById(id: UUID): DishComponent {
+        return dishComponentDao.getDishComponentById(id)
     }
 }

@@ -3,19 +3,19 @@ package com.example.smartlist.ui.screens
 
 import android.content.Context
 import android.content.Intent
-import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import com.example.smartlist.R
 import com.example.smartlist.SmartListApplication
 import com.example.smartlist.data.PurchaseRepository
 import com.example.smartlist.model.Item
@@ -24,22 +24,19 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.*
-import kotlin.collections.ArrayList
+import java.io.File
+import java.util.UUID
 
 private const val TAG = "PurchaseViewModel"
 sealed interface PurchaseUiState{
     data class Success(var purchaseLists: List<PurchaseList>): PurchaseUiState
-    //object Error: PurchaseUiState
     data class Error(var errorMessage: Exception): PurchaseUiState
     object Loading: PurchaseUiState
 }
 
 sealed interface PurchaseItemUiState{
     data class Success(var items: List<Item>): PurchaseItemUiState
-
-    object Error: PurchaseItemUiState
-
+    data class Error(var errorMessage: Exception): PurchaseItemUiState
     object Loading: PurchaseItemUiState
 }
 class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): ViewModel() {
@@ -54,7 +51,7 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
 
     var currentName: String by mutableStateOf("List unknown")
 
-    var sharedMessage: String by mutableStateOf("none")
+    private var sharedMessage: String by mutableStateOf("none")
 
     init {
         getPurchaseLists()
@@ -93,7 +90,7 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
             purchaseItemUiState = try{
                 PurchaseItemUiState.Success(getItemsForPurchaseList())
             }catch (e: Exception){
-                PurchaseItemUiState.Error
+                PurchaseItemUiState.Error(e)
             }
 
         }
@@ -193,7 +190,27 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
 
             //Delete an Item from DB
             withContext(Dispatchers.IO){
+
+                //get a copy of Item before deleting
+                val item = purchaseRepository.getItemById(itemId)
+
+                var imageUri: Uri? = null
+
+                //convert photoPath of Item into Uri
+                if (item.photoPath != null){
+                    imageUri = item.photoPath!!.toUri()
+                }
+
+
                 purchaseRepository.deleteItem(itemId)
+
+                //delete image from device
+                if (imageUri != null) {
+                    val file = File(imageUri.path!!)
+                    if (file.exists()){
+                        file.delete()
+                    }
+                }
             }
 
             //Refresh Item List
@@ -239,7 +256,6 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
 
             //Refresh Item List
             getItemsOfPurchaseList()
-            //delay(1500)
         }
     }
 

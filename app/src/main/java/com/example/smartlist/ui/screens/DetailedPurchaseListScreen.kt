@@ -102,6 +102,7 @@ import com.example.smartlist.extend_functions.capitalizeFirstChar
 import com.example.smartlist.extend_functions.saveImageToInternalStorage
 import com.example.smartlist.model.Item
 import com.example.smartlist.model.ListOfMenuItem
+import com.example.smartlist.ui.common_composables.ErrorScreen
 import com.example.smartlist.ui.common_composables.LoadingScreen
 import com.example.smartlist.ui.menu.DrawerBody
 import com.example.smartlist.ui.menu.DrawerHeader
@@ -258,7 +259,7 @@ fun DetailedPurchaseListScreen(
 
             when(state){
                 is PurchaseItemUiState.Loading -> LoadingScreen()
-                is PurchaseItemUiState.Error ->{}
+                is PurchaseItemUiState.Error -> ErrorScreen(errorMessage = state.errorMessage)
                 is PurchaseItemUiState.Success ->{
                     if ( state.items.isEmpty()){
                         EmptyCard(
@@ -327,13 +328,6 @@ fun EmptyCard(
             }
 
         }
-    }
-}
-
-@Composable
-fun ErrorCard(errorMessage: Exception, modifier: Modifier = Modifier){
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(text = errorMessage.message.toString())
     }
 }
 
@@ -934,6 +928,9 @@ fun NewPurchaseListItemDialog(
             result->
         if (result.resultCode == Activity.RESULT_OK){
             imageUri = result.data?.data
+
+            Log.d(TAG,"the uri in launcher: $imageUri")
+
             if (imageUri != null){
                 imageUri = saveImageToInternalStorage(context, imageUri!!)
             }
@@ -941,8 +938,6 @@ fun NewPurchaseListItemDialog(
     }
 
     //Adding camera support
-
-
     val cameraPermissionState = rememberPermissionState(permission = Manifest.permission.CAMERA)
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -1189,6 +1184,9 @@ fun NewPurchaseListItemDialog(
                                 }
                                 else{
                                     //Check is OK, continue..
+
+                                    Log.d(TAG,"the uri before creating new purchase: $imageUri")
+
                                     totalPrice = weight.text.toFloat() * price.text.toFloat()
                                     val tempItem = Item(
                                         name = fieldValue.text.capitalizeFirstChar(),

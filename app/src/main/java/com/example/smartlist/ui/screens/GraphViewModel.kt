@@ -24,7 +24,8 @@ sealed interface GraphUiState{
         var monthDataList: List<MonthData>,
     ): GraphUiState
 
-    object Error: GraphUiState
+    data class Error(var errorMessage: Exception):GraphUiState
+    //object Error: GraphUiState
 
     object Loading: GraphUiState
 }
@@ -132,7 +133,7 @@ class GraphViewModel(
                     monthDataList = getPurchaseLists(),
                     )
             } catch (e: Exception){
-                GraphUiState.Error
+                GraphUiState.Error(e)
             }
         }
     }

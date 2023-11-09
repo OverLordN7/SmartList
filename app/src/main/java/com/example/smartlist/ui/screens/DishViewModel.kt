@@ -1,10 +1,11 @@
 package com.example.smartlist.ui.screens
 
-import android.util.Log
+import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -27,6 +28,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -35,13 +37,13 @@ import java.util.UUID
 private const val TAG = "DishViewModel"
 sealed interface DishUiState{
     data class Success(var dishList: List<DishList>): DishUiState
-    object Error: DishUiState
+    data class Error(var errorMessage: Exception): DishUiState
     object Loading: DishUiState
 }
 
 sealed interface RecipeUiState{
     data class Success(var recipeList: List<Recipe>): RecipeUiState
-    object Error: RecipeUiState
+    data class Error(var errorMessage: Exception): RecipeUiState
     object Loading: RecipeUiState
 }
 
@@ -88,7 +90,7 @@ class DishViewModel (
             dishUiState = try{
                 DishUiState.Success(getAllLists())
             } catch (e: Exception){
-                DishUiState.Error
+                DishUiState.Error(e)
             }
         }
     }
@@ -174,7 +176,9 @@ class DishViewModel (
                                 price = dc.price,
                                 total = dc.total,
                                 isBought = false,
-                                listId = exportPurchaseList.id
+                                listId = exportPurchaseList.id,
+                                drawableId = dc.drawableId,
+                                photoPath = dc.photoPath
                             )
                         )
                         listSize++ // increment listSize of new Purchase list
@@ -287,7 +291,7 @@ class DishViewModel (
             recipeUiState = try {
                 RecipeUiState.Success(getRecipeListFromDb())
             } catch (e: Exception){
-                RecipeUiState.Error
+                RecipeUiState.Error(e)
             }
         }
     }
@@ -320,8 +324,6 @@ class DishViewModel (
                 }
 
                 for (product in tempProductList){
-                    Log.d(TAG, "*${component.name.trimEnd()}* and *${product.name.trimEnd()}* are equal:${component.name.equals(product.name)}")
-
                     if (component.name.trimEnd() == product.name.trimEnd()){
                         component.carbs = product.carb * mulFactor
                         component.fat = product.fat * mulFactor
@@ -353,7 +355,24 @@ class DishViewModel (
     fun deleteDishComponent(id: UUID){
         viewModelScope.launch {
             withContext(Dispatchers.IO){
+                //parse a uri of image of dishComponent if exists
+                val dishComponent = dishRepository.getDishComponentById(id)
+                var imageUri: Uri? = null
+
+                if (dishComponent.photoPath != null){
+                    imageUri = dishComponent.photoPath!!.toUri()
+                }
+
+                //delete component from database
                 dishRepository.deleteDishComponent(id)
+
+                //delete image from device
+                if (imageUri != null) {
+                    val file = File(imageUri.path!!)
+                    if (file.exists()){
+                        file.delete()
+                    }
+                }
             }
         }
     }

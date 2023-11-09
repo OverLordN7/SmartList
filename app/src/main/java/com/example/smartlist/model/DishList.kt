@@ -51,6 +51,8 @@ data class DishComponent(
     var carbs: Float = 0.0f,
     var fat: Float = 0.0f,
     var protein: Float = 0.0f,
-    var cal: Float = 0.0f
+    var cal: Float = 0.0f,
+    var drawableId: Int = (0..2).random(),
+    var photoPath: String? = null,
 )
 

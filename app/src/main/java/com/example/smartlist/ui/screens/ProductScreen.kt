@@ -1,5 +1,6 @@
 package com.example.smartlist.ui.screens
 
+import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -170,10 +171,12 @@ fun TableOfProducts(
     }
 
     Card(
-        elevation = 4.dp,
+        //elevation = 4.dp,
         modifier = modifier
-            .padding(8.dp)
-            .fillMaxWidth()
+            //.padding(8.dp)
+            .fillMaxWidth(),
+        shape = RoundedCornerShape(0.dp)
+
     ) {
         LazyColumn{
             //Header of table
@@ -182,49 +185,49 @@ fun TableOfProducts(
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
-                        .padding(4.dp)
+                        //.padding(4.dp)
                         .background(MaterialTheme.colors.primary),
                 ) {
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier.weight(0.5f)
                     ) {
-                        Text(text = "id", color = Color.White)
+                        Text(text = "id", color = Color.White, fontSize = 18.sp)
                     }
 
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier.weight(1.5f)
                     ) {
-                        Text(text = "name", color = Color.White)
+                        Text(text = "name", color = Color.White, fontSize = 18.sp)
                     }
 
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text(text = "carbs", color = Color.White)
+                        Text(text = "carbs", color = Color.White, fontSize = 18.sp)
                     }
 
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text(text = "fats", color = Color.White)
+                        Text(text = "fats", color = Color.White, fontSize = 18.sp)
                     }
 
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text(text = "protein", color = Color.White)
+                        Text(text = "protein", color = Color.White, fontSize = 18.sp)
                     }
 
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text(text = "cals", color = Color.White)
+                        Text(text = "cals", color = Color.White, fontSize = 18.sp)
                     }
                 }
             }
@@ -287,7 +290,7 @@ fun TableItem(
                     modifier = Modifier.weight(0.5f)
                 ) {
                     // increase id by 1 for user convenience
-                    Text(text = (id + 1).toString())
+                    Text(text = (id + 1).toString(), fontSize = 18.sp)
                 }
 
                 Box(
@@ -299,6 +302,7 @@ fun TableItem(
                         overflow = TextOverflow.Ellipsis,
                         textAlign = TextAlign.Center,
                         maxLines = 1,
+                        fontSize = 18.sp
                     )
                 }
 
@@ -306,28 +310,28 @@ fun TableItem(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text(text = product.carb.toString())
+                    Text(text = product.carb.toString(), fontSize = 18.sp)
                 }
 
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text(text = product.fat.toString())
+                    Text(text = product.fat.toString(), fontSize = 18.sp)
                 }
 
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text(text = product.protein.toString())
+                    Text(text = product.protein.toString(), fontSize = 18.sp)
                 }
 
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text(text = product.cal.toString())
+                    Text(text = product.cal.toString(), fontSize = 18.sp)
                 }
             }
 

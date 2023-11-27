@@ -1,5 +1,6 @@
 package com.example.smartlist.model
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
@@ -29,6 +30,8 @@ data class Recipe(
     val name: String,
     val portions: Int,
     val photoPath: String? = null,
+    @ColumnInfo(name = "description", defaultValue = "null")
+    var description: String? = null,
 )
 
 @Entity(
@@ -53,6 +56,7 @@ data class DishComponent(
     var protein: Float = 0.0f,
     var cal: Float = 0.0f,
     var drawableId: Int = (0..2).random(),
+    @ColumnInfo(name = "photoPath", defaultValue = "null")
     var photoPath: String? = null,
 )
 

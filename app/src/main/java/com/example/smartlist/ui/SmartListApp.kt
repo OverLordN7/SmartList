@@ -177,7 +177,5 @@ fun SmartListApp(
                 onRefresh = productViewModel::getProducts,
             )
         }
-
-
     }
 }

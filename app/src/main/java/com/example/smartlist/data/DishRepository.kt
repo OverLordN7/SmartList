@@ -133,6 +133,7 @@ class DefaultDishRepository(
             name = recipe.name,
             portions = recipe.portions,
             photoPath = recipe.photoPath,
+            description = null,
         )
     }
 

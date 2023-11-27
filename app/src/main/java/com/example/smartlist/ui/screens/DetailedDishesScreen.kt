@@ -19,6 +19,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,6 +30,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -55,6 +57,7 @@ import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.DragHandle
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material.rememberScaffoldState
@@ -78,6 +81,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -100,7 +104,6 @@ import com.example.smartlist.R
 import com.example.smartlist.extend_functions.bitmapToUri
 import com.example.smartlist.extend_functions.capitalizeFirstChar
 import com.example.smartlist.extend_functions.convertStringToNumber
-import com.example.smartlist.extend_functions.generateUniqueFileName
 import com.example.smartlist.extend_functions.saveImageToInternalStorage
 import com.example.smartlist.model.DishComponent
 import com.example.smartlist.model.ListOfMenuItem
@@ -113,15 +116,10 @@ import com.example.smartlist.ui.menu.MainAppBar
 import com.example.smartlist.ui.theme.Cal200
 import com.example.smartlist.ui.theme.Carb200
 import com.example.smartlist.ui.theme.Fat200
-import com.example.smartlist.ui.theme.LightBlue200
 import com.example.smartlist.ui.theme.Protein200
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.launch
-import java.io.File
-import java.io.FileOutputStream
-import java.io.OutputStream
-import java.util.Locale
 import java.util.UUID
 
 
@@ -271,6 +269,8 @@ fun DetailedDishesScreen(
                         onEdit = onEdit,
                     )
                 }
+
+                else -> {}
             }
         }
     }
@@ -304,8 +304,7 @@ fun ResultScreen(
                     loadDishComponent = loadDishComponent,
                     deleteDishComponent = deleteDishComponent,
                     onEdit = onEdit,
-
-                    )
+                )
             }
         }
     }
@@ -345,6 +344,8 @@ fun RecipeCard(
     val showCalTable = remember { mutableStateOf(false) }
     val context = LocalContext.current
 
+    val isDescriptionExpanded = remember{ mutableStateOf(false) }
+
     //Attributes for photo
     val bitmap = remember{ mutableStateOf<Bitmap?>(null)}
 
@@ -352,7 +353,7 @@ fun RecipeCard(
 
     Card(
         elevation = 4.dp,
-        backgroundColor = LightBlue200,
+        backgroundColor = Color.White,
         modifier = modifier
             .fillMaxWidth()
             .padding(8.dp)
@@ -368,7 +369,7 @@ fun RecipeCard(
                     dampingRatio = Spring.DampingRatioNoBouncy,
                     stiffness = Spring.StiffnessMedium
                 )
-            ),
+            )
         ) {
 
             Row(
@@ -391,15 +392,20 @@ fun RecipeCard(
                             bitmapCorrupted.value = true
                         }
 
-                        Image(
-                            bitmap = if (bitmapCorrupted.value) getBitmapFromImage(context, R.drawable.pasta1) else bitmap.value!!.asImageBitmap(),
-                            contentDescription = stringResource(id = R.string.recipe_image),
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .size(64.dp)
-                                .border(2.dp, Color.Gray, CircleShape)
-                                .clip(CircleShape)
-                        )
+                        Box (
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.padding(4.dp)
+                        ){
+                            Image(
+                                bitmap = if (bitmapCorrupted.value) getBitmapFromImage(context, R.drawable.pasta1) else bitmap.value!!.asImageBitmap(),
+                                contentDescription = stringResource(id = R.string.recipe_image),
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .border(2.dp, Color.Gray, CircleShape)
+                                    .clip(CircleShape)
+                            )
+                        }
 
                     } else{
                         Box (
@@ -411,7 +417,7 @@ fun RecipeCard(
                                 contentDescription = stringResource(id = R.string.recipe_image),
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
-                                    .size(64.dp)
+                                    .size(48.dp)
                                     .border(2.dp, Color.Gray, CircleShape)
                                     .clip(CircleShape)
                             )
@@ -521,6 +527,42 @@ fun RecipeCard(
                     isProteinGreaterThan1k = isProteinGreaterThan1k,
                     isCalGreaterThan1k = isCalGreaterThan1k,
                 )
+
+                Card(modifier = Modifier
+                    .pointerInput(Unit) {
+                        detectTransformGestures { _, pan, _, _ ->
+                            isDescriptionExpanded.value = pan.y > 0
+                        }
+                    },
+                ) {
+                    Column {
+
+                        //Recipe description is NOT null
+                        if (recipe.description != null){
+                            (if (isDescriptionExpanded.value) recipe.description else recipe.description!!.take(200))?.let {
+                                Text(
+                                    text = it,
+                                    modifier = modifier.padding(start = 8.dp, end = 8.dp)
+                                )
+                            }
+
+                            Icon(
+                                imageVector = Icons.Default.DragHandle,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(8.dp)
+                                    .wrapContentSize()
+                            )
+
+                        } else{
+                            Text(
+                                text = stringResource(id = R.string.recipe_description_empty),
+                                modifier = modifier.padding(start = 4.dp, end = 4.dp)
+                            )
+                        }
+                    }
+                }
             }
 
             if(showDishComponents.value){
@@ -562,27 +604,30 @@ fun RecipeCardList(
     }
 
 
-    Card(backgroundColor = LightBlue200, modifier = modifier
+    Card(backgroundColor = Color.White, modifier = modifier
         .fillMaxWidth()
         .height(height.dp)) {
 
         LazyColumn{
             item {
-                val stroke = Stroke(
-                    width = 2f,
-                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f,10f),0f)
-                )
 
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(60.dp)
-                        .padding(start = 8.dp, end = 8.dp, bottom = 4.dp, top = 16.dp)
-                        .drawBehind { drawRoundRect(color = Color.DarkGray, style = stroke) }
-                        .clickable { showDialog.value = !showDialog.value },
-                ) {
-                    Text(text = stringResource(id = R.string.add_new_ingredient), textAlign = TextAlign.Center)
+                Column {
+                    val stroke = Stroke(
+                        width = 2f,
+                        pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f,10f),0f)
+                    )
+
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(60.dp)
+                            .padding(start = 8.dp, end = 8.dp, bottom = 4.dp, top = 16.dp)
+                            .drawBehind { drawRoundRect(color = Color.DarkGray, style = stroke) }
+                            .clickable { showDialog.value = !showDialog.value },
+                    ) {
+                        Text(text = stringResource(id = R.string.add_new_ingredient), textAlign = TextAlign.Center)
+                    }
                 }
 
             }
@@ -713,10 +758,13 @@ fun RecipeCardCalTable(
 ){
     val context = LocalContext.current
 
-    Card(elevation = 4.dp, modifier = modifier
-        .fillMaxWidth()
-        .height(50.dp)
-        .padding(8.dp)) {
+    Card(
+        //elevation = 4.dp,
+        modifier = modifier
+            .fillMaxWidth()
+            .height(50.dp)
+        //.padding(8.dp)
+    ) {
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -832,7 +880,7 @@ fun DishComponentCard(
                     verticalArrangement = Arrangement.Center,
                     modifier = Modifier
                         .weight(8f)
-                        .padding(top = 4.dp,start = 4.dp)
+                        .padding(top = 4.dp, start = 4.dp)
                 ) {
 
                     Text(
@@ -1086,6 +1134,7 @@ fun DishComponentEditScreen(
 
 }
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun NewRecipeDialog(
     setShowDialog: (Boolean) -> Unit,
@@ -1096,6 +1145,8 @@ fun NewRecipeDialog(
     var nameField by remember{ mutableStateOf(TextFieldValue("")) }
     var portionsField by remember { mutableStateOf(TextFieldValue("1")) }
     var errorFieldStatus by remember { mutableStateOf(false) }
+
+    var descriptionField by remember { mutableStateOf("") }
 
     //Attributes for photo capture
     var imageUri by remember { mutableStateOf<Uri?>(null)}
@@ -1109,6 +1160,33 @@ fun NewRecipeDialog(
             }
         }
     }
+
+    //Adding camera support
+    val cameraPermissionState = rememberPermissionState(permission = Manifest.permission.CAMERA)
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    val cameraLauncher = rememberLauncherForActivityResult(contract = ActivityResultContracts.TakePicturePreview()){
+            bitmap ->
+        if (bitmap != null){
+            imageUri = bitmapToUri(context, bitmap)
+        }
+
+    }
+
+    DisposableEffect(
+        key1 = lifecycleOwner,
+        effect = {
+            val observer  = LifecycleEventObserver { _, event ->
+                if(event == Lifecycle.Event.ON_RESUME){
+                    cameraPermissionState.launchPermissionRequest()
+                }
+            }
+
+            lifecycleOwner.lifecycle.addObserver(observer)
+
+            onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+        }
+    )
 
     Dialog(onDismissRequest = {setShowDialog(false)}) {
 
@@ -1190,6 +1268,36 @@ fun NewRecipeDialog(
                             placeholder = { Text(text = stringResource(id = R.string.portions_hint)) },
                             keyboardOptions = KeyboardOptions(
                                 keyboardType = KeyboardType.Number,
+                                imeAction = ImeAction.Next,
+                            ),
+                            modifier = Modifier.weight(2f)
+                        )
+                    }
+                }
+
+                //Plug for space
+                item { Spacer(modifier = Modifier
+                    .fillMaxWidth()
+                    .height(20.dp)) }
+
+                item{
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ){
+                        Text(
+                            text = stringResource(id = R.string.recipe_description_title),
+                            fontSize = 16.sp,
+                            color = Color.Black,
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        OutlinedTextField(
+                            value = descriptionField,
+                            onValueChange = { descriptionField = it},
+                            placeholder = { Text(text = stringResource(id = R.string.recipe_description_hint)) },
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Text,
                                 imeAction = ImeAction.Done,
                             ),
                             modifier = Modifier.weight(2f)
@@ -1219,6 +1327,15 @@ fun NewRecipeDialog(
                             modifier = Modifier.size(60.dp)
                         ) {
                             Icon(imageVector = Icons.Default.Photo, contentDescription = null)
+                        }
+
+                        IconButton(
+                            onClick = { cameraLauncher.launch(null) },
+                            modifier = Modifier
+                                .weight(1f)
+                                .size(60.dp)
+                        ) {
+                            Icon(imageVector = Icons.Default.CameraAlt, contentDescription = null)
                         }
                     }
                 }
@@ -1258,7 +1375,8 @@ fun NewRecipeDialog(
                                         listId = currentListId,
                                         name = nameField.text.capitalizeFirstChar(),
                                         portions = portionsField.text.toFloat().toInt(),
-                                        photoPath = if(imageUri.toString() == "null") null else imageUri.toString()
+                                        photoPath = if(imageUri.toString() == "null") null else imageUri.toString(),
+                                        description = descriptionField.capitalizeFirstChar(),
                                     )
                                     onConfirm(newRecipe)
                                     setShowDialog(false)
@@ -1307,16 +1425,11 @@ fun NewDishComponentDialog(
 
     //Attributes for photo capture
     var imageUri by remember { mutableStateOf<Uri?>(null)}
-
-    Log.d(TAG,"the uri initial: $imageUri")
     val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()){
             result->
         if (result.resultCode == Activity.RESULT_OK){
             imageUri = result.data?.data
-
-            Log.d(TAG,"the uri in launcher: $imageUri")
-
             if (imageUri != null){
                 imageUri = saveImageToInternalStorage(context, imageUri!!)
             }

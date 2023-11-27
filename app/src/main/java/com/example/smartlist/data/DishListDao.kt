@@ -70,6 +70,6 @@ interface RecipeDao{
      @Query("SELECT * FROM recipe_table WHERE listId=:listId")
     fun getRecipeForDishList(listId: UUID): List<Recipe>
 
-    @Query("UPDATE recipe_table SET name = :name, portions= :portions, photoPath = :photoPath WHERE id = CAST(:id AS BLOB)")
-    fun updateRecipe(id: UUID, name: String, portions: Int, photoPath: String?)
+    @Query("UPDATE recipe_table SET name = :name, portions= :portions, photoPath = :photoPath, description= :description WHERE id = CAST(:id AS BLOB)")
+    fun updateRecipe(id: UUID, name: String, portions: Int, photoPath: String?, description: String?)
 }

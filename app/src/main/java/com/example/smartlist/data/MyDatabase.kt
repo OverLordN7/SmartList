@@ -1,6 +1,7 @@
 package com.example.smartlist.data
 
 import android.content.Context
+import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -37,8 +38,9 @@ val MIGRATION_11_12 = object : Migration(11,12){
         Recipe::class,
         Product::class
     ],
-    version = 12,
-    exportSchema = false
+    version = 14,
+    exportSchema = true,
+    autoMigrations = [AutoMigration(from = 13, to = 14)]
 )
 abstract class MyDatabase: RoomDatabase() {
 

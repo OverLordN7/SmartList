@@ -24,8 +24,6 @@ import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Cancel
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.rememberScaffoldState
@@ -324,35 +322,53 @@ fun EditScreen(
     var name by remember { mutableStateOf(TextFieldValue(list.name)) }
     var errorMessage by remember { mutableStateOf(false) }
 
-    Column {
+    Column(modifier = modifier.padding(4.dp)) {
 
+        //Name field
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(4.dp)
+            horizontalArrangement = Arrangement.Center
         ){
+            Text(
+                text = stringResource(id = R.string.purchaselist_name_title),
+                fontSize = 16.sp,
+                color = Color.Black,
+                modifier = Modifier.weight(1f)
+            )
 
             OutlinedTextField(
                 value = name,
                 onValueChange = {name = it},
                 placeholder = {Text(text = stringResource(id = R.string.new_purchase_list_name_hint))},
-                label = {
-                    Text(
-                        text = stringResource(id = R.string.new_purchase_list_name_title),
-                        color = Color.Black,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                    )
-                },
-                modifier = Modifier
-                    .padding(4.dp)
-                    .weight(5f),
+                modifier = Modifier.weight(2f),
             )
+        }
 
-            Spacer(modifier = Modifier.weight(2f))
+        //Error field
+        Row {
+            if (errorMessage){
+                Text(
+                    text = stringResource(id = R.string.error_message),
+                    color = Color.Red,
+                    modifier = Modifier.padding(start = 12.dp)
+                )
+            } else{
+                Spacer(modifier = Modifier.height(20.dp))
+            }
+        }
 
-            IconButton(
+        //Buttons
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ){
+            Button(onClick = { isExpanded.value = false }, modifier = Modifier.weight(1f)) {
+                Text(text = stringResource(id = R.string.button_cancel))
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Button(
                 onClick = {
                     //Check if all fields are not null
                     if (name.text.isBlank()){
@@ -372,32 +388,9 @@ fun EditScreen(
                         isExpanded.value = false
                     }
                 },
-                modifier = Modifier.weight(1.5f),
+                modifier = Modifier.weight(1f),
             ) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = stringResource(id = R.string.button_confirm)
-                )
-            }
-
-            IconButton(onClick = { isExpanded.value = false }, modifier = Modifier.weight(1.5f)) {
-                Icon(
-                    imageVector = Icons.Default.Cancel,
-                    contentDescription = stringResource(id = R.string.button_cancel)
-                )
-            }
-
-        }
-
-        Row {
-            if (errorMessage){
-                Text(
-                    text = stringResource(id = R.string.error_message),
-                    color = Color.Red,
-                    modifier = Modifier.padding(start = 12.dp)
-                )
-            } else{
-                Spacer(modifier = Modifier.height(20.dp))
+                Text(text = stringResource(id = R.string.button_confirm))
             }
         }
     }

@@ -232,4 +232,6 @@
     <string name="recipe_description_hint">recipe text</string>
     <string name="recipe_description_empty">no info provided</string>
 
+    <string name="dishlist_name_title">Dish list name:</string>
+
 </resources>

@@ -2,7 +2,6 @@ package com.example.smartlist.ui.screens
 
 import android.Manifest
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -87,6 +86,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -194,7 +194,6 @@ fun DetailedDishesScreen(
             } catch (e: Exception){
                 Toast.makeText(context,unknownVoiceCommandMessage, Toast.LENGTH_SHORT).show()
                 Log.d(TAG, "error: $e")
-
             }
         }
 
@@ -269,8 +268,6 @@ fun DetailedDishesScreen(
                         onEdit = onEdit,
                     )
                 }
-
-                else -> {}
             }
         }
     }
@@ -397,7 +394,7 @@ fun RecipeCard(
                             modifier = Modifier.padding(4.dp)
                         ){
                             Image(
-                                bitmap = if (bitmapCorrupted.value) getBitmapFromImage(context, R.drawable.pasta1) else bitmap.value!!.asImageBitmap(),
+                                bitmap = if (bitmapCorrupted.value) getBitmapFromImage(R.drawable.pasta1) else bitmap.value!!.asImageBitmap(),
                                 contentDescription = stringResource(id = R.string.recipe_image),
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
@@ -528,23 +525,34 @@ fun RecipeCard(
                     isCalGreaterThan1k = isCalGreaterThan1k,
                 )
 
-                Card(modifier = Modifier
-                    .pointerInput(Unit) {
-                        detectTransformGestures { _, pan, _, _ ->
-                            isDescriptionExpanded.value = pan.y > 0
-                        }
-                    },
+                Card(
+                    elevation = 0.dp,
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .fillMaxWidth()
+                        .pointerInput(Unit) {
+                            detectTransformGestures { _, pan, _, _ ->
+                                isDescriptionExpanded.value = pan.y > 0
+                            }
+                        },
                 ) {
                     Column {
-
                         //Recipe description is NOT null
                         if (recipe.description != null){
-                            (if (isDescriptionExpanded.value) recipe.description else recipe.description!!.take(200))?.let {
-                                Text(
-                                    text = it,
-                                    modifier = modifier.padding(start = 8.dp, end = 8.dp)
-                                )
+                            val displayText = if(isDescriptionExpanded.value){
+                                recipe.description!!
+                            } else {
+                                if (recipe.description!!.length>100){
+                                    "${recipe.description!!.take(100)}..."
+                                } else{
+                                    recipe.description!!
+                                }
                             }
+
+                            Text(
+                                text = AnnotatedString.Builder().apply { append(displayText) }.toAnnotatedString(),
+                                modifier = modifier.padding(start = 8.dp, end = 8.dp)
+                            )
 
                             Icon(
                                 imageVector = Icons.Default.DragHandle,
@@ -558,7 +566,8 @@ fun RecipeCard(
                         } else{
                             Text(
                                 text = stringResource(id = R.string.recipe_description_empty),
-                                modifier = modifier.padding(start = 4.dp, end = 4.dp)
+                                modifier = modifier.padding(start = 4.dp, end = 4.dp),
+                                color = Color.Gray,
                             )
                         }
                     }
@@ -590,7 +599,6 @@ fun RecipeCardList(
 ){
 
     val height by remember { mutableIntStateOf(300) }
-
     val showDialog = remember { mutableStateOf(false) }
 
     if (showDialog.value){
@@ -640,6 +648,7 @@ fun RecipeCardList(
     }
 }
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun RecipeCardEditScreen(
     recipe: Recipe,
@@ -651,85 +660,179 @@ fun RecipeCardEditScreen(
     var portionsField by remember { mutableIntStateOf(recipe.portions) }
     var errorMessage by remember { mutableStateOf(false) }
 
+    //description is required to adapt String? -> String
+    val description = (if(recipe.description == null) "" else recipe.description).toString()
+    var descriptionField by remember { mutableStateOf(TextFieldValue(description)) }
+
+    //Attributes for photo capture
+    var imageUri by remember { mutableStateOf<Uri?>(null)}
+    val context = LocalContext.current
+    val launcher = rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()){
+            result->
+        if (result.resultCode == Activity.RESULT_OK){
+            imageUri = result.data?.data
+            if (imageUri != null){
+                imageUri = saveImageToInternalStorage(context, imageUri!!)
+            }
+        }
+    }
+
+    //Adding camera support
+    val cameraPermissionState = rememberPermissionState(permission = Manifest.permission.CAMERA)
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    val cameraLauncher = rememberLauncherForActivityResult(contract = ActivityResultContracts.TakePicturePreview()){
+            bitmap ->
+        if (bitmap != null){
+            imageUri = bitmapToUri(context, bitmap)
+        }
+
+    }
+
+    //Checks if app has a permission to take a photo
+    DisposableEffect(
+        key1 = lifecycleOwner,
+        effect = {
+            val observer  = LifecycleEventObserver { _, event ->
+                if(event == Lifecycle.Event.ON_RESUME){
+                    cameraPermissionState.launchPermissionRequest()
+                }
+            }
+
+            lifecycleOwner.lifecycle.addObserver(observer)
+
+            onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+        }
+    )
+
+
     Column(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.Start,
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(8.dp)
     ) {
 
-        //Name
-        Row {
+        //Name field
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.padding(top = 8.dp)
+        ) {
+            Text(
+                text = stringResource(id = R.string.recipe_title),
+                fontSize = 16.sp,
+                color = Color.Black,
+                modifier = Modifier.weight(1f)
+            )
+
             OutlinedTextField(
                 value = nameField,
-                onValueChange = {nameField = it},
-                placeholder = {Text(text = stringResource(id = R.string.recipe_hint))},
-                label = {
-                    Text(
-                        text = stringResource(id = R.string.recipe_title),
-                        color = Color.Black,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                    )
-                },
-                modifier = Modifier.padding(4.dp),
+                onValueChange = { nameField = it},
+                placeholder = { Text(text = stringResource(id = R.string.recipe_hint)) },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    autoCorrect = true,
+                    imeAction = ImeAction.Next,
+                ),
+                singleLine = true,
+                modifier = Modifier.weight(2f)
             )
         }
 
-        //Portions
+        //Portions field
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(4.dp)
+            modifier = Modifier.padding(top = 8.dp)
         ) {
-            Row(modifier = Modifier.weight(1f)) {
+            Text(
+                text = stringResource(id = R.string.portions_title),
+                fontSize = 16.sp,
+                color = Color.Black,
+                modifier = Modifier.weight(1f)
+            )
 
-                OutlinedButton(onClick = { if (portionsField != 0) portionsField-- },modifier = Modifier.size(40.dp)) {
+            Row(modifier = Modifier.weight(2f)) {
+                OutlinedButton(
+                    onClick = { if (portionsField != 0) portionsField-- },
+                    modifier = Modifier.size(40.dp)
+                ) {
                     Text(text = stringResource(id = R.string.minus))
                 }
 
                 Text(text = "$portionsField", modifier = Modifier.padding(8.dp) )
 
-                OutlinedButton(onClick = { portionsField++ }, modifier = Modifier.size(40.dp)) {
-                    Text(text = stringResource(id = R.string.plus))
-                }
-            }
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            Row(modifier = Modifier.weight(1f)) {
-                IconButton(
-                    onClick = {
-                        if(nameField.text.isBlank() || portionsField <=0){
-                            errorMessage = true
-                        }
-                        else{
-                            val newRecipe = Recipe(
-                                id = recipe.id,
-                                name = nameField.text,
-                                listId = recipe.listId,
-                                portions = portionsField
-                            )
-
-                            isExpanded.value = false
-                            onSubmit(newRecipe)
-                        }
-                    }
+                OutlinedButton(
+                    onClick = { portionsField++ },
+                    modifier = Modifier.size(40.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = stringResource(id = R.string.button_confirm)
-                    )
-                }
-
-                IconButton(onClick = { isExpanded.value = false }) {
-                    Icon(
-                        imageVector = Icons.Default.Cancel,
-                        contentDescription = stringResource(id = R.string.button_cancel)
-                    )
+                    Text(text = stringResource(id = R.string.plus))
                 }
             }
         }
 
+        //Description field
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(top = 8.dp)
+        ){
+            Text(
+                text = stringResource(id = R.string.recipe_description_title),
+                fontSize = 16.sp,
+                color = Color.Black,
+                modifier = Modifier.weight(1f)
+            )
+
+            OutlinedTextField(
+                value = descriptionField,
+                onValueChange = { descriptionField = it},
+                placeholder = { Text(text = stringResource(id = R.string.recipe_description_hint)) },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Done,
+                ),
+                modifier = Modifier.weight(2f)
+            )
+        }
+
+
+        // Photo section
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(top = 8.dp)
+        ){
+            Text(
+                text = stringResource(id = R.string.photo_button),
+                fontSize = 16.sp,
+                color = Color.Black,
+                modifier = Modifier.padding(end = 4.dp)
+            )
+
+            IconButton(
+                onClick = {
+                    val galleryIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+                    launcher.launch(galleryIntent)
+                },
+                modifier = Modifier.size(60.dp)
+            ) {
+                Icon(imageVector = Icons.Default.Photo, contentDescription = null)
+            }
+
+            IconButton(
+                onClick = { cameraLauncher.launch(null) },
+                modifier = Modifier
+                    .weight(1f)
+                    .size(60.dp)
+            ) {
+                Icon(imageVector = Icons.Default.CameraAlt, contentDescription = null)
+            }
+        }
+
+        //Error field
         Row {
             if (errorMessage){
                 Text(
@@ -739,6 +842,46 @@ fun RecipeCardEditScreen(
                 )
             } else{
                 Spacer(modifier = Modifier.height(20.dp))
+            }
+        }
+
+        //Confirm and Cancel buttons
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(top = 8.dp)
+        ) {
+            Button(
+                modifier = Modifier.weight(1f),
+                onClick = { isExpanded.value = false }
+            ) {
+                Text(text = stringResource(id = R.string.button_cancel))
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Button(
+                modifier = Modifier.weight(1f),
+                onClick = {
+                    if(nameField.text.isBlank() || portionsField <=0){
+                        errorMessage = true
+                    }
+                    else{
+                        val newRecipe = Recipe(
+                            id = recipe.id,
+                            name = nameField.text,
+                            listId = recipe.listId,
+                            portions = portionsField,
+                            description = descriptionField.text,
+                            photoPath = if(imageUri.toString() == "null") null else imageUri.toString(),
+                        )
+
+                        isExpanded.value = false
+                        onSubmit(newRecipe)
+                    }
+                }
+            ) {
+                Text(text = stringResource(id = R.string.button_confirm))
             }
         }
     }
@@ -758,13 +901,7 @@ fun RecipeCardCalTable(
 ){
     val context = LocalContext.current
 
-    Card(
-        //elevation = 4.dp,
-        modifier = modifier
-            .fillMaxWidth()
-            .height(50.dp)
-        //.padding(8.dp)
-    ) {
+    Card(modifier = modifier.fillMaxWidth().height(50.dp)) {
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -845,18 +982,15 @@ fun DishComponentCard(
                     }
                     catch (e: Exception){
                         e.printStackTrace()
-                        //Toast.makeText(context,e.toString(),Toast.LENGTH_SHORT).show()
                         bitmapCorrupted.value = true
                     }
 
                     Image(
-                        bitmap = if(bitmapCorrupted.value) getBitmapFromImage(context,R.drawable.circle) else bitmap.value!!.asImageBitmap(),
+                        bitmap = if(bitmapCorrupted.value) getBitmapFromImage(R.drawable.circle) else bitmap.value!!.asImageBitmap(),
                         contentDescription = stringResource(id = R.string.purchase_image),
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
-                            //.weight(2f)
                             .size(48.dp)
-                            //.padding(start = 4.dp, end = 4.dp)
                             .border(2.dp, Color.Gray, CircleShape)
                             .clip(CircleShape)
                     )
@@ -867,9 +1001,7 @@ fun DishComponentCard(
                         contentDescription = stringResource(id = R.string.purchase_image),
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
-                            //.weight(2f)
                             .size(48.dp)
-                            //.padding(start = 4.dp, end = 4.dp)
                             .border(2.dp, Color.Gray, CircleShape)
                             .clip(CircleShape)
                     )
@@ -1617,7 +1749,6 @@ fun NewDishComponentDialog(
                                 onClick = {
                                     val galleryIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
                                     launcher.launch(galleryIntent)
-                                    Log.d(TAG,"the uri in after intent: $imageUri")
                                 },
                                 modifier = Modifier
                                     .size(60.dp)
@@ -1799,12 +1930,6 @@ fun NewDishComponentDialog(
 
                         Button(
                             onClick = {
-                                val test = name.text.capitalizeFirstChar().replace("\\s+$".toRegex(), "")
-                                Log.d(TAG, "*$test*")
-
-
-
-
                                 //Check if all primary fields are not empty
                                 if (checkForError(name, weight, price)){
                                     error = true
@@ -1817,8 +1942,6 @@ fun NewDishComponentDialog(
                                             error = true
                                         } else{
                                             //is OK, can continue
-
-                                            Log.d(TAG,"the uri before creating new dishcomponent: $imageUri")
                                             val newDishComponent = DishComponent(
                                                 id = UUID.randomUUID(),
                                                 recipeId = recipeId,
@@ -1833,7 +1956,6 @@ fun NewDishComponentDialog(
                                                 cal = cal.text.toFloat(),
                                                 photoPath = if(imageUri.toString() == "null") null else imageUri.toString()
                                             )
-
 
                                             //Submit new DishComponent and close dialog
                                             setShowDialog(false)
@@ -1881,87 +2003,9 @@ fun checkSwitchForError(carbs: TextFieldValue, fats: TextFieldValue, protein: Te
             (cal.text.isBlank() || cal.text.toFloat() < 0.0f)
             )
 }
-
-//fun convertStringToNumber(input: String): Int {
-//    val numberMap = mapOf(
-//        "ноль" to 0,
-//        "один" to 1,
-//        "два" to 2,
-//        "три" to 3,
-//        "четыре" to 4,
-//        "пять" to 5,
-//        "шесть" to 6,
-//        "семь" to 7,
-//        "восемь" to 8,
-//        "девять" to 9,
-//        "десять" to 10,
-//        "одиннадцать" to 11,
-//        "двенадцать" to 12,
-//        "тринадцать" to 13,
-//        "четырнадцать" to 14,
-//        "пятнадцать" to 15,
-//        "шестнадцать" to 16,
-//        "семнадцать" to 17,
-//        "восемнадцать" to 18,
-//        "девятнадцать" to 19,
-//        "двадцать" to 20,
-//        "тридцать" to 30,
-//        "сорок" to 40,
-//        "пятьдесят" to 50,
-//        "шестьдесят" to 60,
-//        "семьдесят" to 70,
-//        "восемьдесят" to 80,
-//        "девяносто" to 90,
-//        "сто" to 100,
-//        "двести" to 200,
-//        "триста" to 300,
-//        "четыреста" to 400,
-//        "пятьсот" to 500,
-//        "шестьсот" to 600,
-//        "семьсот" to 700,
-//        "восемьсот" to 800,
-//        "девятьсот" to 900,
-//        "тысяча" to 1000,
-//        "тысячи" to 1000,
-//        "тысяч" to 1000,
-//        "миллион" to 1000000,
-//        "миллиона" to 1000000,
-//        "миллионов" to 1000000,
-//        "миллиард" to 1000000000,
-//        "миллиарда" to 1000000000,
-//        "миллиардов" to 1000000000
-//    )
-//
-//    val numberString = input.replace(",", ".").lowercase(Locale.getDefault())
-//    var total = 0
-//    var currentNumber = 0
-//
-//    val parts = numberString.split(" ")
-//
-//    for (part in parts) {
-//        val numberValue = numberMap[part]
-//        if (numberValue != null) {
-//            currentNumber += numberValue
-//        } else if (part == "и" || part == "ноль") {
-//            continue
-//        } else if (part == "тысяч" || part == "миллионов" || part == "миллиардов") {
-//            total += currentNumber * numberMap[part]!!
-//            currentNumber = 0
-//        } else if (part == "десять" || part == "сто" || part == "тысяча" || part == "миллион" || part == "миллиард") {
-//            currentNumber *= numberMap[part]!!
-//        }
-//    }
-//
-//    return total + currentNumber
-//}
-
 @Composable
-fun getBitmapFromImage(context: Context, drawable: Int): ImageBitmap {
+fun getBitmapFromImage(drawable: Int): ImageBitmap {
     val option = BitmapFactory.Options()
     option.inPreferredConfig = Bitmap.Config.ARGB_8888
-    return BitmapFactory.decodeResource(
-        LocalContext.current.resources,
-        drawable,
-        option
-    ).asImageBitmap()
+    return BitmapFactory.decodeResource(LocalContext.current.resources, drawable, option).asImageBitmap()
 }

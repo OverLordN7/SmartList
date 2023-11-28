@@ -568,7 +568,7 @@ fun ItemCard(
                     }
 
                     Image(
-                        bitmap = if(bitmapCorrupted.value) getBitmapFromImage(context,R.drawable.circle) else bitmap.value!!.asImageBitmap(),
+                        bitmap = if(bitmapCorrupted.value) getBitmapFromImage(R.drawable.circle) else bitmap.value!!.asImageBitmap(),
                         contentDescription = stringResource(id = R.string.purchase_image),
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
@@ -1222,7 +1222,7 @@ fun ShowItemImage(
     ){
 
     val context = LocalContext.current
-    val bitmapFromDrawable = getBitmapFromImage(context = context, drawable = R.drawable.veg)
+    val bitmapFromDrawable = getBitmapFromImage(drawable = R.drawable.veg)
 
     var height = context.resources.configuration.screenHeightDp
     var width = context.resources.configuration.screenWidthDp

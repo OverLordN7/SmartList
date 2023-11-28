@@ -235,7 +235,8 @@
     <string name="recipe_description_hint">текст о рецепте</string>
     <string name="recipe_description_empty">нет информации</string>
 
-    <string name="dishlist_name_title">Имя списка блюд:</string>
+    <string name="dishlist_name_title">Название списка блюд:</string>
+    <string name="purchaselist_name_title">Название списка покупок:</string>
 
 
 </resources>

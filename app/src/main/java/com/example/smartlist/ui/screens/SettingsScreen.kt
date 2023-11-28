@@ -75,11 +75,8 @@ fun SettingsScreen(
 
     //Language attributes
     val currentLanguage by homeViewModel.currentLanguage.collectAsState()
-
     val voiceCommand by homeViewModel.voiceCommand.collectAsState()
-
     val isDarkTheme by homeViewModel.isDarkThemeEnabled.collectAsState()
-
     val toggleTheme: (Boolean) -> Unit = {homeViewModel.setDarkThemeEnabled(it)}
 
 

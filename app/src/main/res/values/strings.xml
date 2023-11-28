@@ -233,5 +233,6 @@
     <string name="recipe_description_empty">no info provided</string>
 
     <string name="dishlist_name_title">Dish list name:</string>
+    <string name="purchaselist_name_title">Purchase list name:</string>
 
 </resources>

@@ -234,5 +234,8 @@
 
     <string name="dishlist_name_title">Dish list name:</string>
     <string name="purchaselist_name_title">Purchase list name:</string>
+    <string name="dish_component_title">Ingredient name: </string>
+    <string name="dish_component_weight">Weight: </string>
+    <string name="dish_component_price">Price: </string>
 
 </resources>

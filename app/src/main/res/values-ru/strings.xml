@@ -238,5 +238,9 @@
     <string name="dishlist_name_title">Название списка блюд:</string>
     <string name="purchaselist_name_title">Название списка покупок:</string>
 
+    <string name="dish_component_title">Название ингредиента:</string>
+    <string name="dish_component_weight">Вес: </string>
+    <string name="dish_component_price">Цена: </string>
+
 
 </resources>

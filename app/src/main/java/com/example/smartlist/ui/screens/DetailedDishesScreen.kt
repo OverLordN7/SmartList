@@ -901,7 +901,9 @@ fun RecipeCardCalTable(
 ){
     val context = LocalContext.current
 
-    Card(modifier = modifier.fillMaxWidth().height(50.dp)) {
+    Card(modifier = modifier
+        .fillMaxWidth()
+        .height(50.dp)) {
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -1102,37 +1104,50 @@ fun DishComponentEditScreen(
     var expanded by remember { mutableStateOf(false) }
     var selectedOptionText by remember { mutableStateOf(options[0]) }
 
-
     Column(
         verticalArrangement = Arrangement.Center,
-        modifier = modifier
+        horizontalAlignment = Alignment.Start,
+        modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp)
-    ) {
+            .padding(4.dp)
+    ){
+        //Name field
         Row(
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.padding(top = 4.dp)
+        ){
+            Text(
+                text = stringResource(id = R.string.dish_component_title),
+                fontSize = 16.sp,
+                color = Color.Black,
+                modifier = Modifier.weight(1f)
+            )
+
             OutlinedTextField(
                 value = fieldValue,
                 onValueChange = {fieldValue = it},
                 placeholder = {Text(text = stringResource(id = R.string.new_dish_component_hint))},
-                label = {
-                    Text(
-                        text = stringResource(id = R.string.new_dish_component_title),
-                        color = Color.Black,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                    )
-                },
                 keyboardOptions = KeyboardOptions.Default.copy(
                     autoCorrect = true,
                     keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Next
                 ),
-                modifier = Modifier
-                    .padding(4.dp)
-                    .weight(0.6f),
+                modifier = Modifier.weight(2f),
+            )
+        }
+
+        //Weight field
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.padding(top = 4.dp)
+        ){
+            Text(
+                text = stringResource(id = R.string.dish_component_weight),
+                fontSize = 16.sp,
+                color = Color.Black,
+                modifier = Modifier.weight(1f)
             )
 
             OutlinedTextField(
@@ -1152,14 +1167,13 @@ fun DishComponentEditScreen(
                     imeAction = ImeAction.Next
                 ),
                 modifier = Modifier
-                    .padding(4.dp)
-                    .weight(0.5f),
+                    .weight(1f),
             )
 
             ExposedDropdownMenuBox(
                 expanded = expanded,
                 onExpandedChange = { expanded = !expanded},
-                modifier = Modifier.weight(0.5f)
+                modifier = Modifier.weight(1f)
             ) {
 
                 OutlinedTextField(
@@ -1188,38 +1202,57 @@ fun DishComponentEditScreen(
             }
         }
 
-        Row(horizontalArrangement = Arrangement.Center) {
+        //Price field
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.padding(top = 8.dp)
+        ){
+            Text(
+                text = stringResource(id = R.string.dish_component_price),
+                fontSize = 16.sp,
+                color = Color.Black,
+                modifier = Modifier.weight(1f)
+            )
 
             OutlinedTextField(
                 value = price,
                 onValueChange = {price = it},
                 placeholder = {Text(text = stringResource(id = R.string.price_hint))},
-                label = {
-                    Text(
-                        text = stringResource(id = R.string.price_title),
-                        color = Color.Black,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                    )
-                },
                 keyboardOptions = KeyboardOptions.Default.copy(
                     keyboardType = KeyboardType.Decimal,
                     imeAction = ImeAction.Done
                 ),
                 modifier = Modifier
-                    .padding(4.dp)
-                    .weight(1f),
+                    .weight(2f),
             )
-
-            //Plug for good view
-            Spacer(modifier = Modifier.weight(1f))
         }
-        Row(horizontalArrangement = Arrangement.End) {
 
-            //Plug
-            Spacer(modifier = Modifier.weight(5f))
+        //Error field
+        Row(){
+            if (errorMessage){
+                Text(
+                    text = stringResource(id = R.string.error_message),
+                    color = Color.Red,
+                    modifier = Modifier.padding(start = 12.dp)
+                )
+            } else{
+                Spacer(modifier = Modifier.height(20.dp))
+            }
+        }
 
-            IconButton(
+        //Buttons
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ){
+            Button(onClick = { isExpanded.value = false }, modifier = Modifier.weight(1f)) {
+                Text(text = stringResource(id = R.string.button_cancel))
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Button(
                 onClick = {
                     if(fieldValue.text.isBlank() || weight.text.isBlank() || price.text.isBlank()){
                         errorMessage = true
@@ -1239,29 +1272,171 @@ fun DishComponentEditScreen(
                 },
                 modifier = Modifier.weight(1f),
             ) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = stringResource(id = R.string.button_confirm)
-                )
+                Text(text = stringResource(id = R.string.button_confirm))
             }
-
-            IconButton(onClick = { isExpanded.value = false }, modifier = Modifier.weight(1f)) {
-                Icon(
-                    imageVector = Icons.Default.Cancel,
-                    contentDescription = stringResource(id = R.string.button_cancel)
-                )
-            }
-        }
-        if (errorMessage){
-            Text(
-                text = stringResource(id = R.string.error_message),
-                color = Color.Red,
-                modifier = Modifier.padding(start = 12.dp)
-            )
-        } else{
-            Spacer(modifier = Modifier.height(20.dp))
         }
     }
+
+
+//    Column(
+//        verticalArrangement = Arrangement.Center,
+//        modifier = modifier
+//            .fillMaxWidth()
+//            .padding(8.dp)
+//    ) {
+//        Row(
+//            horizontalArrangement = Arrangement.Center,
+//            verticalAlignment = Alignment.CenterVertically
+//        ) {
+//            OutlinedTextField(
+//                value = fieldValue,
+//                onValueChange = {fieldValue = it},
+//                placeholder = {Text(text = stringResource(id = R.string.new_dish_component_hint))},
+//                label = {
+//                    Text(
+//                        text = stringResource(id = R.string.new_dish_component_title),
+//                        color = Color.Black,
+//                        fontSize = 12.sp,
+//                        fontWeight = FontWeight.Bold,
+//                    )
+//                },
+//                keyboardOptions = KeyboardOptions.Default.copy(
+//                    autoCorrect = true,
+//                    keyboardType = KeyboardType.Text,
+//                    imeAction = ImeAction.Next
+//                ),
+//                modifier = Modifier
+//                    .padding(4.dp)
+//                    .weight(0.6f),
+//            )
+//
+//            OutlinedTextField(
+//                value = weight,
+//                onValueChange = {weight = it},
+//                placeholder = {Text(text = stringResource(id = R.string.weight_hint))},
+//                label = {
+//                    Text(
+//                        text = stringResource(id = R.string.weight_title),
+//                        color = Color.Black,
+//                        fontSize = 12.sp,
+//                        fontWeight = FontWeight.Bold,
+//                    )
+//                },
+//                keyboardOptions = KeyboardOptions.Default.copy(
+//                    keyboardType = KeyboardType.Decimal,
+//                    imeAction = ImeAction.Next
+//                ),
+//                modifier = Modifier
+//                    .padding(4.dp)
+//                    .weight(0.5f),
+//            )
+//
+//            ExposedDropdownMenuBox(
+//                expanded = expanded,
+//                onExpandedChange = { expanded = !expanded},
+//                modifier = Modifier.weight(0.5f)
+//            ) {
+//
+//                OutlinedTextField(
+//                    readOnly = true,
+//                    value = selectedOptionText,
+//                    onValueChange = { },
+//                    label = { Text(stringResource(id = R.string.unit), color = Color.Black)},
+//                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+//                )
+//
+//                ExposedDropdownMenu(
+//                    expanded = expanded,
+//                    onDismissRequest = { expanded = false }
+//                ) {
+//                    options.forEach{ selectionOption ->
+//                        DropdownMenuItem(
+//                            onClick = {
+//                                selectedOptionText = selectionOption
+//                                expanded = false
+//                            }
+//                        ) {
+//                            Text(text = selectionOption)
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//
+//        Row(horizontalArrangement = Arrangement.Center) {
+//
+//            OutlinedTextField(
+//                value = price,
+//                onValueChange = {price = it},
+//                placeholder = {Text(text = stringResource(id = R.string.price_hint))},
+//                label = {
+//                    Text(
+//                        text = stringResource(id = R.string.price_title),
+//                        color = Color.Black,
+//                        fontSize = 12.sp,
+//                        fontWeight = FontWeight.Bold,
+//                    )
+//                },
+//                keyboardOptions = KeyboardOptions.Default.copy(
+//                    keyboardType = KeyboardType.Decimal,
+//                    imeAction = ImeAction.Done
+//                ),
+//                modifier = Modifier
+//                    .padding(4.dp)
+//                    .weight(1f),
+//            )
+//
+//            //Plug for good view
+//            Spacer(modifier = Modifier.weight(1f))
+//        }
+//        Row(horizontalArrangement = Arrangement.End) {
+//
+//            //Plug
+//            Spacer(modifier = Modifier.weight(5f))
+//
+//            IconButton(
+//                onClick = {
+//                    if(fieldValue.text.isBlank() || weight.text.isBlank() || price.text.isBlank()){
+//                        errorMessage = true
+//                    }else{
+//                        val temp = DishComponent(
+//                            id = dishComponent.id,
+//                            name = fieldValue.text,
+//                            weight = weight.text.toFloat(),
+//                            weightType = selectedOptionText,
+//                            price = price.text.toFloat(),
+//                            total = weight.text.toFloat() * price.text.toFloat(),
+//                            recipeId = dishComponent.recipeId
+//                        )
+//                        isExpanded.value = false
+//                        onSubmit(temp)
+//                    }
+//                },
+//                modifier = Modifier.weight(1f),
+//            ) {
+//                Icon(
+//                    imageVector = Icons.Default.Check,
+//                    contentDescription = stringResource(id = R.string.button_confirm)
+//                )
+//            }
+//
+//            IconButton(onClick = { isExpanded.value = false }, modifier = Modifier.weight(1f)) {
+//                Icon(
+//                    imageVector = Icons.Default.Cancel,
+//                    contentDescription = stringResource(id = R.string.button_cancel)
+//                )
+//            }
+//        }
+//        if (errorMessage){
+//            Text(
+//                text = stringResource(id = R.string.error_message),
+//                color = Color.Red,
+//                modifier = Modifier.padding(start = 12.dp)
+//            )
+//        } else{
+//            Spacer(modifier = Modifier.height(20.dp))
+//        }
+//    }
 
 
 }

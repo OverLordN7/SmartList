@@ -40,7 +40,7 @@ If you would like to install and modify the app:
 
 ## How to use the Project
 If you would like to test the application:  
-Download the **SmartList v1.0.apk** file located in the **app_apk/** folder
+Download the **SmartList v1.19.apk** file located in the **app_apk/** folder
 
 The application requires:
 * Min SDK: 28 (Android 9)

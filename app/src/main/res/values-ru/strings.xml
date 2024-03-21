@@ -242,5 +242,7 @@
     <string name="dish_component_weight">Вес: </string>
     <string name="dish_component_price">Цена: </string>
 
+    <string name="card_items"> Предметы: %1$d </string>
+
 
 </resources>

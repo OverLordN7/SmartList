@@ -14,10 +14,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.BottomAppBar
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Card
@@ -33,7 +31,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -46,6 +43,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -164,6 +162,7 @@ fun PurchasesScreen(
         bottomBar = {
             CustomBottomAppBar(
                 navController = navController,
+                isFabExist = true,
                 context = context
             )
         },
@@ -257,12 +256,9 @@ fun NewListCard(
 ){
 
     val isChangeMode = remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
-    Log.d("Purchase", "hash: ${list.name.hashCode()} and division : ${list.name.hashCode() % 10}")
-
-    var imgAsset: Int = 0
-
-    val img_assets = listOf(
+    val imgAssets = listOf(
         R.drawable.img_1,
         R.drawable.img_2,
         R.drawable.img_3,
@@ -270,14 +266,35 @@ fun NewListCard(
         R.drawable.img_5,
     )
 
-    imgAsset = when(list.drawableId){
-        1 -> img_assets[1]
-        2 -> img_assets[2]
-        3 -> img_assets[3]
-        4 -> img_assets[4]
+    val imgAsset = when(list.drawableId){
+        1 -> imgAssets[1]
+        2 -> imgAssets[2]
+        3 -> imgAssets[3]
+        4 -> imgAssets[4]
         else->{
-            img_assets[0]
+            imgAssets[0]
         }
+    }
+
+    val customShape = GenericShape{ size, _ ->
+        val width = size.width
+        val height = size.height
+        // construct shape from position where start is up left corner 0,0
+        // and right bottom corner is width,height
+        lineTo(width*0.3.toFloat(),0f)
+        lineTo(width*0.6.toFloat(),height)
+        lineTo(0f,height)
+        close()
+    }
+
+    val dateCustomShape = GenericShape{size,_ ->
+        val width = size.width
+        val height = size.height
+        lineTo(width*0.75.toFloat(),0f)
+        //lineTo(width,height*0.75.toFloat())
+        lineTo(width*0.9.toFloat(),height)
+        lineTo(0f,height)
+        close()
     }
 
     if (!isChangeMode.value){
@@ -295,16 +312,6 @@ fun NewListCard(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ){
-                val customShape = GenericShape{ size, _ ->
-                    val width = size.width
-                    val height = size.height
-                    // construct shape from position where start is up left corner 0,0
-                    // and right bottom corner is width,height
-                    lineTo(width*0.3.toFloat(),0f)
-                    lineTo(width*0.6.toFloat(),height)
-                    lineTo(0f,height)
-                    close()
-                }
                 Image(
                     painter = painterResource(id = imgAsset),
                     contentDescription = null,
@@ -355,21 +362,38 @@ fun NewListCard(
                             }
                             Spacer(modifier = Modifier.weight(3f))
                             Row(modifier = Modifier.weight(1f)){
-                                Text(
-                                    text = list.month +" "+ list.year,
-                                    fontSize = 20.sp,
-                                    fontWeight = FontWeight.Light,
-                                    color = Color.White,
-                                    modifier = Modifier.weight(3f)
-                                )
+                                Box(
+                                    modifier = Modifier
+                                        .weight(3f)
+                                        .background(
+                                            Color.Black.copy(alpha = 0.5f),
+                                            shape = dateCustomShape
+                                        )
+                                        .padding(4.dp)
+                                ) {
+                                    Text(
+                                        text = list.month +" "+ list.year,
+                                        fontSize = 20.sp,
+                                        fontWeight = FontWeight.Light,
+                                        color = Color.White,
+                                        //modifier = Modifier.weight(3f)
+                                    )
+                                }
                                 Spacer(modifier = Modifier.weight(3f))
-                                Text(
-                                    text = "Items: ${list.listSize}",
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (themeMode) Color.White else Color.Black,
-                                    modifier = Modifier.weight(1.5f)
-                                )
+                                Box(
+                                    modifier = Modifier.weight(2f).padding(start = 4.dp, top = 8.dp, end = 4.dp, bottom = 4.dp),
+                                    contentAlignment = Alignment.BottomCenter
+                                ) {
+                                    Text(
+                                        text = context.getString(
+                                            R.string.card_items,
+                                            list.listSize
+                                        ),
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Light,
+                                        color = if (themeMode) Color.White else Color.Black,
+                                    )
+                                }
                             }
                         }
                     }
@@ -386,79 +410,6 @@ fun NewListCard(
         ){
             NewEditScreen(list = list, isExpanded = isChangeMode, onSubmit = onEdit)
         }
-    }
-}
-
-@Composable
-fun ListCard(
-    list: PurchaseList,
-    onClick: (UUID) -> Unit,
-    onEdit: (PurchaseList) -> Unit,
-    onDelete: (UUID) -> Unit,
-    modifier: Modifier = Modifier
-){
-    val isExpanded = remember { mutableStateOf(false) }
-
-    Card(
-        elevation = 4.dp,
-        modifier = modifier
-            .padding(8.dp)
-            .fillMaxWidth()
-            .clickable {
-                onClick(list.id)
-            }
-    ) {
-        Column {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Start,
-                modifier = Modifier.padding(4.dp)
-            ) {
-
-                Column(modifier = Modifier.weight(5f)) {
-
-                    Text(
-                        text = list.name,
-                        fontSize = 20.sp,
-                        color = Color.Black
-                    )
-
-                    Text(
-                        text = list.month +" "+ list.year,
-                        fontSize = 16.sp,
-                        color = Color.Gray
-                    )
-                }
-
-                Spacer(modifier = modifier.weight(3f))
-
-                Column(modifier = Modifier.weight(3f)) {
-
-                    Row {
-
-                        IconButton(onClick = { isExpanded.value = !isExpanded.value}) {
-                            Icon(
-                                imageVector = Icons.Default.Edit,
-                                contentDescription = stringResource(id = R.string.edit_current_list)
-                            )
-                        }
-
-                        IconButton(onClick = { onDelete(list.id) }) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = stringResource(id = R.string.delete_current_list)
-                            )
-                        }
-                    }
-                }
-            }
-            Row{
-                if(isExpanded.value){
-                    EditScreen(list = list, isExpanded = isExpanded, onSubmit = onEdit)
-                }
-            }
-        }
-
     }
 }
 

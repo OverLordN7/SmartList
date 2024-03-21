@@ -231,6 +231,7 @@ fun DetailedPurchaseListScreen(
         bottomBar = {
             CustomBottomAppBar(
                 navController = navController,
+                isFabExist = true,
                 context = context
             )
         },

@@ -12,6 +12,7 @@ import androidx.compose.material.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cookie
 import androidx.compose.material.icons.filled.Fastfood
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingBasket
 import androidx.compose.runtime.Composable
@@ -26,6 +27,7 @@ import com.example.smartlist.navigation.Screen
 @Composable
 fun CustomBottomAppBar(
     navController: NavController,
+    isFabExist: Boolean = false,
     context: Context
 ){
     BottomAppBar(
@@ -51,7 +53,18 @@ fun CustomBottomAppBar(
                     .size(32.dp)
                     .clickable { navController.navigate(Screen.DishesScreen.route) }
             )
-            Spacer(modifier = Modifier.weight(1f))
+            if (isFabExist){
+                Spacer(modifier = Modifier.weight(1f))
+            }else {
+                Icon(
+                    imageVector = Icons.Default.Home,
+                    contentDescription = context.getString(R.string.home_title_item_hint),
+                    Modifier
+                        .weight(1f)
+                        .size(32.dp)
+                        .clickable { navController.navigate(Screen.HomeScreen.route) }
+                )
+            }
             Icon(
                 imageVector = Icons.Default.Cookie,
                 contentDescription = context.getString(R.string.product_screen_hint),

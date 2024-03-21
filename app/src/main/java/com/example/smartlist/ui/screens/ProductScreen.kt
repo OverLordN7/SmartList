@@ -53,6 +53,7 @@ import com.example.smartlist.model.ListOfMenuItem
 import com.example.smartlist.model.Product
 import com.example.smartlist.ui.common_composables.ErrorScreen
 import com.example.smartlist.ui.common_composables.LoadingScreen
+import com.example.smartlist.ui.menu.CustomBottomAppBar
 import com.example.smartlist.ui.menu.DrawerBody
 import com.example.smartlist.ui.menu.DrawerHeader
 import com.example.smartlist.ui.menu.HomeAppBar
@@ -113,6 +114,12 @@ fun ProductScreen(
                 isRetryActionEnabled = true,
                 retryAction = onRefresh,
                 name = stringResource(R.string.products)
+            )
+        },
+        bottomBar = {
+            CustomBottomAppBar(
+                navController = navController,
+                context = context
             )
         },
         drawerContent = {

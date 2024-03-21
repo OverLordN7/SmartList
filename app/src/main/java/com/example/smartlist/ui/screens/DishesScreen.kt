@@ -55,6 +55,7 @@ import com.example.smartlist.model.ListOfMenuItem
 import com.example.smartlist.navigation.Screen
 import com.example.smartlist.ui.common_composables.ErrorScreen
 import com.example.smartlist.ui.common_composables.LoadingScreen
+import com.example.smartlist.ui.menu.CustomBottomAppBar
 import com.example.smartlist.ui.menu.DrawerBody
 import com.example.smartlist.ui.menu.DrawerHeader
 import com.example.smartlist.ui.menu.HomeAppBar
@@ -143,7 +144,24 @@ fun DishesScreen(
                 isRetryActionEnabled = true,
             )
         },
+        bottomBar = {
+            CustomBottomAppBar(
+                navController = navController,
+                isFabExist = true,
+                context = context
+            )
+        },
+        isFloatingActionButtonDocked = true,
+        floatingActionButtonPosition = FabPosition.Center,
+        floatingActionButton = {
 
+            FloatingActionButton(onClick = { showDialog.value = true}) {
+                Icon(
+                    imageVector = Icons.Filled.Add,
+                    contentDescription = stringResource(id = R.string.add_new_dish)
+                )
+            }
+        },
         drawerContent = {
             DrawerHeader()
             DrawerBody(
@@ -158,17 +176,6 @@ fun DishesScreen(
                     )
                 }
             )
-        },
-
-        floatingActionButtonPosition = FabPosition.End,
-        floatingActionButton = {
-
-            FloatingActionButton(onClick = { showDialog.value = true}) {
-                Icon(
-                    imageVector = Icons.Filled.Add,
-                    contentDescription = stringResource(id = R.string.add_new_dish)
-                )
-            }
         },
     ) {
         Surface(modifier = modifier

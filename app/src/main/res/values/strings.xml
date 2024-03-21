@@ -238,4 +238,6 @@
     <string name="dish_component_weight">Weight: </string>
     <string name="dish_component_price">Price: </string>
 
+    <string name="card_items"> Items: %1$d </string>
+
 </resources>

@@ -236,11 +236,13 @@
     <string name="recipe_description_empty">нет информации</string>
 
     <string name="dishlist_name_title">Название списка блюд:</string>
-    <string name="purchaselist_name_title">Название списка покупок:</string>
+    <string name="purchaselist_name_title">Название списка:</string>
 
     <string name="dish_component_title">Название ингредиента:</string>
     <string name="dish_component_weight">Вес: </string>
     <string name="dish_component_price">Цена: </string>
+
+    <string name="card_items"> Предметы: %1$d </string>
 
 
 </resources>

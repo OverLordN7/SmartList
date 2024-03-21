@@ -40,6 +40,7 @@ import androidx.compose.material.icons.filled.Cookie
 import androidx.compose.material.icons.filled.Fastfood
 import androidx.compose.material.icons.filled.ShoppingBasket
 import androidx.compose.ui.unit.sp
+import com.example.smartlist.ui.menu.CustomBottomAppBar
 
 @Composable
 fun HomeScreen(
@@ -84,6 +85,12 @@ fun HomeScreen(
 
                     else { homeViewModel.stopListening() }
                 }
+            )
+        },
+        bottomBar = {
+            CustomBottomAppBar(
+                navController = navController,
+                context = context
             )
         },
         drawerContent = {

@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.smartlist.R
 import com.example.smartlist.model.ListOfMenuItem
+import com.example.smartlist.ui.menu.CustomBottomAppBar
 import com.example.smartlist.ui.menu.DrawerBody
 import com.example.smartlist.ui.menu.DrawerHeader
 import com.example.smartlist.ui.menu.HomeAppBar
@@ -105,6 +106,12 @@ fun SettingsScreen(
 
                     else { homeViewModel.stopListening() }
                 }
+            )
+        },
+        bottomBar = {
+            CustomBottomAppBar(
+                navController = navController,
+                context = context
             )
         },
         drawerContent = {

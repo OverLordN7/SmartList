@@ -1,5 +1,8 @@
 package com.example.smartlist.ui.screens
 
+import android.util.Log
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,8 +14,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
+import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Card
 import androidx.compose.material.FabPosition
 import androidx.compose.material.FloatingActionButton
@@ -38,8 +43,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
@@ -54,6 +63,7 @@ import com.example.smartlist.model.PurchaseList
 import com.example.smartlist.navigation.Screen
 import com.example.smartlist.ui.common_composables.ErrorScreen
 import com.example.smartlist.ui.common_composables.LoadingScreen
+import com.example.smartlist.ui.menu.CustomBottomAppBar
 import com.example.smartlist.ui.menu.DrawerBody
 import com.example.smartlist.ui.menu.DrawerHeader
 import com.example.smartlist.ui.menu.HomeAppBar
@@ -102,6 +112,8 @@ fun PurchasesScreen(
         homeViewModel.clearVoiceCommand()
     }
 
+    val themeMode = homeViewModel.isDarkThemeEnabled.collectAsState()
+
     voiceCommand?.let { command->
 
         val parts = command.text.split(" ")
@@ -147,6 +159,23 @@ fun PurchasesScreen(
                 isRetryActionEnabled = true,
             )
         },
+        bottomBar = {
+            CustomBottomAppBar(
+                navController = navController,
+                isFabExist = true,
+                context = context
+            )
+        },
+        isFloatingActionButtonDocked = true,
+        floatingActionButtonPosition = FabPosition.Center,
+        floatingActionButton = {
+            FloatingActionButton(onClick = { showDialog.value = true}) {
+                Icon(
+                    imageVector = Icons.Filled.Add,
+                    contentDescription = stringResource(id = R.string.add_new_purchase_list)
+                )
+            }
+        },
         drawerContent = {
             DrawerHeader()
             DrawerBody(
@@ -161,15 +190,6 @@ fun PurchasesScreen(
                     )
                 }
             )
-        },
-        floatingActionButtonPosition = FabPosition.End,
-        floatingActionButton = {
-            FloatingActionButton(onClick = { showDialog.value = true}) {
-                Icon(
-                    imageVector = Icons.Filled.Add,
-                    contentDescription = stringResource(id = R.string.add_new_purchase_list)
-                )
-            }
         }
     ) { it ->
         Surface(modifier = modifier.padding(it)) {
@@ -179,6 +199,7 @@ fun PurchasesScreen(
                 is PurchaseUiState.Success ->{
                     ResultScreen(
                         lists = state.purchaseLists,
+                        themeMode = themeMode.value,
                         onClick = {
                             purchaseViewModel.currentListId = it
                             purchaseViewModel.getItemsOfPurchaseList()
@@ -190,6 +211,8 @@ fun PurchasesScreen(
                         onDelete = onDelete,
                     )
                 }
+
+                else -> {}
             }
         }
     }
@@ -198,6 +221,7 @@ fun PurchasesScreen(
 @Composable
 fun ResultScreen(
     lists: List<PurchaseList>,
+    themeMode: Boolean,
     onClick: (UUID) -> Unit,
     onEdit: (PurchaseList) -> Unit,
     onDelete: (UUID) -> Unit,
@@ -210,8 +234,9 @@ fun ResultScreen(
 
     LazyColumn{
         items(lists.size){ index ->
-            ListCard(
+            NewListCard(
                 list = lists[index],
+                themeMode = themeMode,
                 onClick = { onClick(lists[index].id)},
                 onEdit = onEdit,
                 onDelete = onDelete,
@@ -220,77 +245,171 @@ fun ResultScreen(
     }
 }
 
-
 @Composable
-fun ListCard(
+fun NewListCard(
     list: PurchaseList,
+    themeMode: Boolean,
     onClick: (UUID) -> Unit,
     onEdit: (PurchaseList) -> Unit,
     onDelete: (UUID) -> Unit,
     modifier: Modifier = Modifier
 ){
-    val isExpanded = remember { mutableStateOf(false) }
 
-    Card(
-        elevation = 4.dp,
-        modifier = modifier
-            .padding(8.dp)
-            .fillMaxWidth()
-            .clickable {
-                onClick(list.id)
-            }
-    ) {
-        Column {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Start,
-                modifier = Modifier.padding(4.dp)
-            ) {
+    val isChangeMode = remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
-                Column(modifier = Modifier.weight(5f)) {
+    val imgAssets = listOf(
+        R.drawable.img_1,
+        R.drawable.img_2,
+        R.drawable.img_3,
+        R.drawable.img_4,
+        R.drawable.img_5,
+    )
 
-                    Text(
-                        text = list.name,
-                        fontSize = 20.sp,
-                        color = Color.Black
-                    )
+    val imgAsset = when(list.drawableId){
+        1 -> imgAssets[1]
+        2 -> imgAssets[2]
+        3 -> imgAssets[3]
+        4 -> imgAssets[4]
+        else->{
+            imgAssets[0]
+        }
+    }
 
-                    Text(
-                        text = list.month +" "+ list.year,
-                        fontSize = 16.sp,
-                        color = Color.Gray
-                    )
-                }
+    val customShape = GenericShape{ size, _ ->
+        val width = size.width
+        val height = size.height
+        // construct shape from position where start is up left corner 0,0
+        // and right bottom corner is width,height
+        lineTo(width*0.3.toFloat(),0f)
+        lineTo(width*0.6.toFloat(),height)
+        lineTo(0f,height)
+        close()
+    }
 
-                Spacer(modifier = modifier.weight(3f))
+    val dateCustomShape = GenericShape{size,_ ->
+        val width = size.width
+        val height = size.height
+        lineTo(width*0.75.toFloat(),0f)
+        //lineTo(width,height*0.75.toFloat())
+        lineTo(width*0.9.toFloat(),height)
+        lineTo(0f,height)
+        close()
+    }
 
-                Column(modifier = Modifier.weight(3f)) {
+    if (!isChangeMode.value){
+        Card(
+            modifier = modifier
+                .fillMaxWidth()
+                .height(200.dp)
+                .padding(8.dp)
+                .clickable {
+                    onClick(list.id)
+                },
+            elevation = 4.dp
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ){
+                Image(
+                    painter = painterResource(id = imgAsset),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.graphicsLayer {
+                        clip = true
+                        shape = customShape
+                    }
+                )
 
-                    Row {
+                Column {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(4.dp),
+                        backgroundColor = Color.Transparent,
+                        elevation = 0.dp
+                    ) {
+                        Column {
+                            Row(modifier = Modifier.weight(1f)){
+                                Text(
+                                    text = list.name,
+                                    fontSize = 28.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White,
+                                    modifier = Modifier.weight(3f)
+                                )
+                                Spacer(modifier = Modifier.weight(2f))
+                                IconButton(
+                                    modifier = Modifier.weight(1f),
+                                    onClick = { isChangeMode.value = !isChangeMode.value }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Edit,
+                                        contentDescription = stringResource(id = R.string.edit_current_list)
+                                    )
+                                }
 
-                        IconButton(onClick = { isExpanded.value = !isExpanded.value}) {
-                            Icon(
-                                imageVector = Icons.Default.Edit,
-                                contentDescription = stringResource(id = R.string.edit_current_list)
-                            )
-                        }
-
-                        IconButton(onClick = { onDelete(list.id) }) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = stringResource(id = R.string.delete_current_list)
-                            )
+                                IconButton(
+                                    modifier = Modifier.weight(1f),
+                                    onClick = { onDelete(list.id) }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Delete,
+                                        contentDescription = stringResource(id = R.string.delete_current_list)
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.weight(3f))
+                            Row(modifier = Modifier.weight(1f)){
+                                Box(
+                                    modifier = Modifier
+                                        .weight(3f)
+                                        .background(
+                                            Color.Black.copy(alpha = 0.5f),
+                                            shape = dateCustomShape
+                                        )
+                                        .padding(4.dp)
+                                ) {
+                                    Text(
+                                        text = list.month +" "+ list.year,
+                                        fontSize = 20.sp,
+                                        fontWeight = FontWeight.Light,
+                                        color = Color.White,
+                                        //modifier = Modifier.weight(3f)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.weight(3f))
+                                Box(
+                                    modifier = Modifier.weight(2f).padding(start = 4.dp, top = 8.dp, end = 4.dp, bottom = 4.dp),
+                                    contentAlignment = Alignment.BottomCenter
+                                ) {
+                                    Text(
+                                        text = context.getString(
+                                            R.string.card_items,
+                                            list.listSize
+                                        ),
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Light,
+                                        color = if (themeMode) Color.White else Color.Black,
+                                    )
+                                }
+                            }
                         }
                     }
                 }
             }
-            Row{
-                if(isExpanded.value){
-                    EditScreen(list = list, isExpanded = isExpanded, onSubmit = onEdit)
-                }
-            }
         }
-
+    } else {
+        Card(
+            modifier = modifier
+                .fillMaxWidth()
+                .height(200.dp)
+                .padding(8.dp),
+            elevation = 4.dp
+        ){
+            NewEditScreen(list = list, isExpanded = isChangeMode, onSubmit = onEdit)
+        }
     }
 }
 
@@ -308,6 +427,107 @@ fun EmptyListCard(modifier: Modifier = Modifier){
                 text = stringResource(id = R.string.empty_card_message_2),
                 color = Color.Black
             )
+        }
+    }
+}
+
+@Composable
+fun NewEditScreen(
+    list: PurchaseList,
+    isExpanded: MutableState<Boolean>,
+    onSubmit: (PurchaseList) -> Unit,
+    modifier: Modifier = Modifier
+){
+    var name by remember { mutableStateOf(TextFieldValue(list.name)) }
+    var errorMessage by remember { mutableStateOf(false) }
+
+
+    Log.d("Purchase", "hash code of ${list.name} is ${list.name.hashCode()}")
+
+    Card(
+        modifier = modifier.padding(8.dp),
+        elevation = 0.dp
+    ) {
+        Column{
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.weight(3f)
+            ) {
+                Text(
+                    text = stringResource(id = R.string.purchaselist_name_title),
+                    fontSize = 16.sp,
+                    color = Color.Black,
+                    modifier = Modifier.weight(1f)
+                )
+
+                Spacer(modifier = Modifier.weight(0.5f))
+
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = {name = it},
+                    placeholder = {Text(text = stringResource(id = R.string.new_purchase_list_name_hint))},
+                    modifier = Modifier.weight(2f),
+                )
+            }
+            Spacer(modifier = Modifier.weight(2.5f))
+
+            //Error field
+            Row {
+                if (errorMessage){
+                    Text(
+                        text = stringResource(id = R.string.error_message),
+                        color = Color.Red,
+                        modifier = Modifier.padding(start = 12.dp)
+                    )
+                } else{
+                    Spacer(modifier = Modifier.height(20.dp))
+                }
+            }
+
+            Row(
+                modifier = Modifier.weight(3f)
+            ) {
+                Spacer(modifier = Modifier.weight(3f))
+
+                Button(
+                    onClick = { isExpanded.value = false },
+                    modifier = Modifier
+                        .weight(2f)
+                        .padding(4.dp),
+                    colors = ButtonDefaults.buttonColors(Color.Red)
+                ) {
+                    Text(text = stringResource(id = R.string.button_cancel))
+                }
+
+                Button(
+                    onClick = {
+                        //Check if all fields are not null
+                        if (name.text.isBlank()){
+                            errorMessage = true
+                        }
+                        else{
+                            val newList = PurchaseList(
+                                id = list.id,
+                                name = name.text,
+                                listSize = list.listSize,
+                                year = list.year,
+                                month = list.month,
+                                monthValue = list.monthValue,
+                                day = list.day
+                            )
+                            onSubmit(newList)
+                            isExpanded.value = false
+                        }
+                    },
+                    modifier = Modifier
+                        .weight(2f)
+                        .padding(4.dp),
+                    colors = ButtonDefaults.buttonColors(Color.Green)
+                ) {
+                    Text(text = stringResource(id = R.string.button_confirm))
+                }
+
+            }
         }
     }
 }

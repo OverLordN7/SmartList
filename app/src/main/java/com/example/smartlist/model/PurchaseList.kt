@@ -1,5 +1,6 @@
 package com.example.smartlist.model
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
@@ -15,6 +16,8 @@ data class PurchaseList(
     val month: String,
     val monthValue: Int,
     val day: Int,
+    @ColumnInfo(name = "drawableId")
+    val drawableId: Int = (0..4).random()
 )
 
 

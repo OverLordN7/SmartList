@@ -104,6 +104,7 @@ import com.example.smartlist.model.Item
 import com.example.smartlist.model.ListOfMenuItem
 import com.example.smartlist.ui.common_composables.ErrorScreen
 import com.example.smartlist.ui.common_composables.LoadingScreen
+import com.example.smartlist.ui.menu.CustomBottomAppBar
 import com.example.smartlist.ui.menu.DrawerBody
 import com.example.smartlist.ui.menu.DrawerHeader
 import com.example.smartlist.ui.menu.HomeAppBar
@@ -227,6 +228,25 @@ fun DetailedPurchaseListScreen(
                 }
             )
             },
+        bottomBar = {
+            CustomBottomAppBar(
+                navController = navController,
+                context = context
+            )
+        },
+        isFloatingActionButtonDocked = true,
+        floatingActionButtonPosition = FabPosition.Center,
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { showDialog.value = true },
+                modifier = Modifier
+            ){
+                Icon(
+                    imageVector = Icons.Filled.Add,
+                    contentDescription = stringResource(id = R.string.add_purchase_item),
+                )
+            }
+        },
         drawerContent = {
             DrawerHeader()
             DrawerBody(
@@ -241,18 +261,6 @@ fun DetailedPurchaseListScreen(
                     )
                 }
             )
-        },
-        floatingActionButtonPosition = FabPosition.End,
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { showDialog.value = true },
-                modifier = Modifier
-            ){
-                Icon(
-                    imageVector = Icons.Filled.Add,
-                    contentDescription = stringResource(id = R.string.add_purchase_item),
-                )
-            }
         }
     ) {
         Surface(modifier = modifier.padding(it)) {

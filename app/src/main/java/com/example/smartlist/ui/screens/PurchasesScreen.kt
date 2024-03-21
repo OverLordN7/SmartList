@@ -2,6 +2,7 @@ package com.example.smartlist.ui.screens
 
 import android.util.Log
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,11 +14,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BottomAppBar
 import androidx.compose.material.Button
-import androidx.compose.material.ButtonColors
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Card
 import androidx.compose.material.FabPosition
@@ -28,11 +29,11 @@ import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
-import androidx.compose.material.TextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -51,7 +52,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -65,6 +65,7 @@ import com.example.smartlist.model.PurchaseList
 import com.example.smartlist.navigation.Screen
 import com.example.smartlist.ui.common_composables.ErrorScreen
 import com.example.smartlist.ui.common_composables.LoadingScreen
+import com.example.smartlist.ui.menu.CustomBottomAppBar
 import com.example.smartlist.ui.menu.DrawerBody
 import com.example.smartlist.ui.menu.DrawerHeader
 import com.example.smartlist.ui.menu.HomeAppBar
@@ -113,6 +114,8 @@ fun PurchasesScreen(
         homeViewModel.clearVoiceCommand()
     }
 
+    val themeMode = homeViewModel.isDarkThemeEnabled.collectAsState()
+
     voiceCommand?.let { command->
 
         val parts = command.text.split(" ")
@@ -159,11 +162,21 @@ fun PurchasesScreen(
             )
         },
         bottomBar = {
-            BottomAppBar {
-
-            }
+            CustomBottomAppBar(
+                navController = navController,
+                context = context
+            )
         },
         isFloatingActionButtonDocked = true,
+        floatingActionButtonPosition = FabPosition.Center,
+        floatingActionButton = {
+            FloatingActionButton(onClick = { showDialog.value = true}) {
+                Icon(
+                    imageVector = Icons.Filled.Add,
+                    contentDescription = stringResource(id = R.string.add_new_purchase_list)
+                )
+            }
+        },
         drawerContent = {
             DrawerHeader()
             DrawerBody(
@@ -178,15 +191,6 @@ fun PurchasesScreen(
                     )
                 }
             )
-        },
-        floatingActionButtonPosition = FabPosition.End,
-        floatingActionButton = {
-            FloatingActionButton(onClick = { showDialog.value = true}) {
-                Icon(
-                    imageVector = Icons.Filled.Add,
-                    contentDescription = stringResource(id = R.string.add_new_purchase_list)
-                )
-            }
         }
     ) { it ->
         Surface(modifier = modifier.padding(it)) {
@@ -196,6 +200,7 @@ fun PurchasesScreen(
                 is PurchaseUiState.Success ->{
                     ResultScreen(
                         lists = state.purchaseLists,
+                        themeMode = themeMode.value,
                         onClick = {
                             purchaseViewModel.currentListId = it
                             purchaseViewModel.getItemsOfPurchaseList()
@@ -217,6 +222,7 @@ fun PurchasesScreen(
 @Composable
 fun ResultScreen(
     lists: List<PurchaseList>,
+    themeMode: Boolean,
     onClick: (UUID) -> Unit,
     onEdit: (PurchaseList) -> Unit,
     onDelete: (UUID) -> Unit,
@@ -231,6 +237,7 @@ fun ResultScreen(
         items(lists.size){ index ->
             NewListCard(
                 list = lists[index],
+                themeMode = themeMode,
                 onClick = { onClick(lists[index].id)},
                 onEdit = onEdit,
                 onDelete = onDelete,
@@ -242,6 +249,7 @@ fun ResultScreen(
 @Composable
 fun NewListCard(
     list: PurchaseList,
+    themeMode: Boolean,
     onClick: (UUID) -> Unit,
     onEdit: (PurchaseList) -> Unit,
     onDelete: (UUID) -> Unit,
@@ -262,13 +270,13 @@ fun NewListCard(
         R.drawable.img_5,
     )
 
-    imgAsset = when(list.name.hashCode() % 10){
-        in 3..4 -> img_assets[1]
-        in 5..6 -> img_assets[2]
-        in 7..8 -> img_assets[3]
-        9 -> img_assets[4]
+    imgAsset = when(list.drawableId){
+        1 -> img_assets[1]
+        2 -> img_assets[2]
+        3 -> img_assets[3]
+        4 -> img_assets[4]
         else->{
-            img_assets[1]
+            img_assets[0]
         }
     }
 
@@ -346,13 +354,23 @@ fun NewListCard(
                                 }
                             }
                             Spacer(modifier = Modifier.weight(3f))
-                            Text(
-                                text = list.month +" "+ list.year,
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Light,
-                                color = Color.White,
-                                modifier = Modifier.weight(1f)
-                            )
+                            Row(modifier = Modifier.weight(1f)){
+                                Text(
+                                    text = list.month +" "+ list.year,
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Light,
+                                    color = Color.White,
+                                    modifier = Modifier.weight(3f)
+                                )
+                                Spacer(modifier = Modifier.weight(3f))
+                                Text(
+                                    text = "Items: ${list.listSize}",
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (themeMode) Color.White else Color.Black,
+                                    modifier = Modifier.weight(1.5f)
+                                )
+                            }
                         }
                     }
                 }
@@ -522,7 +540,9 @@ fun NewEditScreen(
 
                 Button(
                     onClick = { isExpanded.value = false },
-                    modifier = Modifier.weight(2f).padding(4.dp),
+                    modifier = Modifier
+                        .weight(2f)
+                        .padding(4.dp),
                     colors = ButtonDefaults.buttonColors(Color.Red)
                 ) {
                     Text(text = stringResource(id = R.string.button_cancel))
@@ -548,7 +568,9 @@ fun NewEditScreen(
                             isExpanded.value = false
                         }
                     },
-                    modifier = Modifier.weight(2f).padding(4.dp),
+                    modifier = Modifier
+                        .weight(2f)
+                        .padding(4.dp),
                     colors = ButtonDefaults.buttonColors(Color.Green)
                 ) {
                     Text(text = stringResource(id = R.string.button_confirm))

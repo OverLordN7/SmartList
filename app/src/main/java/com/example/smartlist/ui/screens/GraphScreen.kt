@@ -41,6 +41,7 @@ import com.example.smartlist.ui.charts.DonutChart
 import com.example.smartlist.ui.charts.bar_graph.BarType
 import com.example.smartlist.ui.common_composables.ErrorScreen
 import com.example.smartlist.ui.common_composables.LoadingScreen
+import com.example.smartlist.ui.menu.CustomBottomAppBar
 import com.example.smartlist.ui.menu.DrawerBody
 import com.example.smartlist.ui.menu.DrawerHeader
 import com.example.smartlist.ui.menu.HomeAppBar
@@ -100,6 +101,12 @@ fun GraphScreen(
                 isRetryActionEnabled = true,
                 retryAction = onRetryAction
 
+            )
+        },
+        bottomBar = {
+            CustomBottomAppBar(
+                navController = navController,
+                context = context
             )
         },
         drawerContent = {

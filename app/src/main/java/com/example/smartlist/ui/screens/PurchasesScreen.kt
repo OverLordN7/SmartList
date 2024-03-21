@@ -1,5 +1,7 @@
 package com.example.smartlist.ui.screens
 
+import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,8 +13,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.BottomAppBar
 import androidx.compose.material.Button
+import androidx.compose.material.ButtonColors
+import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Card
 import androidx.compose.material.FabPosition
 import androidx.compose.material.FloatingActionButton
@@ -22,6 +28,7 @@ import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
+import androidx.compose.material.TextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
@@ -39,8 +46,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -147,6 +158,12 @@ fun PurchasesScreen(
                 isRetryActionEnabled = true,
             )
         },
+        bottomBar = {
+            BottomAppBar {
+
+            }
+        },
+        isFloatingActionButtonDocked = true,
         drawerContent = {
             DrawerHeader()
             DrawerBody(
@@ -190,6 +207,8 @@ fun PurchasesScreen(
                         onDelete = onDelete,
                     )
                 }
+
+                else -> {}
             }
         }
     }
@@ -210,7 +229,7 @@ fun ResultScreen(
 
     LazyColumn{
         items(lists.size){ index ->
-            ListCard(
+            NewListCard(
                 list = lists[index],
                 onClick = { onClick(lists[index].id)},
                 onEdit = onEdit,
@@ -220,6 +239,137 @@ fun ResultScreen(
     }
 }
 
+@Composable
+fun NewListCard(
+    list: PurchaseList,
+    onClick: (UUID) -> Unit,
+    onEdit: (PurchaseList) -> Unit,
+    onDelete: (UUID) -> Unit,
+    modifier: Modifier = Modifier
+){
+
+    val isChangeMode = remember { mutableStateOf(false) }
+
+    Log.d("Purchase", "hash: ${list.name.hashCode()} and division : ${list.name.hashCode() % 10}")
+
+    var imgAsset: Int = 0
+
+    val img_assets = listOf(
+        R.drawable.img_1,
+        R.drawable.img_2,
+        R.drawable.img_3,
+        R.drawable.img_4,
+        R.drawable.img_5,
+    )
+
+    imgAsset = when(list.name.hashCode() % 10){
+        in 3..4 -> img_assets[1]
+        in 5..6 -> img_assets[2]
+        in 7..8 -> img_assets[3]
+        9 -> img_assets[4]
+        else->{
+            img_assets[1]
+        }
+    }
+
+    if (!isChangeMode.value){
+        Card(
+            modifier = modifier
+                .fillMaxWidth()
+                .height(200.dp)
+                .padding(8.dp)
+                .clickable {
+                    onClick(list.id)
+                },
+            elevation = 4.dp
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ){
+                val customShape = GenericShape{ size, _ ->
+                    val width = size.width
+                    val height = size.height
+                    // construct shape from position where start is up left corner 0,0
+                    // and right bottom corner is width,height
+                    lineTo(width*0.3.toFloat(),0f)
+                    lineTo(width*0.6.toFloat(),height)
+                    lineTo(0f,height)
+                    close()
+                }
+                Image(
+                    painter = painterResource(id = imgAsset),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.graphicsLayer {
+                        clip = true
+                        shape = customShape
+                    }
+                )
+
+                Column {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(4.dp),
+                        backgroundColor = Color.Transparent,
+                        elevation = 0.dp
+                    ) {
+                        Column {
+                            Row(modifier = Modifier.weight(1f)){
+                                Text(
+                                    text = list.name,
+                                    fontSize = 28.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White,
+                                    modifier = Modifier.weight(3f)
+                                )
+                                Spacer(modifier = Modifier.weight(2f))
+                                IconButton(
+                                    modifier = Modifier.weight(1f),
+                                    onClick = { isChangeMode.value = !isChangeMode.value }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Edit,
+                                        contentDescription = stringResource(id = R.string.edit_current_list)
+                                    )
+                                }
+
+                                IconButton(
+                                    modifier = Modifier.weight(1f),
+                                    onClick = { onDelete(list.id) }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Delete,
+                                        contentDescription = stringResource(id = R.string.delete_current_list)
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.weight(3f))
+                            Text(
+                                text = list.month +" "+ list.year,
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Light,
+                                color = Color.White,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        Card(
+            modifier = modifier
+                .fillMaxWidth()
+                .height(200.dp)
+                .padding(8.dp),
+            elevation = 4.dp
+        ){
+            NewEditScreen(list = list, isExpanded = isChangeMode, onSubmit = onEdit)
+        }
+    }
+}
 
 @Composable
 fun ListCard(
@@ -308,6 +458,103 @@ fun EmptyListCard(modifier: Modifier = Modifier){
                 text = stringResource(id = R.string.empty_card_message_2),
                 color = Color.Black
             )
+        }
+    }
+}
+
+@Composable
+fun NewEditScreen(
+    list: PurchaseList,
+    isExpanded: MutableState<Boolean>,
+    onSubmit: (PurchaseList) -> Unit,
+    modifier: Modifier = Modifier
+){
+    var name by remember { mutableStateOf(TextFieldValue(list.name)) }
+    var errorMessage by remember { mutableStateOf(false) }
+
+
+    Log.d("Purchase", "hash code of ${list.name} is ${list.name.hashCode()}")
+
+    Card(
+        modifier = modifier.padding(8.dp),
+        elevation = 0.dp
+    ) {
+        Column{
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.weight(3f)
+            ) {
+                Text(
+                    text = stringResource(id = R.string.purchaselist_name_title),
+                    fontSize = 16.sp,
+                    color = Color.Black,
+                    modifier = Modifier.weight(1f)
+                )
+
+                Spacer(modifier = Modifier.weight(0.5f))
+
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = {name = it},
+                    placeholder = {Text(text = stringResource(id = R.string.new_purchase_list_name_hint))},
+                    modifier = Modifier.weight(2f),
+                )
+            }
+            Spacer(modifier = Modifier.weight(2.5f))
+
+            //Error field
+            Row {
+                if (errorMessage){
+                    Text(
+                        text = stringResource(id = R.string.error_message),
+                        color = Color.Red,
+                        modifier = Modifier.padding(start = 12.dp)
+                    )
+                } else{
+                    Spacer(modifier = Modifier.height(20.dp))
+                }
+            }
+
+            Row(
+                modifier = Modifier.weight(3f)
+            ) {
+                Spacer(modifier = Modifier.weight(3f))
+
+                Button(
+                    onClick = { isExpanded.value = false },
+                    modifier = Modifier.weight(2f).padding(4.dp),
+                    colors = ButtonDefaults.buttonColors(Color.Red)
+                ) {
+                    Text(text = stringResource(id = R.string.button_cancel))
+                }
+
+                Button(
+                    onClick = {
+                        //Check if all fields are not null
+                        if (name.text.isBlank()){
+                            errorMessage = true
+                        }
+                        else{
+                            val newList = PurchaseList(
+                                id = list.id,
+                                name = name.text,
+                                listSize = list.listSize,
+                                year = list.year,
+                                month = list.month,
+                                monthValue = list.monthValue,
+                                day = list.day
+                            )
+                            onSubmit(newList)
+                            isExpanded.value = false
+                        }
+                    },
+                    modifier = Modifier.weight(2f).padding(4.dp),
+                    colors = ButtonDefaults.buttonColors(Color.Green)
+                ) {
+                    Text(text = stringResource(id = R.string.button_confirm))
+                }
+
+            }
         }
     }
 }

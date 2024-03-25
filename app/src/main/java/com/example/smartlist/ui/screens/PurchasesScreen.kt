@@ -23,10 +23,12 @@ import androidx.compose.material.FabPosition
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
+import androidx.compose.material.TextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
@@ -37,27 +39,30 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.example.smartlist.R
 import com.example.smartlist.extend_functions.capitalizeFirstChar
+import com.example.smartlist.model.DishList
 import com.example.smartlist.model.ListOfMenuItem
 import com.example.smartlist.model.PurchaseList
 import com.example.smartlist.navigation.Screen
@@ -73,7 +78,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import java.util.UUID
 
-
+private const val TAG = "PurchaseScreen"
 @Composable
 fun PurchasesScreen(
     navController: NavController,
@@ -234,7 +239,7 @@ fun ResultScreen(
 
     LazyColumn{
         items(lists.size){ index ->
-            NewListCard(
+            DishListCard(
                 list = lists[index],
                 themeMode = themeMode,
                 onClick = { onClick(lists[index].id)},
@@ -246,7 +251,7 @@ fun ResultScreen(
 }
 
 @Composable
-fun NewListCard(
+fun DishListCard(
     list: PurchaseList,
     themeMode: Boolean,
     onClick: (UUID) -> Unit,
@@ -257,6 +262,17 @@ fun NewListCard(
 
     val isChangeMode = remember { mutableStateOf(false) }
     val context = LocalContext.current
+
+    var spacerWeight by remember { mutableFloatStateOf(3f) }
+    var itemWeight by remember { mutableFloatStateOf(2f) }
+
+    if( list.listSize > 9 ){
+        spacerWeight = 4f
+        itemWeight = 2.5f
+    }else{
+        spacerWeight = 3f
+        itemWeight = 2f
+    }
 
     val imgAssets = listOf(
         R.drawable.img_1,
@@ -290,8 +306,8 @@ fun NewListCard(
     val dateCustomShape = GenericShape{size,_ ->
         val width = size.width
         val height = size.height
+        Log.d(TAG, "Height is: $height, and width is: $width")
         lineTo(width*0.75.toFloat(),0f)
-        //lineTo(width,height*0.75.toFloat())
         lineTo(width*0.9.toFloat(),height)
         lineTo(0f,height)
         close()
@@ -325,20 +341,26 @@ fun NewListCard(
                 Column {
                     Card(
                         modifier = Modifier
-                            .fillMaxSize()
-                            .padding(4.dp),
+                            .fillMaxSize(),
                         backgroundColor = Color.Transparent,
                         elevation = 0.dp
                     ) {
-                        Column {
-                            Row(modifier = Modifier.weight(1f)){
-                                Text(
-                                    text = list.name,
-                                    fontSize = 28.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White,
-                                    modifier = Modifier.weight(3f)
-                                )
+                        Column() {
+                            Row(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .background(MaterialTheme.colors.primary)
+                                    .padding(start = 4.dp, end = 4.dp)
+                            ){
+                                Box( modifier = Modifier.weight(3f)) {
+                                    Text(
+                                        text = list.name,
+                                        fontSize = 28.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
                                 Spacer(modifier = Modifier.weight(2f))
                                 IconButton(
                                     modifier = Modifier.weight(1f),
@@ -346,7 +368,8 @@ fun NewListCard(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Edit,
-                                        contentDescription = stringResource(id = R.string.edit_current_list)
+                                        contentDescription = stringResource(id = R.string.edit_current_list),
+                                        tint = MaterialTheme.colors.onPrimary
                                     )
                                 }
 
@@ -356,7 +379,8 @@ fun NewListCard(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Delete,
-                                        contentDescription = stringResource(id = R.string.delete_current_list)
+                                        contentDescription = stringResource(id = R.string.delete_current_list),
+                                        tint = MaterialTheme.colors.onPrimary
                                     )
                                 }
                             }
@@ -379,9 +403,16 @@ fun NewListCard(
                                         //modifier = Modifier.weight(3f)
                                     )
                                 }
-                                Spacer(modifier = Modifier.weight(3f))
+                                Spacer(modifier = Modifier.weight(spacerWeight))
                                 Box(
-                                    modifier = Modifier.weight(2f).padding(start = 4.dp, top = 8.dp, end = 4.dp, bottom = 4.dp),
+                                    modifier = Modifier
+                                        .weight(itemWeight)
+                                        .padding(
+                                            start = 4.dp,
+                                            top = 8.dp,
+                                            end = 4.dp,
+                                            bottom = 4.dp
+                                        ),
                                     contentAlignment = Alignment.BottomCenter
                                 ) {
                                     Text(
@@ -437,75 +468,74 @@ fun NewEditScreen(
     isExpanded: MutableState<Boolean>,
     onSubmit: (PurchaseList) -> Unit,
     modifier: Modifier = Modifier
-){
+) {
     var name by remember { mutableStateOf(TextFieldValue(list.name)) }
     var errorMessage by remember { mutableStateOf(false) }
 
-
-    Log.d("Purchase", "hash code of ${list.name} is ${list.name.hashCode()}")
-
-    Card(
-        modifier = modifier.padding(8.dp),
-        elevation = 0.dp
-    ) {
-        Column{
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.weight(3f)
+    Card {
+        Column {
+            Box(
+                modifier = Modifier
+                    .background(color = MaterialTheme.colors.primary)
+                    .fillMaxWidth()
             ) {
                 Text(
                     text = stringResource(id = R.string.purchaselist_name_title),
-                    fontSize = 16.sp,
-                    color = Color.Black,
-                    modifier = Modifier.weight(1f)
-                )
-
-                Spacer(modifier = Modifier.weight(0.5f))
-
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = {name = it},
-                    placeholder = {Text(text = stringResource(id = R.string.new_purchase_list_name_hint))},
-                    modifier = Modifier.weight(2f),
+                    fontSize = 20.sp,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(8.dp)
                 )
             }
-            Spacer(modifier = Modifier.weight(2.5f))
 
-            //Error field
-            Row {
-                if (errorMessage){
+            TextField(
+                value = name,
+                onValueChange = { name = it },
+                placeholder = {
                     Text(
-                        text = stringResource(id = R.string.error_message),
-                        color = Color.Red,
-                        modifier = Modifier.padding(start = 12.dp)
+                        text = stringResource(id = R.string.new_purchase_list_name_hint),
+                        color = Color.Gray,
+                        fontStyle = FontStyle.Italic
                     )
-                } else{
-                    Spacer(modifier = Modifier.height(20.dp))
-                }
+                },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, top = 4.dp, bottom = 0.dp)
+            )
+
+            if (errorMessage) {
+                Text(
+                    text = stringResource(id = R.string.error_message),
+                    color = Color.Red,
+                    fontSize = 12.sp,
+                    fontStyle = FontStyle.Italic,
+                    modifier = Modifier.height(32.dp).padding(start = 8.dp, end = 8.dp, top = 4.dp, bottom = 0.dp)
+                )
+            } else{
+                Spacer(modifier = Modifier.height(32.dp).padding(start = 8.dp, end = 8.dp, top = 0.dp, bottom = 0.dp))
             }
 
             Row(
-                modifier = Modifier.weight(3f)
+                horizontalArrangement = Arrangement.End,
+                modifier = Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, top = 0.dp, bottom = 0.dp)
             ) {
-                Spacer(modifier = Modifier.weight(3f))
-
                 Button(
                     onClick = { isExpanded.value = false },
                     modifier = Modifier
-                        .weight(2f)
-                        .padding(4.dp),
-                    colors = ButtonDefaults.buttonColors(Color.Red)
+                        .padding(end = 8.dp)
+                        .height(40.dp),
+                    colors = ButtonDefaults.buttonColors(backgroundColor = Color.Red)
                 ) {
-                    Text(text = stringResource(id = R.string.button_cancel))
+                    Text(
+                        text = stringResource(id = R.string.button_cancel),
+                        color = Color.White
+                    )
                 }
 
                 Button(
                     onClick = {
-                        //Check if all fields are not null
-                        if (name.text.isBlank()){
+                        if (name.text.isBlank()) {
                             errorMessage = true
-                        }
-                        else{
+                        } else {
                             val newList = PurchaseList(
                                 id = list.id,
                                 name = name.text,
@@ -520,101 +550,20 @@ fun NewEditScreen(
                         }
                     },
                     modifier = Modifier
-                        .weight(2f)
-                        .padding(4.dp),
-                    colors = ButtonDefaults.buttonColors(Color.Green)
+                        .height(40.dp),
+                    colors = ButtonDefaults.buttonColors(backgroundColor = Color.Green)
                 ) {
-                    Text(text = stringResource(id = R.string.button_confirm))
+                    Text(
+                        text = stringResource(id = R.string.button_confirm),
+                        color = Color.White
+                    )
                 }
-
             }
         }
     }
 }
 
-@Composable
-fun EditScreen(
-    list: PurchaseList,
-    isExpanded: MutableState<Boolean>,
-    onSubmit: (PurchaseList) -> Unit,
-    modifier: Modifier = Modifier
-){
-    var name by remember { mutableStateOf(TextFieldValue(list.name)) }
-    var errorMessage by remember { mutableStateOf(false) }
 
-    Column(modifier = modifier.padding(4.dp)) {
-
-        //Name field
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ){
-            Text(
-                text = stringResource(id = R.string.purchaselist_name_title),
-                fontSize = 16.sp,
-                color = Color.Black,
-                modifier = Modifier.weight(1f)
-            )
-
-            OutlinedTextField(
-                value = name,
-                onValueChange = {name = it},
-                placeholder = {Text(text = stringResource(id = R.string.new_purchase_list_name_hint))},
-                modifier = Modifier.weight(2f),
-            )
-        }
-
-        //Error field
-        Row {
-            if (errorMessage){
-                Text(
-                    text = stringResource(id = R.string.error_message),
-                    color = Color.Red,
-                    modifier = Modifier.padding(start = 12.dp)
-                )
-            } else{
-                Spacer(modifier = Modifier.height(20.dp))
-            }
-        }
-
-        //Buttons
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ){
-            Button(onClick = { isExpanded.value = false }, modifier = Modifier.weight(1f)) {
-                Text(text = stringResource(id = R.string.button_cancel))
-            }
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            Button(
-                onClick = {
-                    //Check if all fields are not null
-                    if (name.text.isBlank()){
-                        errorMessage = true
-                    }
-                    else{
-                        val newList = PurchaseList(
-                            id = list.id,
-                            name = name.text,
-                            listSize = list.listSize,
-                            year = list.year,
-                            month = list.month,
-                            monthValue = list.monthValue,
-                            day = list.day
-                        )
-                        onSubmit(newList)
-                        isExpanded.value = false
-                    }
-                },
-                modifier = Modifier.weight(1f),
-            ) {
-                Text(text = stringResource(id = R.string.button_confirm))
-            }
-        }
-    }
-}
 @Composable
 fun NewPurchaseListDialog(
     setShowDialog: (Boolean) -> Unit,

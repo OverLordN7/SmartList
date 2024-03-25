@@ -14,6 +14,8 @@ data class DishList(
     val year: Int,
     val month: String,
     val day: Int,
+    @ColumnInfo(name = "drawableId")
+    val drawableId: Int = (0..4).random()
 )
 @Entity(
     tableName = "recipe_table",

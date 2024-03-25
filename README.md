@@ -54,6 +54,14 @@ The application requires:
 
 ## Credits
 A great thanks to [Giorgos Patronas](https://github.com/giorgospat/compose-charts.git) for help with Donut and Pie Chart in android.
+A great thanks to: 
+* [kifotofotografia](https://pixabay.com/users/kifotofotografia-23234270/?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=8151625)
+* [Joanna Wielgosz](https://pixabay.com/users/joannawielgosz-168212/?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=7209002)
+* [Виктория](https://pixabay.com/users/vika-imperia550-851270/?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=1155132)
+* [cattalin](https://pixabay.com/users/cattalin-560479/?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=518035)
+* [-Rita-👩‍🍳 und 📷 mit ❤](https://pixabay.com/users/ritae-19628/?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=2020870)
+
+for great photos and works on website [Pixabay](https://pixabay.com/)
 
 
 ## License

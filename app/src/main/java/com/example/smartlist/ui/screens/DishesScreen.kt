@@ -1,7 +1,10 @@
 package com.example.smartlist.ui.screens
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,21 +13,23 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
+import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Card
 import androidx.compose.material.FabPosition
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
+import androidx.compose.material.TextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Cancel
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.rememberScaffoldState
@@ -33,6 +38,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -40,10 +46,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -52,6 +63,7 @@ import com.example.smartlist.R
 import com.example.smartlist.extend_functions.capitalizeFirstChar
 import com.example.smartlist.model.DishList
 import com.example.smartlist.model.ListOfMenuItem
+import com.example.smartlist.model.PurchaseList
 import com.example.smartlist.navigation.Screen
 import com.example.smartlist.ui.common_composables.ErrorScreen
 import com.example.smartlist.ui.common_composables.LoadingScreen
@@ -89,6 +101,8 @@ fun DishesScreen(
     //Voice attributes
     val voiceState by homeViewModel.voiceToTextParser.state.collectAsState()
     val voiceCommand by homeViewModel.voiceCommand.collectAsState()
+
+    val themeMode = homeViewModel.isDarkThemeEnabled.collectAsState()
 
     //When switch to different screen, refresh command
     LaunchedEffect(navController.currentBackStackEntry){
@@ -188,6 +202,7 @@ fun DishesScreen(
                 is DishUiState.Success ->{
                     ResultScreen(
                         lists = state.dishList,
+                        themeMode = themeMode.value,
                         onClick = { listId ->
                             dishViewModel.currentListId = listId
                             dishViewModel.getRecipesList()
@@ -207,6 +222,7 @@ fun DishesScreen(
 @Composable
 fun ResultScreen(
     lists: List<DishList>,
+    themeMode: Boolean,
     onClick: (UUID) -> Unit,
     onEdit: (DishList) -> Unit,
     onDelete: (UUID) -> Unit,
@@ -221,6 +237,7 @@ fun ResultScreen(
         items(lists.size){index ->
             DishListCard(
                 list = lists[index],
+                themeMode = themeMode,
                 onClick = { onClick(lists[index].id)},
                 onEdit = onEdit,
                 onDelete = onDelete,
@@ -230,7 +247,7 @@ fun ResultScreen(
 }
 
 @Composable
-fun DishListCard(
+fun DishListCard1(
     list: DishList,
     onClick: (UUID) -> Unit,
     onEdit: (DishList) -> Unit,
@@ -305,6 +322,199 @@ fun DishListCard(
 }
 
 @Composable
+fun DishListCard(
+    list: DishList,
+    themeMode: Boolean,
+    onClick: (UUID) -> Unit,
+    onEdit: (DishList) -> Unit,
+    onDelete: (UUID) -> Unit,
+    modifier: Modifier = Modifier
+){
+
+    val isChangeMode = remember { mutableStateOf(false) }
+    val context = LocalContext.current
+
+    var spacerWeight by remember { mutableFloatStateOf(3f) }
+    var itemWeight by remember { mutableFloatStateOf(2f) }
+
+    if( list.listSize > 9 ){
+        spacerWeight = 4f
+        itemWeight = 2.5f
+    }else{
+        spacerWeight = 3f
+        itemWeight = 2f
+    }
+
+    val imgAssets = listOf(
+        R.drawable.food_1,
+        R.drawable.food_2,
+        R.drawable.food_3,
+        R.drawable.food_4,
+        R.drawable.food_5,
+    )
+
+    val imgAsset = when(list.drawableId){
+        1 -> imgAssets[1]
+        2 -> imgAssets[2]
+        3 -> imgAssets[3]
+        4 -> imgAssets[4]
+        else->{
+            imgAssets[0]
+        }
+    }
+
+    val customShape = GenericShape{ size, _ ->
+        val width = size.width
+        val height = size.height
+        // construct shape from position where start is up left corner 0,0
+        // and right bottom corner is width,height
+        lineTo(width*0.3.toFloat(),0f)
+        lineTo(width*0.6.toFloat(),height)
+        lineTo(0f,height)
+        close()
+    }
+
+    val dateCustomShape = GenericShape{size,_ ->
+        val width = size.width
+        val height = size.height
+        lineTo(width*0.75.toFloat(),0f)
+        lineTo(width*0.9.toFloat(),height)
+        lineTo(0f,height)
+        close()
+    }
+
+    if (!isChangeMode.value){
+        Card(
+            modifier = modifier
+                .fillMaxWidth()
+                .height(200.dp)
+                .padding(8.dp)
+                .clickable {
+                    onClick(list.id)
+                },
+            elevation = 4.dp
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ){
+                Image(
+                    painter = painterResource(id = imgAsset),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.graphicsLayer {
+                        clip = true
+                        shape = customShape
+                    }
+                )
+
+                Column {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        backgroundColor = Color.Transparent,
+                        elevation = 0.dp
+                    ) {
+                        Column() {
+                            Row(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .background(MaterialTheme.colors.primary)
+                                    .padding(start = 4.dp, end = 4.dp)
+                            ){
+                                Box( modifier = Modifier.weight(3f)) {
+                                    Text(
+                                        text = list.name,
+                                        fontSize = 28.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                                Spacer(modifier = Modifier.weight(2f))
+                                IconButton(
+                                    modifier = Modifier.weight(1f),
+                                    onClick = { isChangeMode.value = !isChangeMode.value }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Edit,
+                                        contentDescription = stringResource(id = R.string.edit_current_list),
+                                        tint = MaterialTheme.colors.onPrimary
+                                    )
+                                }
+
+                                IconButton(
+                                    modifier = Modifier.weight(1f),
+                                    onClick = { onDelete(list.id) }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Delete,
+                                        contentDescription = stringResource(id = R.string.delete_current_list),
+                                        tint = MaterialTheme.colors.onPrimary
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.weight(3f))
+                            Row(modifier = Modifier.weight(1f)){
+                                Box(
+                                    modifier = Modifier
+                                        .weight(3f)
+                                        .background(
+                                            Color.Black.copy(alpha = 0.5f),
+                                            shape = dateCustomShape
+                                        )
+                                        .padding(4.dp)
+                                ) {
+                                    Text(
+                                        text = list.month +" "+ list.year,
+                                        fontSize = 20.sp,
+                                        fontWeight = FontWeight.Light,
+                                        color = Color.White,
+                                        //modifier = Modifier.weight(3f)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.weight(spacerWeight))
+                                Box(
+                                    modifier = Modifier
+                                        .weight(itemWeight)
+                                        .padding(
+                                            start = 4.dp,
+                                            top = 8.dp,
+                                            end = 4.dp,
+                                            bottom = 4.dp
+                                        ),
+                                    contentAlignment = Alignment.BottomCenter
+                                ) {
+                                    Text(
+                                        text = context.getString(
+                                            R.string.card_items,
+                                            list.listSize
+                                        ),
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Light,
+                                        color = if (themeMode) Color.White else Color.Black,
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        Card(
+            modifier = modifier
+                .fillMaxWidth()
+                .height(200.dp)
+                .padding(8.dp),
+            elevation = 4.dp
+        ){
+            DishEditScreen1(list = list, isExpanded = isChangeMode, onSubmit = onEdit)
+        }
+    }
+}
+
+@Composable
 fun DishEditScreen(
     list: DishList,
     isExpanded: MutableState<Boolean>,
@@ -314,7 +524,7 @@ fun DishEditScreen(
     var name by remember { mutableStateOf(TextFieldValue(list.name)) }
     var errorMessage by remember { mutableStateOf(false) }
 
-    Column(modifier = Modifier.padding(4.dp)) {
+    Column(modifier = modifier.padding(4.dp)) {
 
         //Name field
         Row(
@@ -384,6 +594,106 @@ fun DishEditScreen(
                 },
             ) {
                 Text(text = stringResource(id = R.string.button_confirm))
+            }
+        }
+    }
+}
+
+@Composable
+fun DishEditScreen1(
+    list: DishList,
+    isExpanded: MutableState<Boolean>,
+    onSubmit: (DishList) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var name by remember { mutableStateOf(TextFieldValue(list.name)) }
+    var errorMessage by remember { mutableStateOf(false) }
+
+    Card {
+        Column {
+            Box(
+                modifier = Modifier
+                    .background(color = MaterialTheme.colors.primary)
+                    .fillMaxWidth()
+            ) {
+                Text(
+                    text = stringResource(id = R.string.purchaselist_name_title),
+                    fontSize = 20.sp,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(8.dp)
+                )
+            }
+
+            TextField(
+                value = name,
+                onValueChange = { name = it },
+                placeholder = {
+                    Text(
+                        text = stringResource(id = R.string.new_purchase_list_name_hint),
+                        color = Color.Gray,
+                        fontStyle = FontStyle.Italic
+                    )
+                },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, top = 4.dp, bottom = 0.dp)
+            )
+
+            if (errorMessage) {
+                Text(
+                    text = stringResource(id = R.string.error_message),
+                    color = Color.Red,
+                    fontSize = 12.sp,
+                    fontStyle = FontStyle.Italic,
+                    modifier = Modifier.height(32.dp).padding(start = 8.dp, end = 8.dp, top = 4.dp, bottom = 0.dp)
+                )
+            } else{
+                Spacer(modifier = Modifier.height(32.dp).padding(start = 8.dp, end = 8.dp, top = 0.dp, bottom = 0.dp))
+            }
+
+            Row(
+                horizontalArrangement = Arrangement.End,
+                modifier = Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, top = 0.dp, bottom = 0.dp)
+            ) {
+                Button(
+                    onClick = { isExpanded.value = false },
+                    modifier = Modifier
+                        .padding(end = 8.dp)
+                        .height(40.dp),
+                    colors = ButtonDefaults.buttonColors(backgroundColor = Color.Red)
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.button_cancel),
+                        color = Color.White
+                    )
+                }
+
+                Button(
+                    onClick = {
+                        if (name.text.isBlank()) {
+                            errorMessage = true
+                        } else {
+                            val newList = DishList(
+                                id = list.id,
+                                name = name.text,
+                                listSize = list.listSize,
+                                year = list.year,
+                                month = list.month,
+                                day = list.day
+                            )
+                            onSubmit(newList)
+                            isExpanded.value = false
+                        }
+                    },
+                    modifier = Modifier
+                        .height(40.dp),
+                    colors = ButtonDefaults.buttonColors(backgroundColor = Color.Green)
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.button_confirm),
+                        color = Color.White
+                    )
+                }
             }
         }
     }

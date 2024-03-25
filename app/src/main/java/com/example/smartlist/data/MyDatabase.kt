@@ -33,6 +33,11 @@ val MIGRATION_14_15 = object : Migration(14,15){
         database.execSQL("ALTER TABLE list_table ADD COLUMN drawableId INTEGER NOT NULL DEFAULT 0")
     }
 }
+val MIGRATION_15_16 = object : Migration(15,16){
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("ALTER TABLE dished_list ADD COLUMN drawableId INTEGER NOT NULL DEFAULT 0")
+    }
+}
 
 @Database(
     entities = [
@@ -43,7 +48,7 @@ val MIGRATION_14_15 = object : Migration(14,15){
         Recipe::class,
         Product::class
     ],
-    version = 15,
+    version = 16,
     exportSchema = true,
     //autoMigrations = [AutoMigration(from = 14, to = 15)]
 )
@@ -109,6 +114,7 @@ abstract class MyDatabase: RoomDatabase() {
                 )
                     .addMigrations(MIGRATION_11_12)
                     .addMigrations(MIGRATION_14_15)
+                    .addMigrations(MIGRATION_15_16)
                     .addCallback(object : RoomDatabase.Callback(){
                     override fun onCreate(db: SupportSQLiteDatabase) {
                         super.onCreate(db)

@@ -244,6 +244,9 @@ class DishViewModel (
 
             //Refresh Recipe list
             getRecipesList()
+
+            //Update DishList composable state
+            getDishLists()
         }
 
 
@@ -264,6 +267,9 @@ class DishViewModel (
 
             //Refresh Recipe list
             getRecipesList()
+
+            //Update DishList composable state
+            getDishLists()
         }
     }
 

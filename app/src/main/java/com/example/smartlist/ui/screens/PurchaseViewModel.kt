@@ -215,6 +215,9 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
 
             //Refresh Item List
             getItemsOfPurchaseList()
+
+            //Update purchaseList state
+            getPurchaseLists()
         }
     }
 
@@ -234,6 +237,9 @@ class PurchaseViewModel(private val purchaseRepository: PurchaseRepository): Vie
 
             //Refresh Item List
             getItemsOfPurchaseList()
+
+            //Update purchaseList state
+            getPurchaseLists()
         }
     }
 

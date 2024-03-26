@@ -1,6 +1,5 @@
 package com.example.smartlist.ui.screens
 
-import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -17,12 +16,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
 import androidx.compose.material.Card
+import androidx.compose.material.FabPosition
+import androidx.compose.material.FloatingActionButton
+import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedButton
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -79,6 +82,16 @@ fun ProductScreen(
 
     val voiceState by homeViewModel.voiceToTextParser.state.collectAsState()
 
+    val showDialog = remember { mutableStateOf(false) }
+    if (showDialog.value){
+        NewProductDialog(
+            setShowDialog = {showDialog.value = it},
+            onConfirm = {product ->
+                onConfirm(product)
+            }
+        )
+    }
+
     //Menu drawer items
     val myItems = ListOfMenuItem(context).getItems()
 
@@ -119,8 +132,19 @@ fun ProductScreen(
         bottomBar = {
             CustomBottomAppBar(
                 navController = navController,
+                isFabExist = true,
                 context = context
             )
+        },
+        isFloatingActionButtonDocked = true,
+        floatingActionButtonPosition = FabPosition.Center,
+        floatingActionButton = {
+            FloatingActionButton(onClick = { showDialog.value = true}) {
+                Icon(
+                    imageVector = Icons.Filled.Add,
+                    contentDescription = stringResource(id = R.string.add_new_purchase_list)
+                )
+            }
         },
         drawerContent = {
             DrawerHeader()
@@ -148,7 +172,6 @@ fun ProductScreen(
                     // List of database
                     TableOfProducts(
                         products = state.productList,
-                        onConfirm = onConfirm,
                         onDelete = onDelete,
                         onUpdate = onUpdate,
                     )
@@ -162,21 +185,10 @@ fun ProductScreen(
 @Composable
 fun TableOfProducts(
     products: List<Product>,
-    onConfirm: (Product) -> Unit,
     onDelete: (Product) -> Unit,
     onUpdate: (Product) -> Unit,
     modifier: Modifier = Modifier
 ){
-
-    val showDialog = remember { mutableStateOf(false) }
-
-    if (showDialog.value){
-        NewProductDialog(
-            setShowDialog = {showDialog.value = it},
-            onConfirm = onConfirm,
-        )
-    }
-
     Card(
         //elevation = 4.dp,
         modifier = modifier
@@ -248,18 +260,6 @@ fun TableOfProducts(
                     onUpdate = onUpdate,
                 )
             }
-
-            item {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    OutlinedButton(onClick = { showDialog.value = true }) {
-                        Text(text = "+")
-                    }
-                }
-            }
-
         }
     }
 }
